@@ -1,0 +1,259 @@
+# CIVIL DSL Schema Definition
+# Civic Instructions & Validations Intermediate Language
+#
+# This schema defines the structure for policy rulesets using the CIVIL DSL.
+# CIVIL is designed for government policy/regulation logic with full traceability.
+#
+# See README.md for complete specification and examples.
+
+# =============================================================================
+# MODULE STRUCTURE
+# =============================================================================
+#
+# module: string                    # Unique module identifier (e.g., "eligibility.housing_assistance")
+# description: string               # Human-readable description of the module
+# version: string                   # Version identifier (e.g., "2026Q1")
+# jurisdiction:                     # Jurisdiction metadata
+#   level: enum                     # federal | state | county | city
+#   country: string                 # ISO country code (e.g., "US")
+#   state: string                   # State/province code (optional)
+#   county: string                  # County name (optional)
+#   city: string                    # City name (optional)
+#
+# effective:                        # Effective date range
+#   start: date                     # YYYY-MM-DD
+#   end: date                       # YYYY-MM-DD (optional, for time-bounded policies)
+
+# =============================================================================
+# FACTS - Input Schema
+# =============================================================================
+#
+# facts:                            # Input fact types
+#   EntityName:                     # Name of entity (PascalCase)
+#     description: string           # Optional description
+#     fields:
+#       field_name:                 # Field name (snake_case)
+#         type: type_name           # Data type (see types below)
+#         description: string       # Field description
+#         required: boolean         # Whether field is required (default: true)
+#         currency: string          # For money type (e.g., "USD")
+#         values: list              # For enum type, list of valid values
+#
+# Supported fact field types:
+#   Primitives: int, float, bool, string, date, money
+#   Complex: list, set, enum
+#   Custom: any type defined in 'types' section
+
+# =============================================================================
+# DECISIONS - Output Schema
+# =============================================================================
+#
+# decisions:                        # Output decision values
+#   decision_name:                  # Name of decision output
+#     type: type_name               # Data type
+#     default: value                # Default value
+#     description: string           # Description of this decision
+#     item: type_name               # For list/set types, the item type
+#
+# Common decision patterns:
+#   eligible: { type: bool, default: false }
+#   benefit_amount: { type: money, currency: USD }
+#   forms: { type: set, item: string }
+#   instructions: { type: list, item: Instruction }
+#   reasons: { type: list, item: Reason }
+
+# =============================================================================
+# TYPES - Custom Data Structures
+# =============================================================================
+#
+# types:                            # Custom type definitions
+#   TypeName:                       # Type name (PascalCase)
+#     fields:
+#       field_name:                 # Field name (snake_case)
+#         type: type_name           # Field type
+#         description: string       # Field description
+#         optional: boolean         # Whether field is optional (default: false)
+#
+# Standard types included in CIVIL:
+#
+# Reason:                           # Explanation for decisions
+#   fields:
+#     code: string                  # Machine-readable code
+#     message: string               # Human-readable message
+#     citations: list[Citation]     # Legal citations
+#
+# Citation:                         # Legal/policy reference
+#   fields:
+#     label: string                 # Citation label (e.g., "42 USC § 1437a")
+#     url: string                   # URL to document (optional)
+#     excerpt: string               # Brief excerpt (optional)
+#
+# Instruction:                      # Procedural instruction
+#   fields:
+#     step: string                  # Step identifier
+#     message: string               # Instruction text
+#     citations: list[Citation]     # Supporting citations
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+#
+# constants:                        # Named constant values
+#   CONSTANT_NAME: value            # UPPER_SNAKE_CASE constant name with value
+#
+# Examples:
+#   MIN_AGE: 18
+#   FEDERAL_POVERTY_LEVEL: 14580
+#   MAX_HOUSEHOLD_SIZE: 10
+
+# =============================================================================
+# TABLES - Lookup Tables
+# =============================================================================
+#
+# tables:                           # Data tables for lookups
+#   table_name:                     # Table name (snake_case)
+#     description: string           # Optional description
+#     key: [field_names]            # Key columns for lookup
+#     value: [field_names]          # Value columns returned
+#     rows:                         # Table data
+#       - { key1: val, key2: val, value1: val }
+#
+# Example:
+#   income_limit_by_household:
+#     key: [household_size]
+#     value: [max_income]
+#     rows:
+#       - { household_size: 1, max_income: 35000 }
+#       - { household_size: 2, max_income: 42000 }
+
+# =============================================================================
+# RULE SETS
+# =============================================================================
+#
+# rule_set:                         # Rule set configuration
+#   name: string                    # Rule set identifier
+#   description: string             # Description of rule set
+#   precedence: enum                # Evaluation strategy:
+#                                   #   - deny_overrides_allow: Any deny wins
+#                                   #   - allow_overrides_deny: Any allow wins
+#                                   #   - first_match: First matching rule wins
+#                                   #   - priority_order: Evaluate by priority
+
+# =============================================================================
+# RULES
+# =============================================================================
+#
+# rules:                            # List of rules
+#   - id: string                    # Unique rule identifier (e.g., "FED-AGE-001")
+#     kind: enum                    # deny | allow
+#     description: string           # Optional human-readable description
+#     priority: int                 # Priority (lower = higher priority)
+#     when: expression              # Boolean condition (string expression)
+#     then:                         # Actions to take when condition is true
+#       - action_type               # See actions below
+#
+# Rule Actions:
+#
+# 1. set: { decision_name: value }
+#    Sets a decision output value
+#
+# 2. add_reason:
+#      code: string
+#      message: string
+#      citations: [{ label: ..., url: ..., excerpt: ... }]
+#    Adds a reason to the reasons list
+#
+# 3. add_instruction:
+#      step: string
+#      message: string
+#      citations: [{ label: ..., url: ..., excerpt: ... }]
+#    Adds an instruction to the instructions list
+#
+# 4. add_to_set: { decision_name: value }
+#    Adds a value to a set-typed decision
+#
+# 5. append_to_list: { decision_name: value }
+#    Appends a value to a list-typed decision
+
+# =============================================================================
+# EXPRESSION LANGUAGE
+# =============================================================================
+#
+# Expressions in 'when' conditions support:
+#
+# Literals:
+#   - Numbers: 42, 3.14
+#   - Strings: "text" (double quotes)
+#   - Booleans: true, false
+#   - Dates: date("2026-01-01")
+#
+# Field Access:
+#   - Fact fields: Applicant.age, Taxpayer.filing_status
+#   - Constants: MIN_AGE, FEDERAL_POVERTY_LEVEL
+#
+# Boolean Operators:
+#   - AND: &&
+#   - OR: ||
+#   - NOT: !
+#
+# Comparison Operators:
+#   - Equality: ==, !=
+#   - Ordering: <, <=, >, >=
+#
+# Arithmetic Operators:
+#   - Basic: +, -, *, /
+#
+# Functions:
+#   - table(name, key_value): Look up value in table
+#     Example: table('income_limits', Applicant.household_size).max_income
+#   - in(value, [list]): Check membership
+#     Example: in(Applicant.state, ["CA", "NY", "IL"])
+#   - exists(field): Check if field exists/is not null
+#   - is_null(field): Check if field is null
+#   - between(value, min, max): Range check
+#     Example: between(Applicant.age, 18, 65)
+
+# =============================================================================
+# OVERLAYS - Multi-Jurisdiction Support
+# =============================================================================
+#
+# For jurisdiction layering (federal → state → city), create separate files
+# with overlay definitions:
+#
+# bundle: string                    # Bundle identifier
+# version: string                   # Version
+# effective: { start: date, end: date }
+# jurisdiction: { level, country, state, city }
+#
+# overlays:                         # Overlay definitions
+#   - target_module: string         # Module to overlay
+#     strategy: enum                # Overlay strategy:
+#                                   #   - add_stricter_denials: Add new deny rules
+#                                   #   - replace_rule_set: Replace entire rule set
+#                                   #   - override_by_id: Override specific rules by ID
+#     rules: [...]                  # Rules to add/override (same format as rules section)
+#     constants: { ... }            # Constants to override (optional)
+#     tables_override: { ... }      # Tables to add/override (optional)
+
+# =============================================================================
+# EXAMPLE STRUCTURE
+# =============================================================================
+#
+# See example_benefit.yaml for a complete, working example.
+#
+# Basic structure:
+#   module: "domain.name"
+#   description: "..."
+#   version: "2026Q1"
+#   jurisdiction: { level: federal, country: US }
+#   effective: { start: 2026-01-01 }
+#   facts: { ... }
+#   decisions: { ... }
+#   types: { ... }
+#   constants: { ... }
+#   tables: { ... }
+#   rule_set: { name: "...", precedence: "deny_overrides_allow" }
+#   rules: [...]
+#
+# For the full specification including design rationale, expression language
+# details, and compilation targets, see README.md

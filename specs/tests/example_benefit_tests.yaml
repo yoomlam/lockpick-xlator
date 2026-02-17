@@ -1,0 +1,57 @@
+test_suite:
+  spec: "example_benefit.yaml"
+  description: "Test cases for example benefit eligibility"
+  version: "1.0"
+  
+tests:
+  - case_id: "test_001"
+    description: "Adult with qualifying income should be eligible"
+    inputs:
+      age: 25
+      monthly_income: 1500
+      household_size: 1
+    expected:
+      eligible: true
+      reasons:
+        - code: "MEETS_ALL_REQUIREMENTS"
+          message: "Applicant meets all eligibility requirements"
+    tags: ["happy_path", "adult"]
+    
+  - case_id: "test_002"
+    description: "Minor under 18 should be ineligible"
+    inputs:
+      age: 17
+      monthly_income: 1000
+      household_size: 1
+    expected:
+      eligible: false
+      reasons:
+        - code: "AGE_REQUIREMENT_NOT_MET"
+          message: "Applicant must be at least 18 years old"
+    tags: ["invalid", "age", "boundary"]
+    
+  - case_id: "test_003"
+    description: "Income above limit should be ineligible"
+    inputs:
+      age: 30
+      monthly_income: 5000
+      household_size: 1
+    expected:
+      eligible: false
+      reasons:
+        - code: "INCOME_TOO_HIGH"
+          message: "Monthly income exceeds the limit for household size"
+    tags: ["invalid", "income"]
+    
+  - case_id: "test_004"
+    description: "Larger household with proportional income"
+    inputs:
+      age: 35
+      monthly_income: 3000
+      household_size: 4
+    expected:
+      eligible: true
+      reasons:
+        - code: "MEETS_ALL_REQUIREMENTS"
+          message: "Applicant meets all eligibility requirements"
+    tags: ["happy_path", "household", "variable_calculation"]
