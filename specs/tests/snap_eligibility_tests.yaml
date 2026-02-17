@@ -1,0 +1,251 @@
+test_suite:
+  spec: "snap_eligibility.civil.yaml"
+  description: "Test cases for federal SNAP income eligibility (FY2026)"
+  version: "1.0"
+
+# =============================================================================
+# FY2026 Reference Values (used to construct test inputs)
+#
+# Household size 3:
+#   Gross limit: $2,888   Net limit: $2,221
+#   Standard deduction: $209
+#
+# Household size 1:
+#   Gross limit: $1,696   Net limit: $1,305
+#   Standard deduction: $209
+#
+# Household size 4:
+#   Gross limit: $3,483   Net limit: $2,680
+#   Standard deduction: $223
+#
+# Household size 9 (formula: base_size_8 + 1×increment):
+#   Gross limit: $5,867 + $596 = $6,463
+#   Net limit:   $4,513 + $459 = $4,972
+# =============================================================================
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_001 — Clear allow, income well below both limits
+  # HH size 3, gross $1,800 (limit $2,888), no deductions that matter
+  # Net income: $1,800 - (0 earned deduction) - $209 std = $1,591 < $2,221 ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_001"
+    description: "Household of 3 with low income passes both gross and net tests"
+    inputs:
+      household_size: 3
+      has_elderly_member: false
+      has_disabled_member: false
+      gross_monthly_income: 1800
+      earned_income: 0
+      unearned_income: 1800
+      shelter_costs_monthly: 500
+      dependent_care_costs: 0
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["happy_path", "allow", "size_3"]
+
+  # ---------------------------------------------------------------------------
+  # Case: deny_gross_001 — Fails gross income test
+  # HH size 3, gross $3,200 > limit $2,888 → deny at gross test
+  # No elderly/disabled members, so gross test applies.
+  # ---------------------------------------------------------------------------
+  - case_id: "deny_gross_001"
+    description: "Household of 3 with gross income exceeding 130% FPL is denied at gross test"
+    inputs:
+      household_size: 3
+      has_elderly_member: false
+      has_disabled_member: false
+      gross_monthly_income: 3200
+      earned_income: 3200
+      unearned_income: 0
+      shelter_costs_monthly: 800
+      dependent_care_costs: 0
+    expected:
+      eligible: false
+      denial_reasons:
+        - code: "GROSS_INCOME_EXCEEDS_LIMIT"
+    tags: ["deny", "gross_test", "size_3"]
+
+  # ---------------------------------------------------------------------------
+  # Case: deny_net_001 — Passes gross test, fails net income test
+  # HH size 3, gross $2,700 < limit $2,888 (passes gross)
+  # Net: $2,700 - $0 earned ded - $209 std - $0 dep care - shelter ded
+  #   shelter: costs $1,200, income after prior ded = $2,491
+  #   excess = max(0, 1200 - 0.5 × 2491) = max(0, 1200 - 1245.5) = 0
+  #   net = $2,700 - $209 = $2,491 > $2,221 → deny at net test
+  # ---------------------------------------------------------------------------
+  - case_id: "deny_net_001"
+    description: "Household of 3 passes gross test but fails net income test"
+    inputs:
+      household_size: 3
+      has_elderly_member: false
+      has_disabled_member: false
+      gross_monthly_income: 2700
+      earned_income: 0
+      unearned_income: 2700
+      shelter_costs_monthly: 400
+      dependent_care_costs: 0
+    expected:
+      eligible: false
+      denial_reasons:
+        - code: "NET_INCOME_EXCEEDS_LIMIT"
+    tags: ["deny", "net_test", "size_3"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_elderly_001 — Elderly member exempts from gross test
+  # HH size 2 with elderly member, gross $2,500 > gross limit $2,292
+  # But: elderly member → exempt from gross test
+  # Net: $2,500 - $0 earned - $209 std = $2,291 ... need shelter to push below
+  #   shelter: $900, income after prior = $2,291
+  #   excess = max(0, 900 - 0.5 × 2291) = max(0, 900 - 1145.5) = 0
+  #   net = $2,291 > net limit $1,763 ... let's use a lower income
+  # Use: gross $1,900 (> gross limit $2,292 would fail gross test)
+  # Wait, gross limit for size 2 is $2,292. $1,900 < $2,292 anyway.
+  # Let's set a clearer elderly exemption case:
+  # HH size 1, elderly, gross $1,800 > gross limit $1,696 → would fail gross
+  # Net: $1,800 - $0 earned - $209 std = $1,591 < net limit $1,305? No, $1,591 > $1,305
+  # Let's use: gross $1,400 which would fail gross limit for... no $1,400 < $1,696
+  # For a clear case: HH size 1, elderly, gross $2,000 > $1,696 (would fail gross)
+  # Net: $2,000 - $0 earned - $209 std = $1,791? > $1,305... fails net too
+  # Need shelter deduction: shelter $1,200
+  #   income after std = $2,000 - $209 = $1,791
+  #   excess = max(0, 1200 - 0.5 × 1791) = max(0, 1200 - 895.5) = $304.5
+  #   no cap (elderly)
+  #   net = $1,791 - $304.5 = $1,486.5 > $1,305... still fails
+  # Use HH size 2, elderly: gross $2,500 > $2,292 gross limit
+  #   net: $2,500 - $0 - $209 = $2,291
+  #   shelter $1,500: excess = max(0, 1500 - 0.5*2291) = max(0, 1500-1145.5) = $354.5
+  #   no cap (elderly). net = $2,291 - $354.5 = $1,936.5 > $1,763... still fails
+  # HH size 3, elderly: gross $3,200 > $2,888 gross limit
+  #   net: $3,200 - $0 - $209 = $2,991
+  #   shelter $2,400: excess = max(0, 2400 - 0.5*2991) = max(0, 2400-1495.5) = $904.5
+  #   no cap. net = $2,991 - $904.5 = $2,086.5 < $2,221 ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_elderly_001"
+    description: "Elderly household exempt from gross test; passes net test with shelter deduction"
+    inputs:
+      household_size: 3
+      has_elderly_member: true
+      has_disabled_member: false
+      gross_monthly_income: 3200
+      earned_income: 0
+      unearned_income: 3200
+      shelter_costs_monthly: 2400
+      dependent_care_costs: 0
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "elderly", "gross_exemption", "shelter_deduction"]
+
+  # ---------------------------------------------------------------------------
+  # Case: deny_elderly_net_001 — Elderly member, passes gross exemption, fails net
+  # HH size 1, elderly, gross $2,000 (> $1,696 gross limit, but exempt)
+  # Net: $2,000 - $0 earned - $209 std = $1,791 > net limit $1,305 → deny
+  # ---------------------------------------------------------------------------
+  - case_id: "deny_elderly_net_001"
+    description: "Elderly household exempt from gross test but fails net income test"
+    inputs:
+      household_size: 1
+      has_elderly_member: true
+      has_disabled_member: false
+      gross_monthly_income: 2000
+      earned_income: 0
+      unearned_income: 2000
+      shelter_costs_monthly: 200
+      dependent_care_costs: 0
+    expected:
+      eligible: false
+      denial_reasons:
+        - code: "NET_INCOME_EXCEEDS_LIMIT"
+    tags: ["deny", "elderly", "net_test"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_shelter_001 — Shelter deduction pushes net income below limit
+  # HH size 3, gross $2,600 < $2,888 gross limit (passes gross)
+  # earned_income $2,000, shelter $1,800, no dep care
+  # Earned ded: $2,000 × 0.20 = $400
+  # Std ded: $209 (size 3)
+  # Dep care ded: $0
+  # Income after prior: $2,600 - $400 - $209 = $1,991
+  # Shelter excess: max(0, 1800 - 0.5 × 1991) = max(0, 1800 - 995.5) = $804.5
+  # Cap (non-elderly): min($804.5, $744) = $744
+  # Net: $1,991 - $744 = $1,247 < net limit $2,221 ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_shelter_001"
+    description: "Shelter deduction (capped at $744) brings net income below 100% FPL limit"
+    inputs:
+      household_size: 3
+      has_elderly_member: false
+      has_disabled_member: false
+      gross_monthly_income: 2600
+      earned_income: 2000
+      unearned_income: 600
+      shelter_costs_monthly: 1800
+      dependent_care_costs: 0
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "shelter_deduction", "shelter_cap", "earned_income_deduction"]
+
+  # ---------------------------------------------------------------------------
+  # Case: boundary_gross_001 — Gross income exactly at 130% FPL limit
+  # HH size 3, gross exactly $2,888 = limit → should PASS (≤ limit = pass)
+  # Net: $2,888 - $0 earned - $209 std = $2,679 > $2,221 net limit → deny at net
+  # We need this to be an eligible case: add shelter deduction
+  # shelter $1,200: income after std = $2,679
+  # excess = max(0, 1200 - 0.5×2679) = max(0, 1200-1339.5) = 0
+  # Hmm, shelter doesn't help enough with low income. Let's just verify the
+  # gross boundary and accept this may deny at net. Let's adjust:
+  # gross $2,888, earned $1,500 → earned ded $300
+  # income after earned+std = $2,888 - $300 - $209 = $2,379
+  # shelter $1,200: excess = max(0, 1200 - 0.5×2379) = max(0, 1200-1189.5) = $10.5
+  # net = $2,379 - $10.5 = $2,368.5 > $2,221 ... still denies at net
+  # This is fine — the test validates the gross boundary, not that it's overall eligible
+  # Actually let's make it pass both: gross at boundary, low net income
+  # HH size 4: gross limit $3,483, use gross = $3,483 exactly
+  # earned $2,000: ded $400. std ded $223. income after = $3,483 - $400 - $223 = $2,860
+  # shelter $1,600: excess = max(0, 1600 - 0.5×2860) = max(0, 1600-1430) = $170
+  # net = $2,860 - $170 = $2,690 > $2,680... just over
+  # shelter $1,700: excess = max(0, 1700-1430) = $270. net = $2,860-$270 = $2,590 < $2,680 ✓
+  # This test focuses on: gross exactly at limit → not denied by gross test
+  # ---------------------------------------------------------------------------
+  - case_id: "boundary_gross_001"
+    description: "Gross income exactly at 130% FPL limit passes gross test (boundary condition)"
+    inputs:
+      household_size: 4
+      has_elderly_member: false
+      has_disabled_member: false
+      gross_monthly_income: 3483
+      earned_income: 2000
+      unearned_income: 1483
+      shelter_costs_monthly: 1700
+      dependent_care_costs: 0
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "boundary", "gross_test", "size_4"]
+
+  # ---------------------------------------------------------------------------
+  # Case: deny_large_001 — Household of 9, tests formula threshold
+  # Size 9 gross limit: $5,867 + $596 = $6,463
+  # Size 9 net limit:   $4,513 + $459 = $4,972
+  # Use gross $7,000 > $6,463 → deny at gross test
+  # ---------------------------------------------------------------------------
+  - case_id: "deny_large_001"
+    description: "Household of 9 with gross income exceeding formula-computed limit is denied"
+    inputs:
+      household_size: 9
+      has_elderly_member: false
+      has_disabled_member: false
+      gross_monthly_income: 7000
+      earned_income: 7000
+      unearned_income: 0
+      shelter_costs_monthly: 0
+      dependent_care_costs: 0
+    expected:
+      eligible: false
+      denial_reasons:
+        - code: "GROSS_INCOME_EXCEEDS_LIMIT"
+    tags: ["deny", "gross_test", "large_household", "formula_threshold"]

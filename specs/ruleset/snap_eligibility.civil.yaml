@@ -1,0 +1,231 @@
+# SNAP Federal Income Eligibility — CIVIL DSL Module
+# Translated from: input/policy_docs/snap_eligibility_fy2026.md
+# Primary authority: 7 CFR § 273.9
+
+module: "eligibility.snap_federal"
+description: "Federal SNAP income eligibility — gross and net income tests (FY2026, 48 states + D.C.)"
+version: "2026Q1"
+jurisdiction:
+  level: federal
+  country: US
+
+effective:
+  start: 2025-10-01
+  end: 2026-09-30
+
+# =============================================================================
+# FACTS — Input Schema
+# =============================================================================
+# These are the facts a caseworker provides about the household.
+
+facts:
+  Household:
+    description: "A SNAP household — people living together who purchase and prepare food together (7 CFR § 273.1)"
+    fields:
+      household_size:
+        type: int
+        description: "Number of members in the SNAP household"
+
+      has_elderly_member:
+        type: bool
+        optional: true
+        description: "True if any household member is age 60 or older (7 CFR § 273.1(b)(7))"
+
+      has_disabled_member:
+        type: bool
+        optional: true
+        description: "True if any member receives SSI/SSDI or meets disability criteria (7 CFR § 273.1(b)(7))"
+
+      gross_monthly_income:
+        type: money
+        currency: USD
+        description: "Total monthly household income before any deductions (earned + unearned combined)"
+
+      earned_income:
+        type: money
+        currency: USD
+        optional: true
+        description: "Monthly earned income only — wages, salaries, net self-employment (subject to 20% deduction per 7 CFR § 273.9(b))"
+
+      unearned_income:
+        type: money
+        currency: USD
+        optional: true
+        description: "Monthly unearned income — Social Security, child support, unemployment, etc."
+
+      shelter_costs_monthly:
+        type: money
+        currency: USD
+        optional: true
+        description: "Monthly shelter costs — rent/mortgage + utilities (7 CFR § 273.9(d)(6))"
+
+      dependent_care_costs:
+        type: money
+        currency: USD
+        optional: true
+        description: "Monthly out-of-pocket dependent care costs needed for work/training (7 CFR § 273.9(d)(4))"
+
+# =============================================================================
+# DECISIONS — Output Schema
+# =============================================================================
+
+decisions:
+  eligible:
+    type: bool
+    default: false
+    description: "Whether the household meets SNAP income eligibility requirements"
+
+  denial_reasons:
+    type: list
+    item: Reason
+    default: []
+    description: "Reasons for ineligibility (empty if eligible)"
+
+  net_income:
+    type: money
+    description: "Computed net monthly income after all allowable deductions"
+
+# =============================================================================
+# TABLES — FY2026 Income Thresholds and Standard Deductions
+# =============================================================================
+# Source: USDA FNS FY2026 SNAP Income Standards, effective October 1, 2025
+# For household sizes 9+, use formula: base + (size - 8) × increment
+# (implemented in transpiled Rego; see CIVIL v1 limitation note below)
+
+tables:
+  gross_income_limits:
+    description: "Maximum monthly gross income at 130% FPL (7 CFR § 273.9(a)(1))"
+    key: [household_size]
+    value: [max_gross_monthly]
+    rows:
+      - { household_size: 1, max_gross_monthly: 1696 }
+      - { household_size: 2, max_gross_monthly: 2292 }
+      - { household_size: 3, max_gross_monthly: 2888 }
+      - { household_size: 4, max_gross_monthly: 3483 }
+      - { household_size: 5, max_gross_monthly: 4079 }
+      - { household_size: 6, max_gross_monthly: 4675 }
+      - { household_size: 7, max_gross_monthly: 5271 }
+      - { household_size: 8, max_gross_monthly: 5867 }
+    # Size 9+: add $596 per additional person above 8
+
+  net_income_limits:
+    description: "Maximum monthly net income at 100% FPL (7 CFR § 273.9(a)(2))"
+    key: [household_size]
+    value: [max_net_monthly]
+    rows:
+      - { household_size: 1, max_net_monthly: 1305 }
+      - { household_size: 2, max_net_monthly: 1763 }
+      - { household_size: 3, max_net_monthly: 2221 }
+      - { household_size: 4, max_net_monthly: 2680 }
+      - { household_size: 5, max_net_monthly: 3138 }
+      - { household_size: 6, max_net_monthly: 3596 }
+      - { household_size: 7, max_net_monthly: 4055 }
+      - { household_size: 8, max_net_monthly: 4513 }
+    # Size 9+: add $459 per additional person above 8
+
+  standard_deductions:
+    description: "Monthly standard deduction by household size (7 CFR § 273.9(c))"
+    key: [household_size]
+    value: [deduction_amount]
+    rows:
+      - { household_size: 1, deduction_amount: 209 }
+      - { household_size: 2, deduction_amount: 209 }
+      - { household_size: 3, deduction_amount: 209 }
+      - { household_size: 4, deduction_amount: 223 }
+      - { household_size: 5, deduction_amount: 261 }
+      - { household_size: 6, deduction_amount: 299 }
+    # Size 7+: $299 (same as size 6+)
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+
+constants:
+  SHELTER_DEDUCTION_CAP: 744            # Monthly cap for non-elderly/disabled households (7 CFR § 273.9(d)(6)(ii))
+  EARNED_INCOME_DEDUCTION_RATE: 0.20    # 20% of earned income (7 CFR § 273.9(b))
+  SHELTER_EXCESS_THRESHOLD_RATE: 0.50   # Shelter costs above 50% of remaining income (7 CFR § 273.9(d)(6))
+  GROSS_INCOME_INCREMENT_9PLUS: 596     # Additional gross limit per person above size 8
+  NET_INCOME_INCREMENT_9PLUS: 459       # Additional net limit per person above size 8
+
+# =============================================================================
+# RULE SET
+# =============================================================================
+
+rule_set:
+  name: "snap_federal_income_eligibility"
+  precedence: "deny_overrides_allow"
+  description: "Federal SNAP income eligibility evaluation — gross test then net test"
+
+# =============================================================================
+# RULES
+# =============================================================================
+#
+# CIVIL v1 LIMITATION NOTE:
+# The net income calculation requires multi-step arithmetic with intermediate
+# variables (each deduction depends on income remaining after prior deductions).
+# CIVIL v1 does not support intermediate variable binding in `when:` expressions.
+#
+# Resolution: The `when:` conditions for net income rules reference a computed
+# `net_income` decision field. The full deduction chain is implemented in the
+# transpiled Rego output (see output/ruleset/snap_eligibility.rego), not in the
+# CIVIL expression itself. The CIVIL rules express the *intent* of the rules;
+# the transpiler implements the *mechanics*.
+#
+# Future: CIVIL v2 should add `let` bindings for intermediate variable assignment.
+
+rules:
+
+  # ---------------------------------------------------------------------------
+  # DENY-001: Gross income test
+  # Households without elderly/disabled members must pass the 130% FPL test.
+  # ---------------------------------------------------------------------------
+  - id: "FED-SNAP-DENY-001"
+    kind: "deny"
+    priority: 1
+    description: "Gross income exceeds 130% FPL — gross income test failed"
+    when: "!Household.has_elderly_member && !Household.has_disabled_member && Household.gross_monthly_income > table('gross_income_limits', Household.household_size).max_gross_monthly"
+    then:
+      - add_reason:
+          code: "GROSS_INCOME_EXCEEDS_LIMIT"
+          message: "Gross monthly income exceeds 130% of the Federal Poverty Level for this household size"
+          citations:
+            - label: "7 CFR § 273.9(a)(1)"
+              url: "https://www.ecfr.gov/current/title-7/subtitle-B/chapter-II/subchapter-C/part-273/section-273.9"
+              excerpt: "Households in which each member receives SSI or cash assistance under title IV-A of the Social Security Act are not subject to the gross income test."
+
+  # ---------------------------------------------------------------------------
+  # DENY-002: Net income test
+  # All households must pass the 100% FPL test after deductions.
+  # Net income is computed by the transpiler (see limitation note above).
+  # ---------------------------------------------------------------------------
+  - id: "FED-SNAP-DENY-002"
+    kind: "deny"
+    priority: 2
+    description: "Net income exceeds 100% FPL after allowable deductions — net income test failed"
+    when: "net_income > table('net_income_limits', Household.household_size).max_net_monthly"
+    then:
+      - add_reason:
+          code: "NET_INCOME_EXCEEDS_LIMIT"
+          message: "Net monthly income after allowable deductions exceeds 100% of the Federal Poverty Level for this household size"
+          citations:
+            - label: "7 CFR § 273.9(a)(2)"
+              url: "https://www.ecfr.gov/current/title-7/subtitle-B/chapter-II/subchapter-C/part-273/section-273.9"
+              excerpt: "Except for households in which all members receive SSI or cash assistance, the household's net income shall not exceed the poverty line."
+
+  # ---------------------------------------------------------------------------
+  # ALLOW-001: Household passes all income tests
+  # ---------------------------------------------------------------------------
+  - id: "FED-SNAP-ALLOW-001"
+    kind: "allow"
+    priority: 100
+    description: "Household meets all SNAP income eligibility requirements"
+    when: "true"
+    then:
+      - set:
+          eligible: true
+      - add_reason:
+          code: "INCOME_ELIGIBLE"
+          message: "Household meets SNAP income eligibility requirements — gross and net income tests passed"
+          citations:
+            - label: "7 CFR § 273.9"
+              url: "https://www.ecfr.gov/current/title-7/subtitle-B/chapter-II/subchapter-C/part-273/section-273.9"
