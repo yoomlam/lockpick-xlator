@@ -49,3 +49,43 @@ This project takes an incremental approach where each iteration involves:
 - Iterate on specs as needed
 - Document any assumptions or interpretations
 
+## Vision diagram
+
+```mermaid
+flowchart TD
+
+subgraph input
+    policy_docs@{shape: docs} --> legacy_code
+    legacy_code@{shape: procs}
+end
+
+policy_docs --> Extractor1[[Extractor1]] --> ruleset
+legacy_code --> Extractor2[[Extractor2]] --> specs
+
+subgraph specs
+    ruleset & workflows
+end
+
+specs <--correct?--> verify[/verify/]
+
+subgraph ruleset_testing
+    tester_rule_engine[[Rule Engine]]
+    ruleset --transpile?--> tester_rule_engine
+    test_cases([test_cases]) --> tester_rule_engine --> expected_results([expected_results])
+    tester_rule_engine --> explanation([explanation])
+end
+
+ruleset ---> Transpiler[[Transpiler]] --> ruleset2[ruleset]
+workflows ---> Coder[[Coder]] --> webforms
+
+subgraph output["output (modern_system)"]
+    ruleset2 --> rule_engine[[Rule Engine]] <--> code <--> webforms
+end
+```
+
+- One incarnation of `Extractor1` is the [Policy Extraction (doc-to-logic) prototype](https://github.com/navapbc/lockpick-doc-to-logic)
+- `Extractor2` will likely use AWS Transform, which also produces documentation, which would be included as part of the specs and can be used as input to the Coder.
+
+Not yet in the diagram:
+- There can be multiple specs that can be compared to identify differences between systems (legacy vs legacy; modern vs modern; legacy vs modern).
+- Validating the modern_system against the legacy_system
