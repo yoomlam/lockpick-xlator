@@ -34,6 +34,7 @@ Map the policy document to CIVIL DSL constructs:
 | Denial/approval explanations | `decisions: denial_reasons: list[Reason]` |
 | Dollar thresholds by size | `tables:` with key/value rows |
 | Fixed rates/amounts | `constants:` |
+| **Intermediate derived values** | **`computed:` fields (CIVIL v2)** |
 | Income/asset test | `rules:` with `kind: deny` |
 | Pass all tests → eligible | `rules:` with `kind: allow`, `when: "true"` |
 
@@ -87,6 +88,20 @@ tables:
 constants:
   UPPER_SNAKE_CASE_NAME: value
 
+computed:  # optional (CIVIL v2) — intermediate derived values for multi-step formulas
+  <field_name>:
+    type: <money|bool|float|int>
+    description: "..."
+    expr: "<CIVIL expression>"     # single expression
+  # For conditional (if/then/else):
+  <field_name_2>:
+    type: money
+    description: "..."
+    conditional:
+      if: "<bool expression>"
+      then: "<value expression>"
+      else: "<value expression>"
+
 rule_set:
   name: "<identifier>"
   precedence: "deny_overrides_allow"
@@ -110,7 +125,7 @@ rules:
 
 **Reference:** See `specs/ruleset/example_benefit.yaml` for a complete working example.
 
-**CIVIL Expression Language** (for `when:` clauses):
+**CIVIL Expression Language** (for `when:` clauses and `computed:` expressions):
 - Field access: `Household.household_size`, `Applicant.age`
 - Constants: `MIN_AGE`, `INCOME_MULTIPLIER`
 - Table lookup: `table('gross_income_limits', Household.household_size).max_gross_monthly`
@@ -118,8 +133,9 @@ rules:
 - Comparison: `==`, `!=`, `<`, `<=`, `>`, `>=`
 - Arithmetic: `+`, `-`, `*`, `/`
 - Functions: `exists(field)`, `is_null(field)`, `between(value, min, max)`, `in(value, [a, b, c])`
+- `computed:` only: `max(a, b)`, `min(a, b)` — numeric comparison; computed field names as bare identifiers
 
-**CIVIL v1 Limitation:** If net income requires multi-step arithmetic with intermediate variables, note this in a comment and express the intent in the `when:` clause. The transpiler will implement the full formula in Rego.
+**Multi-step formulas (CIVIL v2):** If a rule requires multi-step arithmetic with intermediate variables (e.g., a deduction chain where each step depends on the prior), use a `computed:` section to define each step. The `when:` clause can then reference the final computed field name directly.
 
 ### Step 4: Run the Validator
 
@@ -208,3 +224,4 @@ Report the test results to the user.
 - **Cite the actual CFR/USC section** for each rule, not just "Program Policy Manual"
 - **Use `optional: true`** for fact fields that may not always be provided (e.g., `earned_income`, `shelter_costs`)
 - **Distinguish earned vs. unearned income** if any deduction applies only to earned income
+- **Use `computed:` for multi-step formulas** — don't reference undefined identifiers in `when:` clauses; if a value needs multiple steps to compute, define it in `computed:` and reference it by name

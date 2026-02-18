@@ -70,36 +70,32 @@ standard_deduction := standard_deductions[input.household_size] if {
 } else := 299
 
 # =============================================================================
-# DEDUCTION CHAIN (7 CFR § 273.9(b)–(d))
-# Applied in order; each step depends on income remaining after prior steps.
+# DEDUCTION CHAIN (from CIVIL v2 computed: section)
 # =============================================================================
 
-# Deduction 1: 20% of earned income (7 CFR § 273.9(b))
+# 20% earned income deduction (7 CFR § 273.9(b))
 earned_income_deduction := input.earned_income * 0.2
 
-# Deduction 2: Standard deduction (applied after earned income deduction)
-# (uses standard_deduction rule above)
+# standard_deduction: handled by SNAP-specific lookup rule above
 
-# Deduction 3: Dependent care deduction (7 CFR § 273.9(d)(4))
+# Dependent care costs deduction (7 CFR § 273.9(d)(4))
 dependent_care_deduction := input.dependent_care_costs
 
-# Income remaining after deductions 1, 2, 3 (base for shelter excess calculation)
-income_after_prior_deductions := input.gross_monthly_income
-    - earned_income_deduction
-    - standard_deduction
-    - dependent_care_deduction
+# Gross income after earned, standard, and dependent care deductions
+income_after_prior_deductions := input.gross_monthly_income - earned_income_deduction - standard_deduction - dependent_care_deduction
 
-# Deduction 4: Excess shelter deduction (7 CFR § 273.9(d)(6))
-shelter_excess := max([0, input.shelter_costs_monthly - (0.5 * income_after_prior_deductions)])
+# Shelter costs exceeding 50% of remaining income (7 CFR § 273.9(d)(6))
+shelter_excess := max([0, input.shelter_costs_monthly - 0.5 * income_after_prior_deductions])
 
-# Shelter cap: $744/month unless elderly or disabled member (no cap)
+# Elderly or disabled household — exempt from gross test and shelter cap
 default is_exempt_household := false
-is_exempt_household if { input.has_elderly_member == true }
-is_exempt_household if { input.has_disabled_member == true }
+is_exempt_household if { input.has_elderly_member }
+is_exempt_household if { input.has_disabled_member }
 
+# Shelter deduction — capped at $744 unless elderly/disabled (7 CFR § 273.9(d)(6))
 shelter_deduction := shelter_excess if { is_exempt_household } else := min([shelter_excess, 744])
 
-# Final net income
+# Net monthly income after all allowable deductions (7 CFR § 273.9)
 net_income := income_after_prior_deductions - shelter_deduction
 
 # =============================================================================

@@ -107,6 +107,61 @@
 #   MAX_HOUSEHOLD_SIZE: 10
 
 # =============================================================================
+# COMPUTED — Derived Value Definitions (CIVIL v2)
+# =============================================================================
+#
+# computed:                         # Optional section (CIVIL v2)
+#   field_name:                     # snake_case identifier
+#     type: money | bool | float | int
+#     currency: string              # For money type (e.g., "USD")
+#     description: string           # Human-readable explanation
+#     expr: string                  # CIVIL expression (mutually exclusive with conditional:)
+#
+# For conditional (if/then/else) fields, use conditional: instead of expr:
+#     conditional:
+#       if: string                  # Boolean CIVIL expression — condition to test
+#       then: string                # CIVIL expression for the true branch
+#       else: string                # CIVIL expression for the false branch
+#
+# Computed fields may reference:
+#   - Fact fields: Household.field_name, Applicant.field_name
+#   - Constants: CONSTANT_NAME
+#   - Other computed field names (define in dependency order — no forward refs)
+#   - Table lookups: table('table_name', key_expr).value_column
+#
+# Expression language additions for computed: fields:
+#   - max(a, b)  — returns the larger of two values  →  Rego: max([a, b])
+#   - min(a, b)  — returns the smaller of two values →  Rego: min([a, b])
+#
+# Transpilation to OPA/Rego:
+#   - expr (non-bool):  field_name := <translated_expr>
+#   - expr (bool):      default field_name := false
+#                       field_name if { <translated_expr> }
+#   - conditional:      field_name := <then_expr> if { <if_expr> } else := <else_expr>
+#
+# Computed fields are NOT primary decision outputs. They are intermediate
+# values available to rules (in when: expressions) and to other computed fields.
+#
+# Example:
+#   computed:
+#     earned_income_deduction:
+#       type: money
+#       currency: USD
+#       description: "20% of earned income"
+#       expr: "Household.earned_income * EARNED_INCOME_RATE"
+#     is_exempt:
+#       type: bool
+#       description: "Elderly or disabled household"
+#       expr: "Household.has_elderly_member || Household.has_disabled_member"
+#     shelter_cap_applied:
+#       type: money
+#       description: "Shelter deduction with or without cap"
+#       conditional:
+#         if: "is_exempt"
+#         then: "shelter_excess"
+#         else: "min(shelter_excess, SHELTER_CAP)"
+
+# =============================================================================
 # TABLES - Lookup Tables
 # =============================================================================
 #
@@ -212,6 +267,12 @@
 #   - is_null(field): Check if field is null
 #   - between(value, min, max): Range check
 #     Example: between(Applicant.age, 18, 65)
+#
+# CIVIL v2 additions (available in computed: expressions):
+#   - max(a, b): Returns the larger of two values
+#     Example: max(0, income - deductions)
+#   - min(a, b): Returns the smaller of two values
+#     Example: min(shelter_excess, SHELTER_CAP)
 
 # =============================================================================
 # OVERLAYS - Multi-Jurisdiction Support
@@ -252,6 +313,7 @@
 #   types: { ... }
 #   constants: { ... }
 #   tables: { ... }
+#   computed: { ... }    # optional; CIVIL v2 — intermediate derived values
 #   rule_set: { name: "...", precedence: "deny_overrides_allow" }
 #   rules: [...]
 #

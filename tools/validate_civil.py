@@ -22,6 +22,7 @@ VALID_JURISDICTION_LEVELS = {"federal", "state", "county", "city"}
 VALID_PRIMITIVE_TYPES = {"int", "float", "bool", "string", "date", "money", "list", "set", "enum"}
 VALID_PRECEDENCES = {"deny_overrides_allow", "allow_overrides_deny", "first_match", "priority_order"}
 VALID_RULE_KINDS = {"deny", "allow"}
+VALID_COMPUTED_TYPES = {"money", "bool", "float", "int"}
 
 
 def error(msg):
@@ -108,6 +109,42 @@ def validate(path):
                 continue
             if "type" not in dec_def:
                 errors.append(f"decisions.{dec_name}: 'type' is required")
+
+    # Validate computed: section (CIVIL v2 — optional)
+    computed = doc.get("computed")
+    if computed is not None:
+        if not isinstance(computed, dict) or len(computed) == 0:
+            errors.append("'computed' must be a non-empty mapping if present")
+        else:
+            for field_name, field_def in computed.items():
+                prefix = f"computed.{field_name}"
+                if not isinstance(field_def, dict):
+                    errors.append(f"{prefix}: must be a mapping")
+                    continue
+                ftype = field_def.get("type")
+                if not ftype:
+                    errors.append(f"{prefix}: 'type' is required")
+                elif ftype not in VALID_COMPUTED_TYPES:
+                    errors.append(f"{prefix}: 'type' must be one of {sorted(VALID_COMPUTED_TYPES)}, got: {ftype!r}")
+                has_expr = "expr" in field_def
+                has_cond = "conditional" in field_def
+                if not has_expr and not has_cond:
+                    errors.append(f"{prefix}: must have either 'expr' or 'conditional'")
+                elif has_expr and has_cond:
+                    errors.append(f"{prefix}: 'expr' and 'conditional' are mutually exclusive")
+                elif has_expr:
+                    if not isinstance(field_def["expr"], str):
+                        errors.append(f"{prefix}: 'expr' must be a string")
+                elif has_cond:
+                    cond = field_def["conditional"]
+                    if not isinstance(cond, dict):
+                        errors.append(f"{prefix}: 'conditional' must be a mapping")
+                    else:
+                        for key in ("if", "then", "else"):
+                            if key not in cond:
+                                errors.append(f"{prefix}.conditional: '{key}' is required")
+                            elif not isinstance(cond[key], str):
+                                errors.append(f"{prefix}.conditional.{key}: must be a string")
 
     # Validate rule_set
     rule_set = doc["rule_set"]

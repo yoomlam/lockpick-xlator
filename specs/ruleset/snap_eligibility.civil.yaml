@@ -81,16 +81,12 @@ decisions:
     default: []
     description: "Reasons for ineligibility (empty if eligible)"
 
-  net_income:
-    type: money
-    description: "Computed net monthly income after all allowable deductions"
-
 # =============================================================================
 # TABLES — FY2026 Income Thresholds and Standard Deductions
 # =============================================================================
 # Source: USDA FNS FY2026 SNAP Income Standards, effective October 1, 2025
 # For household sizes 9+, use formula: base + (size - 8) × increment
-# (implemented in transpiled Rego; see CIVIL v1 limitation note below)
+# (implemented in transpiled Rego — size fallback cannot be expressed via table lookup)
 
 tables:
   gross_income_limits:
@@ -148,6 +144,63 @@ constants:
   NET_INCOME_INCREMENT_9PLUS: 459       # Additional net limit per person above size 8
 
 # =============================================================================
+# COMPUTED — Derived Intermediate Values (CIVIL v2)
+# =============================================================================
+# The 5-step deduction chain per 7 CFR § 273.9(b)–(d).
+# Each field is evaluated in dependency order; later fields reference earlier ones.
+
+computed:
+  earned_income_deduction:
+    type: money
+    currency: USD
+    description: "20% earned income deduction (7 CFR § 273.9(b))"
+    expr: "Household.earned_income * EARNED_INCOME_DEDUCTION_RATE"
+
+  standard_deduction:
+    type: money
+    currency: USD
+    description: "Standard deduction by household size (7 CFR § 273.9(c))"
+    expr: "table('standard_deductions', Household.household_size).deduction_amount"
+
+  dependent_care_deduction:
+    type: money
+    currency: USD
+    description: "Dependent care costs deduction (7 CFR § 273.9(d)(4))"
+    expr: "Household.dependent_care_costs"
+
+  income_after_prior_deductions:
+    type: money
+    currency: USD
+    description: "Gross income after earned, standard, and dependent care deductions"
+    expr: "Household.gross_monthly_income - earned_income_deduction - standard_deduction - dependent_care_deduction"
+
+  shelter_excess:
+    type: money
+    currency: USD
+    description: "Shelter costs exceeding 50% of remaining income (7 CFR § 273.9(d)(6))"
+    expr: "max(0, Household.shelter_costs_monthly - SHELTER_EXCESS_THRESHOLD_RATE * income_after_prior_deductions)"
+
+  is_exempt_household:
+    type: bool
+    description: "Elderly or disabled household — exempt from gross test and shelter cap"
+    expr: "Household.has_elderly_member || Household.has_disabled_member"
+
+  shelter_deduction:
+    type: money
+    currency: USD
+    description: "Shelter deduction — capped at $744 unless elderly/disabled (7 CFR § 273.9(d)(6))"
+    conditional:
+      if: "is_exempt_household"
+      then: "shelter_excess"
+      else: "min(shelter_excess, SHELTER_DEDUCTION_CAP)"
+
+  net_income:
+    type: money
+    currency: USD
+    description: "Net monthly income after all allowable deductions (7 CFR § 273.9)"
+    expr: "income_after_prior_deductions - shelter_deduction"
+
+# =============================================================================
 # RULE SET
 # =============================================================================
 
@@ -159,19 +212,6 @@ rule_set:
 # =============================================================================
 # RULES
 # =============================================================================
-#
-# CIVIL v1 LIMITATION NOTE:
-# The net income calculation requires multi-step arithmetic with intermediate
-# variables (each deduction depends on income remaining after prior deductions).
-# CIVIL v1 does not support intermediate variable binding in `when:` expressions.
-#
-# Resolution: The `when:` conditions for net income rules reference a computed
-# `net_income` decision field. The full deduction chain is implemented in the
-# transpiled Rego output (see output/ruleset/snap_eligibility.rego), not in the
-# CIVIL expression itself. The CIVIL rules express the *intent* of the rules;
-# the transpiler implements the *mechanics*.
-#
-# Future: CIVIL v2 should add `let` bindings for intermediate variable assignment.
 
 rules:
 
