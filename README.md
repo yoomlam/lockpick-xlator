@@ -12,12 +12,15 @@ Goal: Represent and translate the given input (federal, state, and local governm
 ## Step-by-Step Process
 
 This project takes an incremental approach where each iteration involves:
-- The user adds input docs and code
-- The user interacts with an AI to update the specs. Once satisfied, the specs are commited into git for version control.
+- The user adds `input` docs and code in manageable-sized amounts
+    - The codebase contains the input and there is no context window (and hence no limit).
+    - The AI searches the codebase for the data it needs (similar to RAG but without a vector DB).
+- The user interacts with an AI to update the `specs`. Once satisfied, the specs are commited into git for version control.
+    - The user interacts with the AI to create/update the specs (ruleset, workflows, etc.) in manageable amounts.
     - The specs are in a DSL format that will evolve over time.
     - The specs are machine-readable so that it can be used to build the UI workflows.
 - Tests for updated specs are added by an AI and verified by the user to ensure future changes do not cause a regression.
-- Once a logical set of rules are captured, the user guides the AI to generate an output ruleset and code to get end-user input and run the ruleset on a given rules engine.
+- Once a logical set of rules are captured, the user guides the AI to generate `output`, including the ruleset and code to get end-user input and run the ruleset on a given rules engine.
     - A transpiler or converter may be needed to create the output ruleset so that it is usable by the modern system.
 
 ### 1. Input Collection
@@ -69,7 +72,7 @@ end
 
 specs <--correct?--> verify[/verify/]
 
-subgraph ruleset_testing
+subgraph specs_testing
     tester_rule_engine[[Rule Engine]]
     ruleset --transpile?--> tester_rule_engine
     test_cases([test_cases]) --> tester_rule_engine --> expected_results([expected_results])
