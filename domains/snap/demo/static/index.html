@@ -422,7 +422,7 @@
       return pass ? '✓' : '✗';
     }
 
-    function renderResults(data) {
+    function renderResults(data, grossMonthlyIncome) {
       const c = data.computed;
       const eligible = data.eligible;
 
@@ -444,7 +444,7 @@
           <tbody>
             <tr>
               <td class="label-col">Gross monthly income</td>
-              <td class="amount-col">${fmt(c.gross_monthly_income)}</td>
+              <td class="amount-col">${fmt(grossMonthlyIncome)}</td>
             </tr>
             <tr>
               <td class="label-col deduction">− Earned income deduction (20%)</td>
@@ -477,7 +477,7 @@
       html += `<div style="margin-top:1rem">`;
       html += `<div class="test-result ${c.passes_gross_test ? 'pass' : 'fail'}">
         ${testIcon(c.passes_gross_test)} Gross income test
-        (${fmt(c.gross_monthly_income)} vs. limit ${fmt(c.gross_limit)})
+        (${fmt(grossMonthlyIncome)} vs. limit ${fmt(c.gross_limit)})
       </div>`;
       html += `<div class="test-result ${c.passes_net_test ? 'pass' : 'fail'}">
         ${testIcon(c.passes_net_test)} Net income test
@@ -535,7 +535,7 @@
           contentEl.innerHTML = `<div class="error-box">⚠️ Error: ${err.detail || resp.statusText}</div>`;
         } else {
           const data = await resp.json();
-          contentEl.innerHTML = renderResults(data);
+          contentEl.innerHTML = renderResults(data, payload.gross_monthly_income);
         }
       } catch (err) {
         contentEl.innerHTML = `<div class="error-box">⚠️ Could not reach the server. Is the demo running?<br><code style="font-size:0.8rem">${err.message}</code></div>`;

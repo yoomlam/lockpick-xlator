@@ -2,19 +2,20 @@
 """
 CIVIL → OPA/Rego Transpiler
 
-Converts a CIVIL DSL YAML module to an OPA/Rego policy file.
+Converts any CIVIL DSL YAML module to an OPA/Rego policy file.
 
-This transpiler handles CIVIL modules that follow the SNAP eligibility pattern:
-income threshold tables, deduction chains, and gross/net income tests.
-
-CIVIL v2 support: the `computed:` section expresses derived values with CIVIL
-expressions, which are translated to Rego derived rules generically.
+All domain-specific values (package name, tables, constants, computed fields,
+rules, and the decision object shape) are derived from the CIVIL YAML itself.
+The only external input is the OPA package name, supplied via --package.
 
 Usage:
-    python tools/transpile_to_opa.py <civil_yaml> <output_rego>
+    python tools/transpile_to_opa.py <civil_yaml> <output_rego> --package <name>
 
 Example:
-    python tools/transpile_to_opa.py specs/ruleset/snap_eligibility.civil.yaml output/ruleset/snap_eligibility.rego
+    python tools/transpile_to_opa.py \\
+        domains/snap/specs/eligibility.civil.yaml \\
+        domains/snap/output/eligibility.rego \\
+        --package snap.eligibility
 
 Exit codes:
     0 — success
@@ -24,6 +25,7 @@ Exit codes:
 import re
 import sys
 import os
+import argparse
 import yaml
 
 
@@ -149,6 +151,56 @@ def translate_expr(expr, constants=None):
     return result
 
 
+def _split_on_and(expr):
+    """Split expr on && at the top level (not inside parentheses)."""
+    parts = []
+    depth = 0
+    current = []
+    i = 0
+    while i < len(expr):
+        if expr[i] == "(":
+            depth += 1
+            current.append(expr[i])
+        elif expr[i] == ")":
+            depth -= 1
+            current.append(expr[i])
+        elif expr[i:i + 2] == "&&" and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+            i += 2
+            continue
+        else:
+            current.append(expr[i])
+        i += 1
+    if current:
+        parts.append("".join(current).strip())
+    return [p for p in parts if p]
+
+
+def translate_when_to_rego_body(when_expr, constants=None):
+    """
+    Translate a CIVIL when: expression to a list of Rego body condition strings.
+
+    &&  → split into separate conditions (each on its own line)
+    !x  → not x
+    Entity.field → input.field (via translate_expr)
+    table(...) → table_name[key] (via translate_expr)
+    """
+    if when_expr.strip() == "true":
+        return ["true"]
+
+    clauses = _split_on_and(when_expr)
+    result = []
+    for clause in clauses:
+        clause = clause.strip()
+        if clause.startswith("!"):
+            inner = translate_expr(clause[1:].strip(), constants)
+            result.append(f"not {inner}")
+        else:
+            result.append(translate_expr(clause, constants))
+    return result
+
+
 def emit_computed_section(computed_fields, constants=None, skip=None):
     """
     Emit Rego rules for all fields in the computed: section.
@@ -164,14 +216,14 @@ def emit_computed_section(computed_fields, constants=None, skip=None):
     skip = skip or set()
     lines = [
         "# =============================================================================",
-        "# DEDUCTION CHAIN (from CIVIL v2 computed: section)",
+        "# COMPUTED VALUES (from CIVIL v2 computed: section)",
         "# =============================================================================",
         "",
     ]
 
     for field_name, field_def in computed_fields.items():
         if field_name in skip:
-            lines.append(f"# {field_name}: handled by SNAP-specific lookup rule above")
+            lines.append(f"# {field_name}: handled elsewhere")
             lines.append("")
             continue
 
@@ -205,180 +257,146 @@ def emit_computed_section(computed_fields, constants=None, skip=None):
     return lines
 
 
-def transpile_snap(doc, output_path):
+def transpile(doc, output_path, package):
     """
-    Transpile the SNAP CIVIL module to OPA/Rego.
+    Generic CIVIL → Rego transpiler.
 
-    CIVIL v2: the `computed:` section defines the deduction chain. The transpiler
-    emits those fields generically via emit_computed_section(). SNAP-specific
-    threshold lookup rules (with size 9+ fallbacks) are still emitted here.
+    Derives all domain-specific values from the CIVIL YAML:
+    - constants:  → inline-substituted in expressions
+    - tables:     → emitted as Rego object literals
+    - computed:   → emitted as Rego derived rules
+    - rules:      → deny-kind rules emitted as denial_reasons contains ...
+    - decisions:  → bool decisions derived from count(denial_reasons) == 0
     """
     tables = doc.get("tables", {})
     constants = doc.get("constants", {})
+    computed = doc.get("computed", {})
+    rules = doc.get("rules", [])
+    decisions = doc.get("decisions", {})
 
-    # Extract table data
-    gross_limits = tables.get("gross_income_limits", {})
-    net_limits = tables.get("net_income_limits", {})
-    std_deds = tables.get("standard_deductions", {})
+    civil_path = sys.argv[1]
 
-    gross_rows = {r["household_size"]: r["max_gross_monthly"] for r in gross_limits.get("rows", [])}
-    net_rows = {r["household_size"]: r["max_net_monthly"] for r in net_limits.get("rows", [])}
-    std_rows = {r["household_size"]: r["deduction_amount"] for r in std_deds.get("rows", [])}
-
-    # Extract constants
-    shelter_cap = constants.get("SHELTER_DEDUCTION_CAP", 744)
-    earned_rate = constants.get("EARNED_INCOME_DEDUCTION_RATE", 0.20)
-    shelter_rate = constants.get("SHELTER_EXCESS_THRESHOLD_RATE", 0.50)
-    gross_incr = constants.get("GROSS_INCOME_INCREMENT_9PLUS", 596)
-    net_incr = constants.get("NET_INCOME_INCREMENT_9PLUS", 459)
-
-    # Build Rego
     lines = [
-        f"# Generated by tools/transpile_to_opa.py from {os.path.basename(sys.argv[1])}",
+        f"# Generated by tools/transpile_to_opa.py from {os.path.basename(civil_path)}",
         f"# Module: {doc.get('module')}",
         f"# Description: {doc.get('description')}",
         f"# Version: {doc.get('version')}",
         f"# Effective: {doc.get('effective', {}).get('start')} – {doc.get('effective', {}).get('end')}",
         "#",
         "# DO NOT EDIT — regenerate with:",
-        "#   python tools/transpile_to_opa.py specs/ruleset/snap_eligibility.civil.yaml output/ruleset/snap_eligibility.rego",
+        f"#   python tools/transpile_to_opa.py {civil_path} {output_path} --package {package}",
         "",
-        "package snap.eligibility",
+        f"package {package}",
         "",
         "import future.keywords.if",
         "import future.keywords.contains",
         "",
-        "# =============================================================================",
-        "# FY2026 INCOME THRESHOLDS (from CIVIL tables)",
-        "# =============================================================================",
-        "",
     ]
 
-    # Gross income limits dict
-    lines.append("# Gross income limits: 130% FPL monthly (7 CFR § 273.9(a)(1))")
-    lines.append("gross_income_limits := {")
-    for size in sorted(gross_rows):
-        lines.append(f"    {size}: {gross_rows[size]},")
-    lines.append("}")
-    lines.append("")
+    # Tables
+    if tables:
+        lines += [
+            "# =============================================================================",
+            "# LOOKUP TABLES (from CIVIL tables:)",
+            "# =============================================================================",
+            "",
+        ]
+        for table_name, table_def in tables.items():
+            desc = table_def.get("description", "")
+            value_col = table_def.get("value", [None])[0]
+            if not value_col:
+                fail(f"Table '{table_name}' missing 'value:' column definition")
+            if desc:
+                lines.append(f"# {desc}")
+            lines += table_to_rego_dict(table_name, table_def, value_col).split("\n")
+            lines.append("")
 
-    # Net income limits dict
-    lines.append("# Net income limits: 100% FPL monthly (7 CFR § 273.9(a)(2))")
-    lines.append("net_income_limits := {")
-    for size in sorted(net_rows):
-        lines.append(f"    {size}: {net_rows[size]},")
-    lines.append("}")
-    lines.append("")
+    # Computed section
+    if computed:
+        lines += emit_computed_section(computed, constants=constants)
 
-    # Standard deductions dict
-    lines.append("# Standard deductions by household size (7 CFR § 273.9(c))")
-    lines.append("standard_deductions := {")
-    for size in sorted(std_rows):
-        lines.append(f"    {size}: {std_rows[size]},")
-    lines.append("}")
-    lines.append("")
+    # Deny rules → denial_reasons
+    deny_rules = [r for r in rules if r.get("kind") == "deny"]
+    if deny_rules:
+        lines += [
+            "# =============================================================================",
+            "# DENY RULES (from CIVIL rules:)",
+            "# =============================================================================",
+            "",
+        ]
+        for rule in deny_rules:
+            rule_id = rule.get("id", "")
+            desc = rule.get("description", "")
+            when = rule.get("when", "true")
+            actions = rule.get("then", [])
 
+            if desc:
+                lines.append(f"# {rule_id}: {desc}")
+
+            when_body = translate_when_to_rego_body(when, constants)
+
+            for action in actions:
+                if "add_reason" in action:
+                    reason_def = action["add_reason"]
+                    code = reason_def["code"]
+                    message = reason_def["message"]
+                    citations = reason_def.get("citations", [])
+                    citation = citations[0]["label"] if citations else ""
+
+                    lines.append("denial_reasons contains reason if {")
+                    for cond in when_body:
+                        lines.append(f"    {cond}")
+                    lines.append("    reason := {")
+                    lines.append(f'        "code": "{code}",')
+                    lines.append(f'        "message": "{message}",')
+                    if citation:
+                        lines.append(f'        "citation": "{citation}"')
+                    lines.append("    }")
+                    lines.append("}")
+                    lines.append("")
+
+    # Eligibility decisions (bool decisions from decisions: section)
+    bool_decisions = {k: v for k, v in decisions.items() if v.get("type") == "bool"}
+    if bool_decisions:
+        lines += [
+            "# =============================================================================",
+            "# ELIGIBILITY DECISION",
+            "# =============================================================================",
+            "",
+        ]
+        for field_name in bool_decisions:
+            lines.append(f"default {field_name} := false")
+            lines.append("")
+            lines.append(f"{field_name} if {{")
+            lines.append("    count(denial_reasons) == 0")
+            lines.append("}")
+            lines.append("")
+
+    # Structured decision object
     lines += [
-        "# =============================================================================",
-        "# INCOME THRESHOLD LOOKUPS (with size 9+ formula fallback)",
-        "# =============================================================================",
-        "",
-        "# Gross income limit for this household",
-        "gross_limit := gross_income_limits[input.household_size] if {",
-        "    input.household_size <= 8",
-        f"}} else := {gross_rows[8]} + (input.household_size - 8) * {gross_incr}",
-        "",
-        "# Net income limit for this household",
-        "net_limit := net_income_limits[input.household_size] if {",
-        "    input.household_size <= 8",
-        f"}} else := {net_rows[8]} + (input.household_size - 8) * {net_incr}",
-        "",
-        "# Standard deduction for this household (size 7+ same as size 6)",
-        "standard_deduction := standard_deductions[input.household_size] if {",
-        "    input.household_size <= 6",
-        f"}} else := {std_rows[6]}",
-        "",
-    ]
-
-    # CIVIL v2: emit computed: section generically
-    computed = doc.get("computed", {})
-    if not computed:
-        fail("No computed: section found in CIVIL module. Expected CIVIL v2 with computed: fields.")
-    # standard_deduction is already emitted above with size 7+ fallback; skip it
-    lines += emit_computed_section(computed, constants=constants, skip={"standard_deduction"})
-
-    lines += [
-        "# =============================================================================",
-        "# INCOME TESTS",
-        "# =============================================================================",
-        "",
-        "# Gross income test: non-exempt households must pass",
-        "# default false: OPA boolean rules are undefined (not false) when conditions don't match",
-        "default passes_gross_test := false",
-        "passes_gross_test if { is_exempt_household }",
-        "passes_gross_test if {",
-        "    not is_exempt_household",
-        "    input.gross_monthly_income <= gross_limit",
-        "}",
-        "",
-        "# Net income test: all households must pass",
-        "default passes_net_test := false",
-        "passes_net_test if { net_income <= net_limit }",
-        "",
-        "# =============================================================================",
-        "# ELIGIBILITY DECISION",
-        "# =============================================================================",
-        "",
-        "default eligible := false",
-        "",
-        "eligible if {",
-        "    passes_gross_test",
-        "    passes_net_test",
-        "}",
-        "",
-        "# denial_reasons: collected from failing tests",
-        "denial_reasons contains reason if {",
-        "    not passes_gross_test",
-        '    reason := {',
-        '        "code": "GROSS_INCOME_EXCEEDS_LIMIT",',
-        '        "message": "Gross monthly income exceeds 130% of the Federal Poverty Level for this household size",',
-        '        "citation": "7 CFR § 273.9(a)(1)"',
-        "    }",
-        "}",
-        "",
-        "denial_reasons contains reason if {",
-        "    passes_gross_test",
-        "    not passes_net_test",
-        '    reason := {',
-        '        "code": "NET_INCOME_EXCEEDS_LIMIT",',
-        '        "message": "Net monthly income after allowable deductions exceeds 100% of the Federal Poverty Level for this household size",',
-        '        "citation": "7 CFR § 273.9(a)(2)"',
-        "    }",
-        "}",
-        "",
         "# =============================================================================",
         "# STRUCTURED DECISION OBJECT",
         "# =============================================================================",
         "",
         "decision := {",
-        '    "eligible": eligible,',
-        '    "denial_reasons": [r | r := denial_reasons[_]],',
-        '    "computed": {',
-        '        "gross_monthly_income": input.gross_monthly_income,',
-        '        "gross_limit": gross_limit,',
-        '        "passes_gross_test": passes_gross_test,',
-        '        "earned_income_deduction": earned_income_deduction,',
-        '        "standard_deduction": standard_deduction,',
-        '        "dependent_care_deduction": dependent_care_deduction,',
-        '        "shelter_deduction": shelter_deduction,',
-        '        "net_income": net_income,',
-        '        "net_limit": net_limit,',
-        '        "passes_net_test": passes_net_test',
-        "    }",
-        "}",
     ]
+    for field_name, field_def in decisions.items():
+        ftype = field_def.get("type")
+        if ftype == "bool":
+            lines.append(f'    "eligible": {field_name},')
+        elif ftype == "list":
+            lines.append(f'    "denial_reasons": [r | r := denial_reasons[_]],')
+    if computed:
+        computed_keys = list(computed.keys())
+        lines.append('    "computed": {')
+        for i, cfield in enumerate(computed_keys):
+            comma = "," if i < len(computed_keys) - 1 else ""
+            lines.append(f'        "{cfield}": {cfield}{comma}')
+        lines.append("    }")
+    lines.append("}")
 
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    out_dir = os.path.dirname(os.path.abspath(output_path))
+    os.makedirs(out_dir, exist_ok=True)
     with open(output_path, "w") as f:
         f.write("\n".join(lines) + "\n")
 
@@ -386,16 +404,21 @@ def transpile_snap(doc, output_path):
 
 
 def main():
-    if len(sys.argv) != 3:
-        print(f"Usage: {sys.argv[0]} <civil_yaml> <output_rego>", file=sys.stderr)
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Transpile a CIVIL DSL YAML module to OPA/Rego"
+    )
+    parser.add_argument("civil_yaml", help="Path to the CIVIL YAML module")
+    parser.add_argument("output_rego", help="Path for the generated Rego file")
+    parser.add_argument(
+        "--package",
+        required=True,
+        help="OPA package name, e.g. snap.eligibility",
+    )
+    args = parser.parse_args()
 
-    civil_path = sys.argv[1]
-    output_path = sys.argv[2]
-
-    validate_before_transpile(civil_path)
-    doc = load_civil(civil_path)
-    transpile_snap(doc, output_path)
+    validate_before_transpile(args.civil_yaml)
+    doc = load_civil(args.civil_yaml)
+    transpile(doc, args.output_rego, package=args.package)
 
 
 if __name__ == "__main__":
