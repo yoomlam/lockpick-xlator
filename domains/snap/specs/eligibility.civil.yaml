@@ -159,8 +159,11 @@ computed:
   standard_deduction:
     type: money
     currency: USD
-    description: "Standard deduction by household size (7 CFR § 273.9(c))"
-    expr: "table('standard_deductions', Household.household_size).deduction_amount"
+    description: "Standard deduction by household size (7 CFR § 273.9(c)) — size 7+ same as size 6"
+    conditional:
+      if: "Household.household_size <= 6"
+      then: "table('standard_deductions', Household.household_size).deduction_amount"
+      else: "table('standard_deductions', 6).deduction_amount"
 
   dependent_care_deduction:
     type: money
@@ -200,6 +203,34 @@ computed:
     description: "Net monthly income after all allowable deductions (7 CFR § 273.9)"
     expr: "income_after_prior_deductions - shelter_deduction"
 
+  gross_limit:
+    type: money
+    currency: USD
+    description: "Gross income limit for this household size (with size 9+ formula per 7 CFR § 273.9(a)(1))"
+    conditional:
+      if: "Household.household_size <= 8"
+      then: "table('gross_income_limits', Household.household_size).max_gross_monthly"
+      else: "table('gross_income_limits', 8).max_gross_monthly + (Household.household_size - 8) * GROSS_INCOME_INCREMENT_9PLUS"
+
+  net_limit:
+    type: money
+    currency: USD
+    description: "Net income limit for this household size (with size 9+ formula per 7 CFR § 273.9(a)(2))"
+    conditional:
+      if: "Household.household_size <= 8"
+      then: "table('net_income_limits', Household.household_size).max_net_monthly"
+      else: "table('net_income_limits', 8).max_net_monthly + (Household.household_size - 8) * NET_INCOME_INCREMENT_9PLUS"
+
+  passes_gross_test:
+    type: bool
+    description: "Whether household passes the gross income test (exempt households always pass)"
+    expr: "is_exempt_household || Household.gross_monthly_income <= gross_limit"
+
+  passes_net_test:
+    type: bool
+    description: "Whether household passes the net income test"
+    expr: "net_income <= net_limit"
+
 # =============================================================================
 # RULE SET
 # =============================================================================
@@ -223,7 +254,7 @@ rules:
     kind: "deny"
     priority: 1
     description: "Gross income exceeds 130% FPL — gross income test failed"
-    when: "!Household.has_elderly_member && !Household.has_disabled_member && Household.gross_monthly_income > table('gross_income_limits', Household.household_size).max_gross_monthly"
+    when: "!Household.has_elderly_member && !Household.has_disabled_member && Household.gross_monthly_income > gross_limit"
     then:
       - add_reason:
           code: "GROSS_INCOME_EXCEEDS_LIMIT"
@@ -236,13 +267,12 @@ rules:
   # ---------------------------------------------------------------------------
   # DENY-002: Net income test
   # All households must pass the 100% FPL test after deductions.
-  # Net income is computed by the transpiler (see limitation note above).
   # ---------------------------------------------------------------------------
   - id: "FED-SNAP-DENY-002"
     kind: "deny"
     priority: 2
     description: "Net income exceeds 100% FPL after allowable deductions — net income test failed"
-    when: "net_income > table('net_income_limits', Household.household_size).max_net_monthly"
+    when: "net_income > net_limit"
     then:
       - add_reason:
           code: "NET_INCOME_EXCEEDS_LIMIT"

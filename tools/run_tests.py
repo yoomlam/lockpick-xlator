@@ -6,16 +6,18 @@ Reads a CIVIL _tests.yaml file and executes each test case against the
 OPA REST server, reporting pass/fail per case.
 
 Requires OPA REST server to be running:
-    opa run --server --addr :8181 output/ruleset/snap_eligibility.rego
+    opa run --server --addr :8181 <path/to/policy.rego>
 
 Usage:
-    python tools/run_tests.py <tests_yaml> [--opa-url URL]
+    python tools/run_tests.py <tests_yaml> [--opa-url URL] [--opa-path PATH]
 
 Example:
-    python tools/run_tests.py specs/tests/snap_eligibility_tests.yaml
+    python tools/run_tests.py domains/snap/specs/tests/eligibility_tests.yaml \\
+        --opa-path /v1/data/snap/eligibility/decision
 
 Options:
     --opa-url   OPA REST server base URL (default: http://localhost:8181)
+    --opa-path  OPA REST decision path (default: /v1/data/snap/eligibility/decision)
 
 Exit codes:
     0 — all tests passed
@@ -31,9 +33,7 @@ import urllib.parse
 
 
 DEFAULT_OPA_URL = "http://localhost:8181"
-# OPA REST path: /v1/data/<package_path>/<rule>
-# Package snap.eligibility → /v1/data/snap/eligibility/decision
-OPA_DECISION_PATH = "/v1/data/snap/eligibility/decision"
+DEFAULT_OPA_PATH = "/v1/data/snap/eligibility/decision"
 
 
 def load_tests(path):
@@ -48,8 +48,8 @@ def load_tests(path):
         sys.exit(1)
 
 
-def query_opa(opa_url, inputs):
-    url = opa_url.rstrip("/") + OPA_DECISION_PATH
+def query_opa(opa_url, opa_path, inputs):
+    url = opa_url.rstrip("/") + opa_path
     payload = json.dumps({"input": inputs}).encode()
     req = urllib.request.Request(
         url,
@@ -64,7 +64,7 @@ def query_opa(opa_url, inputs):
     except urllib.error.URLError as e:
         print(f"\nERROR: Could not connect to OPA at {opa_url}: {e}", file=sys.stderr)
         print("Is the OPA server running? Try:", file=sys.stderr)
-        print("    opa run --server --addr :8181 output/ruleset/snap_eligibility.rego", file=sys.stderr)
+        print("    opa run --server --addr :8181 <path/to/policy.rego>", file=sys.stderr)
         sys.exit(1)
 
 
@@ -95,13 +95,13 @@ def check_result(result, expected, case_id):
     return failures
 
 
-def run_tests(tests_path, opa_url):
+def run_tests(tests_path, opa_url, opa_path):
     suite = load_tests(tests_path)
     test_cases = suite.get("tests", [])
     suite_desc = suite.get("test_suite", {}).get("description", tests_path)
 
     print(f"Running: {suite_desc}")
-    print(f"OPA:     {opa_url}{OPA_DECISION_PATH}")
+    print(f"OPA:     {opa_url}{opa_path}")
     print(f"Cases:   {len(test_cases)}")
     print()
 
@@ -115,7 +115,7 @@ def run_tests(tests_path, opa_url):
         inputs = case.get("inputs", {})
         expected = case.get("expected", {})
 
-        result = query_opa(opa_url, inputs)
+        result = query_opa(opa_url, opa_path, inputs)
         case_failures = check_result(result, expected, case_id)
 
         if case_failures:
@@ -149,21 +149,25 @@ def main():
     args = sys.argv[1:]
     tests_path = None
     opa_url = DEFAULT_OPA_URL
+    opa_path = DEFAULT_OPA_PATH
 
     i = 0
     while i < len(args):
         if args[i] == "--opa-url" and i + 1 < len(args):
             opa_url = args[i + 1]
             i += 2
+        elif args[i] == "--opa-path" and i + 1 < len(args):
+            opa_path = args[i + 1]
+            i += 2
         else:
             tests_path = args[i]
             i += 1
 
     if not tests_path:
-        print(f"Usage: {sys.argv[0]} <tests_yaml> [--opa-url URL]", file=sys.stderr)
+        print(f"Usage: {sys.argv[0]} <tests_yaml> [--opa-url URL] [--opa-path PATH]", file=sys.stderr)
         sys.exit(1)
 
-    success = run_tests(tests_path, opa_url)
+    success = run_tests(tests_path, opa_url, opa_path)
     sys.exit(0 if success else 1)
 
 

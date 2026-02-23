@@ -4,9 +4,9 @@ Translate a government policy document into a CIVIL DSL module following the Xla
 
 ## Input
 
-A policy document in `input/policy_docs/` (Markdown, plain text, or PDF text).
+A policy document in `domains/<name>/input/policy_docs/` (Markdown, plain text, or PDF text).
 
-If no document is specified, list the files in `input/policy_docs/` and ask which one to translate.
+If no document is specified, list the files in `domains/*/input/policy_docs/` and ask which one to translate. Also ask for the domain name if not clear from the filename.
 
 ## Process
 
@@ -40,9 +40,9 @@ Map the policy document to CIVIL DSL constructs:
 
 ### Step 3: Draft the CIVIL Module
 
-Create the CIVIL YAML file at `specs/ruleset/<program_name>.civil.yaml`.
+Create the CIVIL YAML file at `domains/<domain_name>/specs/<program_name>.civil.yaml`.
 
-**Follow the exact structure from `specs/ruleset/schema.yaml`:**
+**Follow the exact structure from `specs/schema.yaml`:**
 
 ```yaml
 module: "eligibility.<program_name>"
@@ -123,7 +123,7 @@ rules:
               excerpt: "Brief excerpt"
 ```
 
-**Reference:** See `specs/ruleset/example_benefit.yaml` for a complete working example.
+**Reference:** See `domains/snap/specs/eligibility.civil.yaml` for a complete working example.
 
 **CIVIL Expression Language** (for `when:` clauses and `computed:` expressions):
 - Field access: `Household.household_size`, `Applicant.age`
@@ -140,14 +140,14 @@ rules:
 ### Step 4: Run the Validator
 
 ```bash
-python tools/validate_civil.py specs/ruleset/<program_name>.civil.yaml
+python tools/validate_civil.py domains/<domain_name>/specs/<program_name>.civil.yaml
 ```
 
 Fix any errors reported before proceeding.
 
 ### Step 5: Draft Test Cases
 
-Create `specs/tests/<program_name>_tests.yaml` with at least 6 test cases:
+Create `domains/<domain_name>/specs/tests/<program_name>_tests.yaml` with at least 6 test cases:
 
 Required coverage:
 - **1 clear allow** — all conditions comfortably met
@@ -177,7 +177,7 @@ tests:
     tags: ["happy_path", "allow"]
 ```
 
-**Reference:** See `specs/tests/example_benefit_tests.yaml` for structure.
+**Reference:** See `domains/snap/specs/tests/eligibility_tests.yaml` for structure.
 
 ### Step 6: Human Review Gate
 
@@ -195,32 +195,38 @@ Before transpiling, present a summary:
 Once the human approves:
 
 ```bash
-# Generate OPA/Rego
-python tools/transpile_to_opa.py specs/ruleset/<program_name>.civil.yaml output/ruleset/<program_name>.rego
+# Generate OPA/Rego (replace <domain> and <package> with your domain)
+python tools/transpile_to_opa.py \
+    domains/<domain>/specs/<program_name>.civil.yaml \
+    domains/<domain>/output/<program_name>.rego \
+    --package <opa.package.name>
 
 # Syntax check
-opa check output/ruleset/<program_name>.rego
+opa check domains/<domain>/output/<program_name>.rego
 
 # Start OPA and run tests
-opa run --server --addr :8181 output/ruleset/<program_name>.rego &
+opa run --server --addr :8181 domains/<domain>/output/<program_name>.rego &
 sleep 2
-python tools/run_tests.py specs/tests/<program_name>_tests.yaml
+python tools/run_tests.py domains/<domain>/specs/tests/<program_name>_tests.yaml \
+    --opa-path /v1/data/<opa/package/path>/decision
+
+# Or use the Makefile if this domain has a target:
+# make <domain>-transpile && make <domain>-test
 ```
 
 Report the test results to the user.
 
 ## Output
 
-- `input/policy_docs/<source>.md` — policy source document
-- `specs/ruleset/<program_name>.civil.yaml` — CIVIL module (validated ✓)
-- `specs/tests/<program_name>_tests.yaml` — test cases
-- `output/ruleset/<program_name>.rego` — generated OPA/Rego (syntax checked ✓, tests passing ✓)
+- `domains/<domain>/input/policy_docs/<source>.md` — policy source document
+- `domains/<domain>/specs/<program_name>.civil.yaml` — CIVIL module (validated ✓)
+- `domains/<domain>/specs/tests/<program_name>_tests.yaml` — test cases
+- `domains/<domain>/output/<program_name>.rego` — generated OPA/Rego (syntax checked ✓, tests passing ✓)
 
 ## Common Mistakes to Avoid
 
 - **Don't nest inputs by entity name** in test cases — inputs are always flat key-value
-- **Don't forget `default eligible := false`** in the transpiler — OPA boolean rules are undefined, not false, when conditions don't match
-- **Don't forget `default passes_<test> := false`** for intermediate boolean rules
+- **Don't forget `default eligible := false`** — OPA boolean rules are undefined (not false) when conditions don't match; the transpiler handles this automatically for all `bool` fields in `decisions:` and `computed:`
 - **Cite the actual CFR/USC section** for each rule, not just "Program Policy Manual"
 - **Use `optional: true`** for fact fields that may not always be provided (e.g., `earned_income`, `shelter_costs`)
 - **Distinguish earned vs. unearned income** if any deduction applies only to earned income

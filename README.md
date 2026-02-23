@@ -23,34 +23,60 @@ This project takes an incremental approach where each iteration involves:
 - Once a logical set of rules are captured, the user guides the AI to generate `output`, including the ruleset and code to get end-user input and run the ruleset on a given rules engine.
     - A transpiler or converter may be needed to create the output ruleset so that it is usable by the modern system.
 
+Each policy domain is a self-contained unit under `domains/<name>/`:
+
+```
+domains/
+  snap/                              ← example: SNAP federal income eligibility
+    input/policy_docs/               ← source policy documents (Markdown, PDF, etc.)
+    specs/
+      eligibility.civil.yaml         ← CIVIL DSL ruleset (human + AI authored)
+      tests/eligibility_tests.yaml   ← test cases
+    output/
+      eligibility.rego               ← generated OPA/Rego (do not edit manually)
+    demo/
+      main.py                        ← FastAPI backend
+      static/index.html              ← browser form UI
+      start.sh                       ← starts OPA + FastAPI
+  <next-domain>/                     ← add new domains here
+    input/ specs/ output/ demo/
+
+specs/
+  schema.yaml                        ← shared CIVIL DSL schema reference
+tools/
+  validate_civil.py                  ← CIVIL validator
+  transpile_to_opa.py                ← CIVIL → OPA/Rego transpiler
+  run_tests.py                       ← test runner
+Makefile                             ← per-domain pipeline targets
+```
+
 ### 1. Input Collection
-- Add policy documents to `input/policy_docs/`
-- Add legacy code to `input/code/`
-- Organize by program, jurisdiction, or version
+- Add policy documents to `domains/<name>/input/policy_docs/`
+- Use the `translate-policy` skill (`.claude/skills/translate-policy.md`) to extract CIVIL specs with AI assistance
 
 ### 2. Spec Creation (AI-Assisted)
-- Work with AI to analyze input documents and code
-- Create YAML specs in `specs/ruleset/` following `schema.yaml` structure
-- Iteratively refine specs through conversation
+- Work with AI to create `domains/<name>/specs/<module>.civil.yaml`
+- Follow the CIVIL DSL schema at `specs/schema.yaml`
 - Commit completed specs to version control
 
 ### 3. Test Definition (AI-Assisted)
-- AI generates test cases in `specs/tests/`
-- Review and verify test scenarios
-- Add edge cases and boundary conditions
-- Ensure tests cover policy requirements
+- AI generates `domains/<name>/specs/tests/<module>_tests.yaml`
+- Review and verify test scenarios; add edge cases and boundary conditions
 
 ### 4. Output Generation
-- AI transpiles specs to target rules engine format
-- Generated rulesets saved to `output/ruleset/`
-- AI generates UI workflow code
-- Generated code saved to `output/code/`
+- `make <domain>-transpile` generates `domains/<name>/output/<module>.rego`
 
 ### 5. Validation & Iteration
-- Run tests against generated outputs
-- Validate against original policy documents
+- `make <domain>-test` runs tests against a live OPA server
+- `make <domain>-demo` starts the demo (OPA + FastAPI)
 - Iterate on specs as needed
-- Document any assumptions or interpretations
+
+### Example (SNAP)
+
+```bash
+make snap             # validate + transpile + test
+make snap-demo        # start OPA + FastAPI demo at http://localhost:8000
+```
 
 ## Vision diagram
 
@@ -93,4 +119,4 @@ end
 
 Not yet in the diagram:
 - There can be multiple specs that can be compared to identify differences between systems (legacy vs legacy; modern vs modern; legacy vs modern).
-- Validating the modern_system against the legacy_system
+- Validating the `modern_system` against the `legacy_system`

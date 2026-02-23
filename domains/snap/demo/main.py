@@ -5,7 +5,7 @@ Accepts household facts from the browser form, evaluates them against the
 OPA-compiled SNAP eligibility policy, and returns a structured decision.
 
 Requires OPA REST server running on port 8181:
-    opa run --server --addr :8181 output/ruleset/snap_eligibility.rego
+    opa run --server --addr :8181 domains/snap/output/eligibility.rego
 
 Start this server:
     uvicorn main:app --host 0.0.0.0 --port 8000
@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
         log.error(
             "WARNING: OPA server not reachable at %s: %s\n"
             "Start OPA before using the eligibility endpoint:\n"
-            "    opa run --server --addr :8181 ../output/ruleset/snap_eligibility.rego",
+            "    opa run --server --addr :8181 domains/snap/output/eligibility.rego",
             OPA_URL,
             e,
         )
@@ -67,22 +67,24 @@ class HouseholdFacts(BaseModel):
 
 
 class ComputedBreakdown(BaseModel):
-    gross_monthly_income: float
-    gross_limit: float
-    passes_gross_test: bool
     earned_income_deduction: float
     standard_deduction: float
     dependent_care_deduction: float
+    income_after_prior_deductions: float
+    shelter_excess: float
+    is_exempt_household: bool
     shelter_deduction: float
     net_income: float
+    gross_limit: float
     net_limit: float
+    passes_gross_test: bool
     passes_net_test: bool
 
 
 class DenialReason(BaseModel):
     code: str
     message: str
-    citation: str
+    citation: str = ""
 
 
 class EligibilityResponse(BaseModel):
@@ -97,7 +99,7 @@ async def check_eligibility(facts: HouseholdFacts):
     Evaluate SNAP income eligibility for a household.
 
     Posts household facts to the OPA REST server, which evaluates them against
-    the transpiled SNAP eligibility rules (snap_eligibility.rego).
+    the transpiled SNAP eligibility rules (domains/snap/output/eligibility.rego).
     """
     payload = {"input": facts.model_dump()}
 
