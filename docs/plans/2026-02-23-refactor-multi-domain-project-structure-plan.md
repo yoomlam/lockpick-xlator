@@ -1,7 +1,7 @@
 ---
 title: "refactor: Multi-domain project structure"
 type: refactor
-status: active
+status: completed
 date: 2026-02-23
 brainstorm: docs/brainstorms/2026-02-23-multi-domain-structure-brainstorm.md
 ---
