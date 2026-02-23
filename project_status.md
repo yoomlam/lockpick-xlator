@@ -1,15 +1,11 @@
 ## Project status
 
-- Initial README.md files, folder structure, and general workflow created
-- Used https://github.com/EveryInc/compound-engineering-plugin to create PRs #1 (SNAP test data) and #2 (DSL improvement)
+- 2026/2/17: Initialized README.md files, folder structure, and general workflow created
+    - Used https://github.com/EveryInc/compound-engineering-plugin to create PRs #1 (SNAP test data) and #2 (DSL improvement)
+- 2026/2/23: Added SNAP eligibility example and demo; improved custom DSL
 
 ## TODOs
 
-- Add Claude code plugins
-    - Write clearly and concisely
-    - Writing skills (from superpower)
-    - Productivity
-    - Product Management
 - Create Claude skills, agents, commands
     - Borrow from [policyengine-claude](https://github.com/PolicyEngine/policyengine-claude/blob/main/agents/country-models/rules-engineer.md)
         - Be aware: it has PolicyEngine/OpenFisca heuristics
@@ -33,6 +29,11 @@ For demos:
     - Create ground truth rules as the "answer key" for what we expect a tool to extract from the source text snippets
 - Target output code to use Strata's chosen rule engine and UI design system
 
-For use by others:
-- Package as a Claude plugin to be applied on user's codebase
+To enable use by others:
+- Package Xlator as a Claude plugin to be applied on user's codebase
     - For demo, use plugin against a demo codebase
+- Add additional Claude code plugins? Be cautious of conflicts with compound-engineering-plugin
+    - Write clearly and concisely
+    - Writing skills (from superpower)
+    - Productivity
+    - Product Management
