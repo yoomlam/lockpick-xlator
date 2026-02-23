@@ -1,7 +1,7 @@
 ---
 title: "feat: SNAP Eligibility Rules-as-Code End-to-End POC"
 type: feat
-status: active
+status: completed
 date: 2026-02-17
 brainstorm: docs/brainstorms/2026-02-17-first-translation-poc-brainstorm.md
 ---
@@ -422,26 +422,26 @@ docs/
 ## Acceptance Criteria
 
 ### Functional Requirements
-- [ ] `input/policy_docs/snap_eligibility_fy2026.md` contains SNAP gross + net income rules with FY2026 thresholds and 7 CFR citations
-- [ ] `specs/ruleset/snap_eligibility.civil.yaml` passes `tools/validate_civil.py` with exit code 0
-- [ ] CIVIL module includes correct FY2026 threshold tables (sizes 1–8) and standard deduction table
-- [ ] CIVIL module defines `has_elderly_member` and `has_disabled_member` as optional bool facts
-- [ ] CIVIL module defines separate `earned_income` and `unearned_income` fact fields
-- [ ] All 8 test cases in `snap_eligibility_tests.yaml` pass via `tools/run_tests.py`
-- [ ] `output/ruleset/snap_eligibility.rego` passes `opa check` with no errors
-- [ ] Rego correctly implements the elderly/disabled gross income exemption
-- [ ] Rego correctly computes net income with shelter deduction cap ($744 for non-elderly, uncapped otherwise)
-- [ ] Rego handles household size 9+ correctly via formula
-- [ ] FastAPI `POST /api/snap/eligibility` returns correct `eligible`, `denial_reasons`, and `computed` fields
-- [ ] FastAPI returns HTTP 503 (not a crash) when OPA is unreachable
-- [ ] HTML form shows loading state during request and error message on failure
-- [ ] Full pipeline is re-runnable by following `docs/demo-script.md` from scratch
+- [x] `input/policy_docs/snap_eligibility_fy2026.md` contains SNAP gross + net income rules with FY2026 thresholds and 7 CFR citations
+- [x] `specs/ruleset/snap_eligibility.civil.yaml` passes `tools/validate_civil.py` with exit code 0
+- [x] CIVIL module includes correct FY2026 threshold tables (sizes 1–8) and standard deduction table
+- [x] CIVIL module defines `has_elderly_member` and `has_disabled_member` as optional bool facts
+- [x] CIVIL module defines separate `earned_income` and `unearned_income` fact fields
+- [x] All 8 test cases in `snap_eligibility_tests.yaml` pass via `tools/run_tests.py`
+- [x] `output/ruleset/snap_eligibility.rego` passes `opa check` with no errors
+- [x] Rego correctly implements the elderly/disabled gross income exemption
+- [x] Rego correctly computes net income with shelter deduction cap ($744 for non-elderly, uncapped otherwise)
+- [x] Rego handles household size 9+ correctly via formula
+- [x] FastAPI `POST /api/snap/eligibility` returns correct `eligible`, `denial_reasons`, and `computed` fields
+- [x] FastAPI returns HTTP 503 (not a crash) when OPA is unreachable
+- [x] HTML form shows loading state during request and error message on failure
+- [x] Full pipeline is re-runnable by following `docs/demo-script.md` from scratch
 
 ### Quality Gates
-- [ ] `tools/validate_civil.py` exits 1 with a clear human-readable error on a malformed CIVIL file
-- [ ] `tools/transpile_to_opa.py` exits 1 with a clear error if CIVIL validation fails
-- [ ] OPA policy always returns a result (no undefined) for any valid input combination
-- [ ] `tools/run_tests.py` prints a pass/fail summary and exits 1 if any test fails
+- [x] `tools/validate_civil.py` exits 1 with a clear human-readable error on a malformed CIVIL file
+- [x] `tools/transpile_to_opa.py` exits 1 with a clear error if CIVIL validation fails
+- [x] OPA policy always returns a result (no undefined) for any valid input combination
+- [x] `tools/run_tests.py` prints a pass/fail summary and exits 1 if any test fails
 
 ---
 
