@@ -1,6 +1,6 @@
 # Specifications
 
-This directory contains the specifications that are extracted from the input docs and code from the legacy system.
+This directory contains shared specification files that are used by domain-specific specifications extracted from the input docs and code from the legacy system.
 These specifications are used to generate the output ruleset and code for the modernized system.
 
 The specifications capture government policies and statutes, including:
@@ -11,23 +11,10 @@ The specifications capture government policies and statutes, including:
 
 In addition to decision logic, the specifications cite source documents/code for traceability.
 
-## Directory Structure
-
-```
-specs/
-├── README.md           # This file - overview and navigation
-├── ruleset/            # Rule specification formats and schemas
-│   ├── README.md       # CIVIL DSL specification
-│   ├── schema.yaml     # CIVIL DSL schema definition
-│   └── example_benefit.yaml  # Example ruleset in CIVIL format
-└── tests/              # Test specifications
-    ├── README.md       # Test format documentation
-    └── example_benefit_tests.yaml  # Example test cases
-```
 
 ## CIVIL DSL (Civic Instructions & Validations Intermediate Language)
 
-The [ruleset/README.md](ruleset/README.md) documents **CIVIL**, our policy specification DSL designed for government policy/regulation logic.
+The [CIVIL_DSL_spec.md](CIVIL_DSL_spec.md) documents **CIVIL**, our policy specification DSL designed for government policy/regulation logic.
 
 ### Key Features
 
@@ -59,8 +46,8 @@ All rule specifications should have corresponding test suites:
 
 ## Getting Started
 
-1. **To define a new ruleset:** Use the CIVIL DSL format documented in [ruleset/README.md](ruleset/README.md)
-2. **For schema reference:** See [ruleset/schema.yaml](ruleset/schema.yaml) for CIVIL DSL structure
+1. **To define a new ruleset:** Use the CIVIL DSL format documented in [CIVIL_DSL_spec.md](CIVIL_DSL_spec.md)
+2. **For schema reference:** See [ruleset_schema.yaml](ruleset_schema.yaml) for CIVIL DSL structure
 3. **For examples:** See [ruleset/example_benefit.yaml](ruleset/example_benefit.yaml)
 4. **To write tests:** Follow the format in [tests/README.md](tests/README.md)
 

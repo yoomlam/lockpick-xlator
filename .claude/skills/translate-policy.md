@@ -42,7 +42,7 @@ Map the policy document to CIVIL DSL constructs:
 
 Create the CIVIL YAML file at `domains/<domain_name>/specs/<program_name>.civil.yaml`.
 
-**Follow the exact structure from `specs/schema.yaml`:**
+**Follow the exact structure from `specs/ruleset_schema.yaml`:**
 
 ```yaml
 module: "eligibility.<program_name>"

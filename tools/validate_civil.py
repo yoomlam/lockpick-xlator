@@ -3,7 +3,7 @@
 CIVIL DSL Structure Validator
 
 Validates that a CIVIL YAML file conforms to the CIVIL DSL specification
-as described in specs/ruleset/schema.yaml and specs/ruleset/README.md.
+as described in specs/ruleset_schema.yaml and specs/CIVIL_DSL_spec.md.
 
 Usage:
     python tools/validate_civil.py <path_to_civil_yaml>
