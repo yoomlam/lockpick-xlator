@@ -136,6 +136,41 @@ tables:
       - { household_size: 3, max_income: 48000 }
 ```
 
+### 2b) Computed values (CIVIL v2)
+
+The `computed:` section defines intermediate derived values using CIVIL expressions. Unlike `decisions:`, computed values are not primary outputs — they are results available to `rules:` (in `when:` expressions) and to other `computed:` fields.
+
+```yaml
+computed:
+  earned_income_deduction:
+    type: money
+    currency: USD
+    description: "20% of earned income (7 CFR § 273.9(b))"
+    expr: "Household.earned_income * EARNED_INCOME_DEDUCTION_RATE"
+
+  is_exempt_household:
+    type: bool
+    description: "Elderly or disabled — exempt from gross test and shelter cap"
+    expr: "Household.has_elderly_member || Household.has_disabled_member"
+
+  shelter_deduction:
+    type: money
+    description: "Shelter deduction, capped unless exempt"
+    conditional:
+      if: "is_exempt_household"
+      then: "shelter_excess"
+      else: "min(shelter_excess, SHELTER_DEDUCTION_CAP)"
+```
+
+Each field uses either `expr:` (a single expression) or `conditional:` (if/then/else). Define fields in dependency order — no forward references.
+
+**Expression language additions in `computed:` fields:**
+- `max(a, b)` — maps to Rego `max([a, b])`
+- `min(a, b)` — maps to Rego `min([a, b])`
+- Other computed field names referenced by bare identifier (e.g., `shelter_excess`)
+
+---
+
 ### 3) Rule set
 
 ```yaml
@@ -342,6 +377,7 @@ Keep it small so you can transpile to almost anything:
     -   `in(value, [a,b,c])`
     -   `exists(field)` / `is_null(field)`
     -   `date("YYYY-MM-DD")`, `between(date, start, end)`
+    -   `max(a, b)`, `min(a, b)` — numeric comparison (CIVIL v2; for `computed:` fields)
 
 ---
 

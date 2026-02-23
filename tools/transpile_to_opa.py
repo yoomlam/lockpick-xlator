@@ -4,10 +4,11 @@ CIVIL → OPA/Rego Transpiler
 
 Converts a CIVIL DSL YAML module to an OPA/Rego policy file.
 
-This transpiler is specialized for CIVIL modules that follow the SNAP eligibility
-pattern: income threshold tables, deduction chains, and gross/net income tests.
-It handles the CIVIL v1 limitation of no intermediate variable binding by
-implementing the full deduction chain directly in Rego.
+This transpiler handles CIVIL modules that follow the SNAP eligibility pattern:
+income threshold tables, deduction chains, and gross/net income tests.
+
+CIVIL v2 support: the `computed:` section expresses derived values with CIVIL
+expressions, which are translated to Rego derived rules generically.
 
 Usage:
     python tools/transpile_to_opa.py <civil_yaml> <output_rego>
@@ -20,6 +21,7 @@ Exit codes:
     1 — error (message printed to stderr)
 """
 
+import re
 import sys
 import os
 import yaml
@@ -63,14 +65,153 @@ def table_to_rego_dict(table_name, table_def, value_col):
     return "\n".join(lines)
 
 
+def _split_top_level_comma(args_str):
+    """Split 'a, b' on the first comma not inside nested parentheses."""
+    depth = 0
+    for i, ch in enumerate(args_str):
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        elif ch == "," and depth == 0:
+            return args_str[:i].strip(), args_str[i + 1:].strip()
+    raise ValueError(f"No top-level comma found in: {args_str!r}")
+
+
+def _replace_binary_fn(expr, fn_name):
+    """Replace fn_name(a, b) with fn_name([a, b]) using balanced-paren parsing."""
+    result = []
+    i = 0
+    pattern = fn_name + "("
+    while i < len(expr):
+        idx = expr.find(pattern, i)
+        if idx == -1:
+            result.append(expr[i:])
+            break
+        result.append(expr[i:idx])
+        start = idx + len(pattern)
+        depth = 1
+        j = start
+        while j < len(expr) and depth > 0:
+            if expr[j] == "(":
+                depth += 1
+            elif expr[j] == ")":
+                depth -= 1
+            j += 1
+        args_str = expr[start:j - 1]
+        a, b = _split_top_level_comma(args_str)
+        result.append(f"{fn_name}([{a}, {b}])")
+        i = j
+    return "".join(result)
+
+
+def translate_expr(expr, constants=None):
+    """
+    Translate a CIVIL expression string to an equivalent Rego expression string.
+
+    Transformations applied:
+    1. table('name', key).col  →  name[translated_key]  (column name dropped)
+    2. Entity.field             →  input.field
+    3. max(a, b)                →  max([a, b])
+    4. min(a, b)                →  min([a, b])
+    5. CONSTANT_NAME            →  literal value (inline substitution)
+    """
+    result = expr
+
+    # Step 1: table('name', key_expr).col  →  name[key_translated]
+    def replace_table(m):
+        tname = m.group(1)
+        key_expr = m.group(2).strip()
+        # Translate the key expression (handles Entity.field inside table args)
+        translated_key = re.sub(r"\b([A-Z][a-zA-Z]*)\.(\w+)", r"input.\2", key_expr)
+        return f"{tname}[{translated_key}]"
+
+    result = re.sub(
+        r"table\('(\w+)',\s*([^)]+)\)\.\w+",
+        replace_table,
+        result
+    )
+
+    # Step 2: Entity.field  →  input.field
+    result = re.sub(r"\b([A-Z][a-zA-Z]*)\.(\w+)", r"input.\2", result)
+
+    # Step 3: max(a, b)  →  max([a, b])
+    result = _replace_binary_fn(result, "max")
+
+    # Step 4: min(a, b)  →  min([a, b])
+    result = _replace_binary_fn(result, "min")
+
+    # Step 5: Substitute UPPER_SNAKE_CASE constants with literal values
+    if constants:
+        for name, value in constants.items():
+            result = re.sub(rf"\b{re.escape(name)}\b", str(value), result)
+
+    return result
+
+
+def emit_computed_section(computed_fields, constants=None, skip=None):
+    """
+    Emit Rego rules for all fields in the computed: section.
+
+    - expr (non-bool):  field_name := <translated_expr>
+    - expr (bool):      default field_name := false
+                        field_name if { <translated_expr> }
+    - conditional:      field_name := <then> if { <if> } else := <else>
+
+    Fields in `skip` are noted with a comment and skipped (already emitted elsewhere).
+    Returns a list of Rego source lines.
+    """
+    skip = skip or set()
+    lines = [
+        "# =============================================================================",
+        "# DEDUCTION CHAIN (from CIVIL v2 computed: section)",
+        "# =============================================================================",
+        "",
+    ]
+
+    for field_name, field_def in computed_fields.items():
+        if field_name in skip:
+            lines.append(f"# {field_name}: handled by SNAP-specific lookup rule above")
+            lines.append("")
+            continue
+
+        ftype = field_def.get("type")
+        description = field_def.get("description", "")
+        has_cond = "conditional" in field_def
+
+        if description:
+            lines.append(f"# {description}")
+
+        if has_cond:
+            cond = field_def["conditional"]
+            if_expr = translate_expr(cond["if"], constants)
+            then_expr = translate_expr(cond["then"], constants)
+            else_expr = translate_expr(cond["else"], constants)
+            lines.append(f"{field_name} := {then_expr} if {{ {if_expr} }} else := {else_expr}")
+        else:
+            expr = field_def["expr"]
+            rego_expr = translate_expr(expr, constants)
+            if ftype == "bool":
+                # Rego rule bodies don't support || — split OR clauses into multiple rules
+                or_clauses = [c.strip() for c in rego_expr.split("||")]
+                lines.append(f"default {field_name} := false")
+                for clause in or_clauses:
+                    lines.append(f"{field_name} if {{ {clause} }}")
+            else:
+                lines.append(f"{field_name} := {rego_expr}")
+
+        lines.append("")
+
+    return lines
+
+
 def transpile_snap(doc, output_path):
     """
     Transpile the SNAP CIVIL module to OPA/Rego.
 
-    The net income calculation requires multi-step arithmetic where each
-    deduction depends on income remaining after prior deductions. This cannot
-    be expressed in CIVIL v1's `when:` expressions (no intermediate variables),
-    so we implement it fully in Rego here.
+    CIVIL v2: the `computed:` section defines the deduction chain. The transpiler
+    emits those fields generically via emit_computed_section(). SNAP-specific
+    threshold lookup rules (with size 9+ fallbacks) are still emitted here.
     """
     tables = doc.get("tables", {})
     constants = doc.get("constants", {})
@@ -157,39 +298,16 @@ def transpile_snap(doc, output_path):
         "    input.household_size <= 6",
         f"}} else := {std_rows[6]}",
         "",
-        "# =============================================================================",
-        "# DEDUCTION CHAIN (7 CFR § 273.9(b)–(d))",
-        "# Applied in order; each step depends on income remaining after prior steps.",
-        "# =============================================================================",
-        "",
-        "# Deduction 1: 20% of earned income (7 CFR § 273.9(b))",
-        f"earned_income_deduction := input.earned_income * {earned_rate}",
-        "",
-        "# Deduction 2: Standard deduction (applied after earned income deduction)",
-        "# (uses standard_deduction rule above)",
-        "",
-        "# Deduction 3: Dependent care deduction (7 CFR § 273.9(d)(4))",
-        "dependent_care_deduction := input.dependent_care_costs",
-        "",
-        "# Income remaining after deductions 1, 2, 3 (base for shelter excess calculation)",
-        "income_after_prior_deductions := input.gross_monthly_income",
-        "    - earned_income_deduction",
-        "    - standard_deduction",
-        "    - dependent_care_deduction",
-        "",
-        "# Deduction 4: Excess shelter deduction (7 CFR § 273.9(d)(6))",
-        f"shelter_excess := max([0, input.shelter_costs_monthly - ({shelter_rate} * income_after_prior_deductions)])",
-        "",
-        "# Shelter cap: $744/month unless elderly or disabled member (no cap)",
-        "default is_exempt_household := false",
-        "is_exempt_household if { input.has_elderly_member == true }",
-        "is_exempt_household if { input.has_disabled_member == true }",
-        "",
-        f"shelter_deduction := shelter_excess if {{ is_exempt_household }} else := min([shelter_excess, {shelter_cap}])",
-        "",
-        "# Final net income",
-        "net_income := income_after_prior_deductions - shelter_deduction",
-        "",
+    ]
+
+    # CIVIL v2: emit computed: section generically
+    computed = doc.get("computed", {})
+    if not computed:
+        fail("No computed: section found in CIVIL module. Expected CIVIL v2 with computed: fields.")
+    # standard_deduction is already emitted above with size 7+ fallback; skip it
+    lines += emit_computed_section(computed, constants=constants, skip={"standard_deduction"})
+
+    lines += [
         "# =============================================================================",
         "# INCOME TESTS",
         "# =============================================================================",
