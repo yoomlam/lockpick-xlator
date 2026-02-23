@@ -7,7 +7,7 @@
 #
 # Prerequisites:
 #   - opa CLI installed (brew install opa)
-#   - Python deps installed (pip install -r demo/requirements.txt)
+#   - Python deps installed (uv venv && source .venv/bin/activate && uv pip install -r demo/requirements.txt)
 #   - Rego policy generated (python tools/transpile_to_opa.py ...)
 
 set -euo pipefail

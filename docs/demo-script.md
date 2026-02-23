@@ -27,17 +27,22 @@ demo/static/index.html                          ← browser form
 brew install opa
 opa version   # should print v0.x.x
 
-# Python 3.11+
+# Python 3.11+ and uv
 python --version
+brew install uv   # or: curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Demo Python packages
-pip install -r demo/requirements.txt
+# Create and activate virtual environment
+uv venv
+source .venv/bin/activate
+
+# Install demo Python packages
+uv pip install -r demo/requirements.txt
 ```
 
 **Optional (to run tests):**
 
 ```bash
-pip install pyyaml   # already included in demo/requirements.txt
+uv pip install pyyaml   # already included in demo/requirements.txt
 ```
 
 ---
