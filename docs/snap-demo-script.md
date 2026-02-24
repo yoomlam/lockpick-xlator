@@ -5,15 +5,15 @@ This document walks through the full Xlator pipeline end-to-end using SNAP incom
 ## What This Demonstrates
 
 ```
-input/policy_docs/snap_eligibility_fy2026.md   ← real USDA FNS policy
+domains/snap/input/policy_docs/snap_eligibility_fy2026.md   ← real USDA FNS policy
     ↓  (Claude Code skill: translate-policy)
-specs/ruleset/snap_eligibility.civil.yaml       ← CIVIL DSL intermediate representation
-    ↓  (tools/transpile_to_opa.py)
-output/ruleset/snap_eligibility.rego            ← OPA/Rego policy (generated)
+domains/snap/specs/eligibility.civil.yaml                   ← CIVIL DSL intermediate representation
+    ↓  (make snap-transpile)
+domains/snap/output/eligibility.rego                        ← OPA/Rego policy (generated)
     ↓  (OPA REST server)
-demo/main.py (FastAPI)                          ← API layer
+domains/snap/demo/main.py (FastAPI)                         ← API layer
     ↓  (HTTP)
-demo/static/index.html                          ← browser form
+domains/snap/demo/static/index.html                         ← browser form
 ```
 
 ---
@@ -36,7 +36,7 @@ uv venv
 source .venv/bin/activate
 
 # Install demo Python packages
-uv pip install -r demo/requirements.txt
+uv pip install -r domains/snap/demo/requirements.txt
 ```
 
 **Optional (to run tests):**
@@ -51,7 +51,7 @@ uv pip install pyyaml   # already included in demo/requirements.txt
 
 ### 1. Review the Source Policy Document
 
-Open `input/policy_docs/snap_eligibility_fy2026.md`. This is what the Claude Code translation skill reads. It contains:
+Open [domains/snap/input/policy_docs/snap_eligibility_fy2026.md](domains/snap/input/policy_docs/snap_eligibility_fy2026.md). This is what the Claude Code translation skill reads. It contains:
 
 - Gross income test: 130% FPL, elderly/disabled exempt
 - Net income test: 100% FPL after deductions
@@ -61,40 +61,38 @@ Open `input/policy_docs/snap_eligibility_fy2026.md`. This is what the Claude Cod
 
 ### 2. Review the CIVIL Module
 
-Open `specs/ruleset/snap_eligibility.civil.yaml`. This is the intermediate representation — what Xlator produces before compilation to any specific rule engine.
+Open [domains/snap/specs/eligibility.civil.yaml](domains/snap/specs/eligibility.civil.yaml). This is the intermediate representation — what Xlator produces before compilation to any specific rule engine.
 
 Key sections:
 - `facts: Household:` — 8 input fields including earned/unearned income split and shelter costs
 - `tables:` — FY2026 gross/net limits and standard deductions by household size (1–8)
+- `computed:` — intermediate values: deduction chain, gross/net limits, passes_* flags
 - `rules:` — 3 rules: deny gross, deny net, allow if both pass
-- CIVIL v1 limitation note in comments: net income formula lives in the transpiler, not in `when:` expressions
 
 ### 3. Validate the CIVIL Module
 
 ```bash
-python tools/validate_civil.py specs/ruleset/snap_eligibility.civil.yaml
-# Expected: ✓ specs/ruleset/snap_eligibility.civil.yaml is valid CIVIL
+make snap-validate
+# Expected: ✓ domains/snap/specs/eligibility.civil.yaml is valid CIVIL
 ```
 
 ### 4. Generate the OPA/Rego Policy
 
 ```bash
-python tools/transpile_to_opa.py \
-  specs/ruleset/snap_eligibility.civil.yaml \
-  output/ruleset/snap_eligibility.rego
-# Expected: ✓ Transpiled to output/ruleset/snap_eligibility.rego
+make snap-transpile
+# Expected: ✓ Transpiled to domains/snap/output/eligibility.rego
 ```
 
 Then syntax-check the generated Rego:
 
 ```bash
-opa check output/ruleset/snap_eligibility.rego
+opa check domains/snap/output/eligibility.rego
 # Expected: (no output = clean)
 ```
 
-Open `output/ruleset/snap_eligibility.rego` and notice:
+Open [domains/snap/output/eligibility.rego](domains/snap/output/eligibility.rego) and notice:
 - Income threshold dicts populated from CIVIL tables
-- `gross_limit`/`net_limit` with `else` clauses for household size 9+
+- `gross_limit`/`net_limit` with `conditional:` fallback for household size 9+
 - Full deduction chain: `earned_income_deduction` → `standard_deduction` → `dependent_care_deduction` → `shelter_excess` → `shelter_deduction` → `net_income`
 - `default passes_gross_test := false` pattern (critical: OPA boolean rules are undefined, not false)
 - `decision` object with `eligible`, `denial_reasons`, and `computed` breakdown
@@ -105,10 +103,10 @@ Start OPA, then run all 8 test cases:
 
 ```bash
 # Terminal 1: Start OPA
-opa run --server --addr :8181 output/ruleset/snap_eligibility.rego
+opa run --server --addr :8181 domains/snap/output/eligibility.rego
 
 # Terminal 2: Run tests
-python tools/run_tests.py specs/tests/snap_eligibility_tests.yaml
+make snap-test
 ```
 
 Expected output:
@@ -131,7 +129,7 @@ Results: 8 passed, 0 failed out of 8 total
 ### 6. Start the Demo
 
 ```bash
-cd demo && bash start.sh
+make snap-demo
 ```
 
 This starts OPA (port 8181) and FastAPI (port 8000).
@@ -201,9 +199,9 @@ The API documentation is at: http://localhost:8000/docs
 
 For a given decision, you can trace the full lineage:
 
-1. **Policy text** → `input/policy_docs/snap_eligibility_fy2026.md` (with CFR citations)
-2. **CIVIL intent** → `specs/ruleset/snap_eligibility.civil.yaml` (rule `FED-SNAP-DENY-001`)
-3. **Rego execution** → `output/ruleset/snap_eligibility.rego` (`passes_gross_test`, `denial_reasons`)
+1. **Policy text** → `domains/snap/input/policy_docs/snap_eligibility_fy2026.md` (with CFR citations)
+2. **CIVIL intent** → `domains/snap/specs/eligibility.civil.yaml` (rule `FED-SNAP-DENY-001`)
+3. **Rego execution** → `domains/snap/output/eligibility.rego` (`passes_gross_test`, `denial_reasons`)
 4. **API response** → `denial_reasons[].citation = "7 CFR § 273.9(a)(1)"`
 5. **Browser display** → Denial reason with citation shown to caseworker
 
@@ -218,7 +216,7 @@ Use the Claude Code translation skill to translate another policy:
 ```
 
 The skill will:
-1. Ask which document in `input/policy_docs/` to translate
+1. Ask which document in `domains/<name>/input/policy_docs/` to translate
 2. Guide through identifying facts, decisions, tables, and rules
 3. Draft the CIVIL module and test cases
 4. Request human review before transpiling
@@ -230,7 +228,7 @@ The skill will:
 
 **"OPA server not reachable"** — Make sure OPA is running before starting FastAPI:
 ```bash
-opa run --server --addr :8181 output/ruleset/snap_eligibility.rego
+opa run --server --addr :8181 domains/snap/output/eligibility.rego
 curl http://localhost:8181/health  # should return {}
 ```
 
@@ -246,15 +244,15 @@ curl http://localhost:8181/health  # should return {}
 
 | File | Purpose |
 |---|---|
-| `input/policy_docs/snap_eligibility_fy2026.md` | Source policy document |
-| `specs/ruleset/snap_eligibility.civil.yaml` | CIVIL intermediate representation |
-| `specs/tests/snap_eligibility_tests.yaml` | 8 test cases |
+| `domains/snap/input/policy_docs/snap_eligibility_fy2026.md` | Source policy document |
+| `domains/snap/specs/eligibility.civil.yaml` | CIVIL intermediate representation |
+| `domains/snap/specs/tests/eligibility_tests.yaml` | 8 test cases |
 | `specs/ruleset_schema.yaml` | CIVIL DSL schema reference |
 | `tools/validate_civil.py` | Validates CIVIL YAML structure |
 | `tools/transpile_to_opa.py` | CIVIL → OPA/Rego transpiler |
 | `tools/run_tests.py` | Runs YAML test cases against OPA REST |
-| `output/ruleset/snap_eligibility.rego` | Generated OPA policy (do not edit) |
-| `demo/main.py` | FastAPI backend |
-| `demo/static/index.html` | Browser form |
-| `demo/start.sh` | Starts OPA + FastAPI |
+| `domains/snap/output/eligibility.rego` | Generated OPA policy (do not edit) |
+| `domains/snap/demo/main.py` | FastAPI backend |
+| `domains/snap/demo/static/index.html` | Browser form |
+| `domains/snap/demo/start.sh` | Starts OPA + FastAPI |
 | `.claude/skills/translate-policy.md` | Claude Code skill for pipeline reuse |

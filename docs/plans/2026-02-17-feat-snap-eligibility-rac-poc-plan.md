@@ -366,7 +366,7 @@ The skill includes the CIVIL module structure as a template and references `spec
 ### Phase 6: Documentation
 
 **Deliverables:**
-- `docs/demo-script.md`
+- `docs/snap-demo-script.md`
 
 #### 6.1 Demo Script
 
@@ -410,7 +410,7 @@ demo/
   skills/
     translate-policy.md              ← Phase 5.1
 docs/
-  demo-script.md                     ← Phase 6.1
+  snap-demo-script.md                ← Phase 6.1
   brainstorms/
     2026-02-17-first-translation-poc-brainstorm.md
   plans/
@@ -435,7 +435,7 @@ docs/
 - [x] FastAPI `POST /api/snap/eligibility` returns correct `eligible`, `denial_reasons`, and `computed` fields
 - [x] FastAPI returns HTTP 503 (not a crash) when OPA is unreachable
 - [x] HTML form shows loading state during request and error message on failure
-- [x] Full pipeline is re-runnable by following `docs/demo-script.md` from scratch
+- [x] Full pipeline is re-runnable by following `docs/snap-demo-script.md` from scratch
 
 ### Quality Gates
 - [x] `tools/validate_civil.py` exits 1 with a clear human-readable error on a malformed CIVIL file

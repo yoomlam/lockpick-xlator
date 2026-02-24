@@ -15,7 +15,7 @@ The project currently instructs developers to run `pip install -r demo/requireme
 
 ## Acceptance Criteria
 
-- [ ] `docs/demo-script.md` Prerequisites section replaced with `uv`-based workflow (`uv venv`, `source .venv/bin/activate`, `uv pip install`)
+- [ ] `docs/snap-demo-script.md` Prerequisites section replaced with `uv`-based workflow (`uv venv`, `source .venv/bin/activate`, `uv pip install`)
 - [ ] `demo/start.sh` prerequisite comment updated to reference `uv`
 - [ ] `.claude/settings.local.json` updated: `uv` command added to allow-list, `pip install` entry replaced
 - [ ] `.gitignore` already excludes `.venv/` — verify and add if missing
@@ -24,14 +24,14 @@ The project currently instructs developers to run `pip install -r demo/requireme
 
 | File | Change |
 |---|---|
-| [`docs/demo-script.md`](docs/demo-script.md) | Replace Prerequisites block (lines 21–41) with `uv` workflow |
+| [`docs/snap-demo-script.md`](docs/snap-demo-script.md) | Replace Prerequisites block (lines 21–41) with `uv` workflow |
 | [`demo/start.sh`](demo/start.sh) | Update prerequisite comment (line 10) |
 | [`.claude/settings.local.json`](.claude/settings.local.json) | Add `Bash(uv:*)`, replace `Bash(pip install:*)` |
 | [`.gitignore`](.gitignore) | Add `.venv/` if not already present |
 
 ## Implementation
 
-### 1. `docs/demo-script.md` — Prerequisites section
+### 1. `docs/snap-demo-script.md` — Prerequisites section
 
 Replace:
 ```bash
@@ -88,7 +88,7 @@ Check whether `.venv/` is already excluded. If not, add it.
 
 After implementing:
 1. `grep -r "pip install" docs/ demo/` should return no results
-2. `grep -r "uv" docs/demo-script.md` should show the new commands
+2. `grep -r "uv" docs/snap-demo-script.md` should show the new commands
 3. Follow the updated Prerequisites section manually: `uv venv && source .venv/bin/activate && uv pip install -r demo/requirements.txt` — should succeed
 4. `bash demo/start.sh` should work with the activated venv (uvicorn must be in PATH via venv)
 
