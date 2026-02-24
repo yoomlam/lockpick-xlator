@@ -11,8 +11,8 @@ Goal: Represent and translate the given input (federal, state, and local governm
 
 ## Step-by-Step Process
 
-This project takes an incremental approach where each iteration involves:
-- The user adds `input` docs and code in manageable-sized amounts
+This project takes an incremental approach where each iteration involves the user (an SME on the policies) to perform the following:
+- The user adds `input` docs and code in manageable-sized amounts of policy docs
     - The codebase contains the input and there is no context window (and hence no limit).
     - The AI searches the codebase for the data it needs (similar to RAG but without a vector DB).
 - The user interacts with an AI to update the `specs`. Once satisfied, the specs are commited into git for version control.
