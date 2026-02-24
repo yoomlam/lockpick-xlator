@@ -12,7 +12,18 @@
 #   2. Copy this block, replacing SNAP_ prefix and snap- prefixes with your domain name
 #   3. Set DOMAIN_CIVIL, DOMAIN_TESTS, DOMAIN_REGO, DOMAIN_PACKAGE, DOMAIN_OPA_PATH
 
-.PHONY: snap snap-validate snap-transpile snap-test snap-demo
+.PHONY: snap snap-setup snap-validate snap-transpile snap-test snap-demo
+
+baseline-setup:
+	# Install UV (Python tool) if it doesn't exist
+	command -v uv || brew install uv
+	test -d .venv || uv venv
+
+	# Install OPA CLI if it doesn't exist
+	# Used for testing and demo; Claude may also run it for its testing
+	# OPA is a rules engine that can run Rego policies
+	# Use OPA for now, but we'll support other ruleset languages and rule engines
+	command -v opa || brew install opa
 
 # ---------------------------------------------------------------------------
 # SNAP — Federal income eligibility
@@ -23,6 +34,10 @@ SNAP_TESTS    := domains/snap/specs/tests/eligibility_tests.yaml
 SNAP_REGO     := domains/snap/output/eligibility.rego
 SNAP_PACKAGE  := snap.eligibility
 SNAP_OPA_PATH := /v1/data/snap/eligibility/decision
+
+snap-setup: baseline-setup
+	# Install Python dependencies
+	uv pip install -r domains/snap/demo/requirements.txt
 
 snap: snap-validate snap-transpile snap-test
 

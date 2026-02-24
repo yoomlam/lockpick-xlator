@@ -20,30 +20,12 @@ domains/snap/demo/static/index.html                         ← browser form
 
 ## Prerequisites
 
-**Required:**
-
 ```bash
-# OPA CLI
-brew install opa
-opa version   # should print v0.x.x
-
-# Python 3.11+ and uv
-python --version
-brew install uv   # or: curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Create and activate virtual environment
-uv venv
+make snap-setup
 source .venv/bin/activate
-
-# Install demo Python packages
-uv pip install -r domains/snap/demo/requirements.txt
 ```
 
-**Optional (to run tests):**
-
-```bash
-uv pip install pyyaml   # already included in demo/requirements.txt
-```
+`snap-setup` installs OPA and uv via Homebrew, creates a virtual environment, and installs demo Python dependencies. Run `source .venv/bin/activate` afterwards to activate the environment in your shell.
 
 ---
 
@@ -51,7 +33,7 @@ uv pip install pyyaml   # already included in demo/requirements.txt
 
 ### 1. Review the Source Policy Document
 
-Open [domains/snap/input/policy_docs/snap_eligibility_fy2026.md](domains/snap/input/policy_docs/snap_eligibility_fy2026.md). This is what the Claude Code translation skill reads. It contains:
+Open [domains/snap/input/policy_docs/snap_eligibility_fy2026.md](domains/snap/input/policy_docs/snap_eligibility_fy2026.md). This is what the Claude Code extract-ruleset skill reads. It contains:
 
 - Gross income test: 130% FPL, elderly/disabled exempt
 - Net income test: 100% FPL after deductions
@@ -209,7 +191,7 @@ For a given decision, you can trace the full lineage:
 
 ## Extending to a New Policy
 
-Use the Claude Code translation skill to translate another policy:
+Use the Claude Code extract-ruleset skill to translate another policy:
 
 ```
 /translate-policy

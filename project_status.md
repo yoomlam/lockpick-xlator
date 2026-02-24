@@ -6,6 +6,12 @@
 
 ## TODOs
 
+- Create Testing harness
+    - Migrate Answer Key to `input` folder
+    - Encode expected answers for comparison
+    - Check ruleset: input → some extraction tool → specs --> compare(specs.ruleset, ER)
+    - Check ruleset execution: test_cases, output.ruleset → some rule engine → result --> compare(test_case, result)
+
 - Create Claude skills, agents, commands
     - Borrow from [policyengine-claude](https://github.com/PolicyEngine/policyengine-claude/blob/main/agents/country-models/rules-engineer.md)
         - Be aware: it has PolicyEngine/OpenFisca heuristics
