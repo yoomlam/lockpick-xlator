@@ -6,7 +6,7 @@ This document walks through the full Xlator pipeline end-to-end using SNAP incom
 
 ```
 domains/snap/input/policy_docs/snap_eligibility_fy2026.md   ← real USDA FNS policy
-    ↓  (Claude Code skill: translate-policy)
+    ↓  (Claude Code command: /extract-ruleset)
 domains/snap/specs/eligibility.civil.yaml                   ← CIVIL DSL intermediate representation
     ↓  (make snap-transpile)
 domains/snap/output/eligibility.rego                        ← OPA/Rego policy (generated)
@@ -33,7 +33,7 @@ source .venv/bin/activate
 
 ### 1. Review the Source Policy Document
 
-Open [domains/snap/input/policy_docs/snap_eligibility_fy2026.md](domains/snap/input/policy_docs/snap_eligibility_fy2026.md). This is what the Claude Code extract-ruleset skill reads. It contains:
+Open [domains/snap/input/policy_docs/snap_eligibility_fy2026.md](domains/snap/input/policy_docs/snap_eligibility_fy2026.md). This is what the Claude Code extract-ruleset command reads. It contains:
 
 - Gross income test: 130% FPL, elderly/disabled exempt
 - Net income test: 100% FPL after deductions
@@ -191,13 +191,13 @@ For a given decision, you can trace the full lineage:
 
 ## Extending to a New Policy
 
-Use the Claude Code extract-ruleset skill to translate another policy:
+Use the Claude Code extract-ruleset command to translate another policy:
 
 ```
-/translate-policy
+/extract-ruleset snap
 ```
 
-The skill will:
+The command will:
 1. Ask which document in `domains/<name>/input/policy_docs/` to translate
 2. Guide through identifying facts, decisions, tables, and rules
 3. Draft the CIVIL module and test cases
@@ -237,4 +237,4 @@ curl http://localhost:8181/health  # should return {}
 | `domains/snap/demo/main.py` | FastAPI backend |
 | `domains/snap/demo/static/index.html` | Browser form |
 | `domains/snap/demo/start.sh` | Starts OPA + FastAPI |
-| `.claude/skills/translate-policy.md` | Claude Code skill for pipeline reuse |
+| `.claude/commands/extract-ruleset.md` | Claude Code slash command to extract from policy documents |

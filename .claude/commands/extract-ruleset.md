@@ -453,7 +453,7 @@ On failure → show failing cases, ask user to diagnose.
 
 ## Output
 
-Files created or modified by this skill:
+Files created or modified by this command:
 
 | File | CREATE | UPDATE |
 |------|--------|--------|

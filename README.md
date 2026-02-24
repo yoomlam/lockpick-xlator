@@ -52,7 +52,7 @@ Makefile                             ← per-domain pipeline targets
 
 ### 1. Input Collection
 - Add policy documents to `domains/<name>/input/policy_docs/`
-- Use the `translate-policy` skill (`.claude/skills/translate-policy.md`) to extract CIVIL specs with AI assistance
+- Use the `extract-ruleset` command (`.claude/commands/extract-ruleset.md`) to extract CIVIL specs with AI assistance
 
 ### 2. Spec Creation (AI-Assisted)
 - Work with AI to create `domains/<name>/specs/<module>.civil.yaml`
