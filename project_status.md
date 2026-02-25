@@ -12,6 +12,8 @@
     - Check ruleset: input → some extraction tool → specs --> compare(specs.ruleset, ER)
     - Check ruleset execution: test_cases, output.ruleset → some rule engine → result --> compare(test_case, result)
 
+- Add confidence score for each extracted rule so that the score can be used to rank rules for user review, i.e., user should focus on verifying low confidence rules and work with the AI to fix them (and potentially remember rule-extraction patterns for future use)
+
 - Create Claude skills, agents, commands
     - Borrow from [policyengine-claude](https://github.com/PolicyEngine/policyengine-claude/blob/main/agents/country-models/rules-engineer.md)
         - Be aware: it has PolicyEngine/OpenFisca heuristics

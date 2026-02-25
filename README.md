@@ -9,6 +9,44 @@ Goal: Represent and translate the given input (federal, state, and local governm
 * AI Collaboration: Use AI to accelerate translation, but human review ensures accuracy and policy compliance.
 * Testing Focus: Comprehensive tests prevent regressions and document expected behavior.
 
+### Ruleset as the codebase
+
+This project treats the extracted ruleset (policies, workflows, decision logic, definitions) as a first-class code artifact rather than static documentation. Doing so provides the same rigor, traceability, and reliability we expect from software code.
+
+#### Version Control & Traceability
+- Every change is tracked and reviewable.
+- Historical versions can be compared or restored.
+- Rule evolution is transparent and auditable.
+
+#### Code Review for Rule Changes
+- Updates go through a PR review process.
+- Logic changes are visible and discussable.
+- Reduces silent drift and unintended consequences.
+
+#### Tests Prevent Regressions
+- Tests encode expected behavior and edge cases.
+- Regressions are caught automatically.
+- Behavior becomes executable documentation.
+- Refactors are safer and verifiable.
+
+#### Incremental Improvement
+- New test cases are added as rules are added.
+- Gaps surface via failing tests.
+- Accuracy improves through small, controlled updates.
+
+#### Automation & Product Readiness
+- Supports validation, transpilation, and deployment.
+- Potential integration with CI/CD.
+
+
+### Desired Outcomes
+Progress in Terms of Outcomes, Not Outputs (Outputs are activity. Outcomes are value.)
+
+This rules extractor initiative:
+- **Outcome**: Save meaningful time for project teams.
+- **Leading indicator**: Accuracy of automatically generated rules.
+- **Validation loop**: Early and frequent feedback from the AK team about what matters most.
+
 ## FAQ
 
 - Is this testing functional feasibility?
