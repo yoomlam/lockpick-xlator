@@ -108,6 +108,8 @@ decisions:
   reasons:  { type: list, item: Reason, default: [] }
 
 types:
+  # Optional 'description:' is supported on fact fields, decision fields,
+  # table definitions, rule_set, and individual rules.
   Reason:
     fields:
       code: { type: string }
@@ -171,16 +173,55 @@ Each field uses either `expr:` (a single expression) or `conditional:` (if/then/
 
 ---
 
+### 2c) Review blocks (optional, on rules and computed fields)
+
+`review:` blocks attach extraction quality scores to individual rules and computed fields. All four integer fields are required when the block is present. Scores have no effect on transpilation or OPA evaluation — they exist only for human review.
+
+```yaml
+review:
+  extraction_fidelity: int  # 1–5: how accurately the AI captured the policy intent
+  source_clarity: int       # 1–5: how clear and unambiguous the source policy text was
+  logic_complexity: int     # 1–5: number of conditions, boolean depth, table lookups
+  policy_complexity: int    # 1–5: density of legalese, cross-references, exceptions
+  notes: string             # optional; required for any score ≤ 2 or ≥ 4
+```
+
+Score scale: 1 = very low · 3 = moderate · 5 = very high.
+
+Example on a rule:
+
+```yaml
+rules:
+  - id: "FED-SNAP-DENY-001"
+    kind: deny
+    priority: 1
+    when: "Household.gross_monthly_income > gross_limit"
+    then:
+      - add_reason:
+          code: GROSS_INCOME_EXCEEDED
+          message: "Gross income exceeds the 130% FPL limit"
+    review:
+      extraction_fidelity: 5
+      source_clarity: 5
+      logic_complexity: 2
+      policy_complexity: 1
+      notes: "Direct threshold test; formula explicit in 7 CFR § 273.9(a)(1)"
+```
+
+---
+
 ### 3) Rule set
 
 ```yaml
 rule_set:
   name: "federal_eligibility"
-  precedence: "deny_overrides_allow"   # other options: first_match, priority_order
+  description: "Federal housing assistance eligibility"  # optional
+  precedence: "deny_overrides_allow"   # other options: allow_overrides_deny, first_match, priority_order
 
 rules:
   - id: "FED-RESIDENCY"
     kind: "deny"
+    description: "Applicant must be a US resident"  # optional
     when: "Applicant.resident == false"
     then:
       - add_reason:
@@ -216,6 +257,18 @@ rules:
       - set: { eligible: true }
 ```
 
+**Available `then:` action types:**
+
+| Action | Effect |
+|--------|--------|
+| `set: { decision: value }` | Set a decision output to a value |
+| `add_reason: { code, message, citations }` | Append a Reason to a list-typed decision |
+| `add_instruction: { step, message, citations }` | Append an Instruction to a list-typed decision |
+| `add_to_set: { decision: value }` | Add a value to a set-typed decision |
+| `append_to_list: { decision: value }` | Append a value to a list-typed decision |
+
+Each `then:` entry must have exactly one action type.
+
 **Notes for transpilers**
 
 -   `kind: deny/allow` makes compilation easy to “deny wins” logic (OPA style) or DMN hit policies.
@@ -226,6 +279,8 @@ rules:
 
 Jurisdiction layering (federal → state → city)
 ----------------------------------------------
+
+> **Implementation status:** Overlay bundles are defined in this spec but are not yet validated by `tools/validate_civil.py` or transpiled by `tools/transpile_to_opa.py`. The validator and transpiler operate on individual CIVIL modules only.
 
 You’ll want a _composition DSL_ that defines how modules merge.
 
@@ -330,12 +385,14 @@ rule_set:
 
 rules:
   - id: "ADD-FORM-1040"
+    kind: "allow"
     priority: 10
     when: "true"
     then:
       - add_to_set: { forms: "Form 1040" }
 
   - id: "SELF_EMPLOYED_SCHEDULE_C"
+    kind: "allow"
     priority: 20
     when: "Taxpayer.self_employed == true"
     then:
@@ -347,6 +404,7 @@ rules:
             - { label: "IRS Instructions for Schedule C" }
 
   - id: "MUST_FILE_SINGLE"
+    kind: "allow"
     priority: 30
     when: "Taxpayer.filing_status == 'single' && Taxpayer.gross_income >= SINGLE_THRESHOLD"
     then:
