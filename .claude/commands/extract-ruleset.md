@@ -86,6 +86,29 @@ Use `<program>` argument if given. Otherwise:
 1. Infer from the `module:` name found in the policy text (e.g., "SNAP income eligibility" → `eligibility`)
 2. If ambiguous, prompt: "What should the program file be named? (e.g., `eligibility`, `income_test`)"
 
+### Step 3b: Name Inventory
+
+Before drafting any CIVIL YAML, produce the canonical field name for every fact and computed concept in the policy. For each measurable quantity, flag, or derived value found in the policy documents, apply this algorithm:
+
+1. Find the **exact noun phrase** in the policy text describing the concept
+2. **Strip** any words that duplicate the entity name (e.g., entity is `Household` → strip "household" from "household gross income" → `gross income`)
+3. Convert to **`snake_case`**
+4. If the result would be **ambiguous** with another field in the same entity, append a disambiguating qualifier from the policy text
+
+Present the result as a Markdown table:
+
+| Policy Phrase | Entity / Section | Field Name | Source Section |
+|--------------|-----------------|-----------|----------------|
+| gross monthly income | Household | `gross_monthly_income` | §1.2 |
+| number of people in the household | Household | `household_size` | §1.1 |
+| net monthly income after all deductions | computed | `net_income` | §2.4 |
+
+**If `domains/<domain>/specs/.naming-manifest.yaml` already exists** (CREATE re-run after a previous successful extraction):
+- Pre-populate the table with the frozen names from the manifest
+- Only derive new names for policy concepts not already listed
+
+Ask: "Do the field names in this table match your intent? You may edit any name." If the user changes any name, update the table and re-present. Loop until the user explicitly approves. Use the approved names in Step 4 onward.
+
 ### Step 4: Draft the CIVIL Module
 
 Create `domains/<domain>/specs/<program>.civil.yaml`:
@@ -269,6 +292,30 @@ Ask: "Does this translation correctly capture the policy intent? Any rules missi
 
 **On rejection:** Re-extract the specific disputed rule, re-validate (using the retry loop), then re-present the review gate. Do not proceed to transpilation until the user confirms.
 
+### Step 8b: Write Naming Manifest
+
+Now that the user has approved the rule-by-rule review, write `domains/<domain>/specs/.naming-manifest.yaml` using every entry from the approved Name Inventory table (Step 3b):
+
+```yaml
+version: "1.0"
+entities:
+  <EntityName>:
+    <field_name>:
+      policy_phrase: "<exact policy phrase from Name Inventory>"
+      source_doc: "<source filename>"
+      section: "<section heading>"
+  # repeat for each entity
+computed:
+  <field_name>:
+    policy_phrase: "<exact policy phrase>"
+    source_doc: "<source filename>"
+    section: "<section heading>"
+```
+
+**If `.naming-manifest.yaml` already exists** (CREATE re-run): merge — preserve all existing entries unchanged and append only new entries.
+
+This file is user-editable. Do **not** add an "auto-generated" comment.
+
 ### Step 9: Scaffold Makefile Target
 
 Check if a target for `<domain>` already exists:
@@ -334,6 +381,31 @@ Then loop back to the appropriate fix (Step 4, Step 7, or file a transpiler issu
 
 ## Process — UPDATE Mode
 
+### Step 0: Load Naming Manifest and Check for Divergence
+
+**If `domains/<domain>/specs/.naming-manifest.yaml` exists:**
+
+1. Read all field names from the manifest (`entities.<EntityName>.<field>` keys and `computed.<field>` keys)
+2. Read all fact and computed field names from `domains/<domain>/specs/<program>.civil.yaml`
+3. Compare the two sets. If any field name exists in the CIVIL file but not the manifest, or exists in both but with a different spelling, **halt** and list every mismatch:
+
+   > ⚠️ Naming manifest divergence detected:
+   > - CIVIL has `income` under `Household`, but manifest expects `gross_monthly_income`
+   >
+   > Resolve by either:
+   > a) Editing the CIVIL file to restore the manifest name, or
+   > b) Editing `.naming-manifest.yaml` to acknowledge the rename
+   >
+   > Then re-run `/extract-ruleset <domain>`.
+
+   Do not continue until there are no mismatches.
+
+**If the manifest does not exist** (domain was extracted before this feature was added):
+
+> ⚠️ No naming manifest found. Field names will not be enforced this run. A manifest will be created after this UPDATE completes.
+
+Proceed to Step 1.
+
 ### Step 1: Load Baseline
 
 Read `domains/<domain>/specs/.extraction-manifest.yaml` to get the git SHA for each source doc.
@@ -380,6 +452,8 @@ For each changed doc, read the diff and determine which CIVIL sections need upda
 ### Step 5: Re-extract Affected Sections
 
 For each affected section, re-read the relevant parts of the changed policy doc and re-extract only that section. Do not touch sections not identified in Step 4.
+
+When re-extracting any section that contains `facts:` or `computed:` fields, inject the frozen names from `.naming-manifest.yaml` into your extraction reasoning: "These fields must keep their exact current names: [list all names from manifest]. Only introduce new field names for policy concepts not in this list, using the 4-step algorithm: (1) exact noun phrase, (2) strip entity-name words, (3) snake_case, (4) disambiguate if needed." **Never rename an existing field.**
 
 ### Step 6: Merge into Existing CIVIL File
 
@@ -435,6 +509,18 @@ Ask: "Does this update look correct? Any changes missing or incorrect?"
 
 **On rejection:** Re-extract the specific disputed section, re-merge, re-validate, re-present. Do not proceed until confirmed.
 
+### Step 10b: Update Naming Manifest
+
+If any new fact or computed fields were added during this UPDATE:
+
+1. Apply the 4-step naming algorithm (from CREATE Step 3b) to derive the canonical name for each new concept
+2. Append the new entries to `domains/<domain>/specs/.naming-manifest.yaml` under the appropriate entity or `computed:` section
+3. Preserve all existing manifest entries unchanged
+
+If no naming manifest exists yet (domain was extracted before this feature was added), create it now using all current fact and computed field names from the CIVIL file.
+
+No additional user confirmation needed; this happens automatically after the review gate passes.
+
 ### Step 11: Update Test Cases
 
 For each stale test case identified in Step 9:
@@ -459,6 +545,7 @@ Files created or modified by this command:
 |------|--------|--------|
 | `domains/<domain>/specs/<program>.civil.yaml` | Created | Updated (affected sections only) |
 | `domains/<domain>/specs/.extraction-manifest.yaml` | Created | Updated |
+| `domains/<domain>/specs/.naming-manifest.yaml` | Created (after Step 8b) | Updated (new fields appended) |
 | `domains/<domain>/specs/tests/<program>_tests.yaml` | Created | Updated (stale cases fixed) |
 | `domains/<domain>/output/<program>.rego` | Created | Regenerated |
 | `Makefile` | Appended (if no target existed) | Not touched |

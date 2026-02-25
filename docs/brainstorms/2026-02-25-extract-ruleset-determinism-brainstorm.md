@@ -1,0 +1,123 @@
+# Brainstorm: Deterministic Variable Naming in extract-ruleset
+
+**Date:** 2026-02-25
+**Status:** Ready for planning
+
+---
+
+## What We're Building
+
+A determinism layer for the `/extract-ruleset` slash command so that running the command on the same input policy document always produces the same fact field names in the CIVIL output file.
+
+Currently, the command is LLM-driven and produces different variable names (e.g., `gross_income` vs `monthly_gross_income` vs `household_gross_income`) across runs of the same input document. This affects both CREATE mode (fresh extraction) and UPDATE mode (re-extraction of affected sections). First-run consistency is a secondary goal (the algorithm improves it, but does not guarantee it); exact reproducibility from the second run onward is the primary goal.
+
+---
+
+## Why This Approach
+
+A combination of two complementary mechanisms:
+
+1. **Algorithmic naming rules** — make first-run naming mechanistic by embedding a rigid step-by-step naming algorithm in the command prompt, reducing LLM ambiguity
+2. **Name manifest + frozen enforcement** — capture the names chosen in the first run and treat them as ground truth for all subsequent runs
+
+Together these give: better first-run consistency from the algorithm, and exact reproducibility from the second run onward via the frozen manifest.
+
+---
+
+## Key Decisions
+
+### Decision 1: Algorithmic naming rules in the prompt
+
+Add a dedicated **Name Inventory step** before drafting the CIVIL file. The LLM must follow a rigid algorithm for each extracted fact field:
+
+1. Find the exact noun phrase in the policy text that describes the quantity or flag
+2. Strip any words that duplicate the entity name (e.g., if entity is `Household`, strip "household")
+3. Convert the remaining words to `snake_case`
+4. If the result would be ambiguous with another field, append a disambiguating qualifier from the policy text
+
+**Examples:**
+- `gross monthly income` → entity is `Household` → no match to strip → `gross_monthly_income`
+- `household monthly income` → entity is `Household` → strip "household" → `monthly_income` (then flag as ambiguous if another "monthly_income" exists)
+- `number of household members` → entity is `Household` → strip "household" → `number_of_members` → simplify to `member_count`
+
+This step produces an explicit name mapping table (policy phrase → CIVIL field name) that the user reviews and may edit before any CIVIL YAML is written. If the user rejects or edits a name, the command re-applies the table with the correction and re-presents it; this loops until the user approves.
+
+### Decision 2: Name manifest file
+
+After CREATE mode completes successfully — meaning after the validator passes and the user approves the rule-by-rule review (Step 8 of the existing command flow) — write a `.naming-manifest.yaml` file alongside the existing `.extraction-manifest.yaml`.
+
+**Location:** `domains/<domain>/specs/.naming-manifest.yaml`
+
+**Structure (per-entity, including computed fields):**
+```yaml
+version: "1.0"
+entities:
+  Household:
+    gross_monthly_income:
+      policy_phrase: "gross monthly income"
+      source_doc: "snap_policy.md"
+      section: "Income Definitions"
+    household_size:
+      policy_phrase: "number of people in the household"
+      source_doc: "snap_policy.md"
+      section: "Household Composition"
+computed:
+  net_income:
+    policy_phrase: "net monthly income after deductions"
+    source_doc: "snap_policy.md"
+    section: "Income Deductions"
+```
+
+Note: `generated_at` is omitted — it has no enforcement use and causes spurious diffs when hand-editing.
+
+### Decision 3: Frozen-name enforcement in re-runs
+
+**CREATE re-run** (user deletes CIVIL file and re-runs `/extract-ruleset` in a domain where `.naming-manifest.yaml` already exists): Read the manifest first and inject the existing names into the naming instructions: "use these exact names for these policy concepts; only invent new names for concepts not listed here."
+
+**UPDATE mode:** Always read `.naming-manifest.yaml` before re-extracting affected sections. The re-extraction prompt is constrained: "use these exact field names; never rename an existing field." New fields derived during UPDATE mode use the same algorithmic naming rules (Decision 1) and are appended to the manifest automatically after the UPDATE review gate passes — no separate confirmation needed.
+
+### Decision 4: Divergence detection
+
+At the start of UPDATE mode, compare the set of field names in the CIVIL file against the manifest. If any mismatch is detected (CIVIL has a name the manifest does not, or a field was renamed), the command halts and lists the mismatches. The user must resolve by either: (a) editing the CIVIL file to revert the manual rename, or (b) editing the manifest to acknowledge the rename. The command does not proceed until the mismatch is resolved.
+
+### Decision 5: User-editable manifest
+
+The `.naming-manifest.yaml` is a plain YAML file the user can hand-edit. If the first run produced a bad name (e.g., `income` instead of `gross_monthly_income`), the user edits the manifest entry, then re-runs. On re-run, the corrected name propagates into the CIVIL file via the frozen-name enforcement in Decision 3.
+
+---
+
+## Scope
+
+**In scope:**
+- Fact field names (primary source of variability)
+- Computed field names (secondary; same mechanism applies)
+- Name Inventory review step added before CIVIL drafting in CREATE mode
+- `.naming-manifest.yaml` written after successful CREATE completion
+- UPDATE mode and CREATE re-runs enforce frozen names from manifest
+- Divergence detection at the start of UPDATE mode
+
+**Out of scope:**
+- Rule IDs, reason codes (structured formats already constrain these)
+- Table names (less variable in practice)
+- Entity names (PascalCase; typically unambiguous from policy)
+- Multiple-source-doc field naming conflicts (each field records its `source_doc`, but cross-doc name conflicts are flagged in the Name Inventory review and resolved manually)
+- First-run 100% reproducibility (algorithm improves it; manifest eliminates variability from run 2 onward)
+
+---
+
+## Resolved Questions
+
+1. **Manifest update on UPDATE mode:** Auto-update. New fields are appended after the UPDATE review gate — no extra confirmation.
+
+2. **Divergence detection:** Yes — command halts at the start of UPDATE mode and lists mismatches. User must resolve before continuing.
+
+3. **Manifest structure:** Per-entity, matching the `facts:` entities in the CIVIL file; `computed:` is a separate top-level section.
+
+---
+
+## What Success Looks Like
+
+- Running `/extract-ruleset snap` twice with the same input produces identical fact and computed field names from run 2 onward
+- The Name Inventory review gives the user an explicit checkpoint to correct names before they are frozen
+- The naming manifest is simple plain YAML that users can hand-edit without confusion
+- Divergence detection prevents silent drift between manual CIVIL edits and the frozen name record

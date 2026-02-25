@@ -1,0 +1,84 @@
+version: "1.0"
+entities:
+  Household:
+    household_size:
+      policy_phrase: "number of members in the SNAP household"
+      source_doc: "snap_eligibility_fy2026.md"
+      section: "7 CFR § 273.1 — Household Definition"
+    has_elderly_member:
+      policy_phrase: "any household member is age 60 or older"
+      source_doc: "snap_eligibility_fy2026.md"
+      section: "7 CFR § 273.1(b)(7) — Elderly Member Definition"
+    has_disabled_member:
+      policy_phrase: "any member receives SSI/SSDI or meets disability criteria"
+      source_doc: "snap_eligibility_fy2026.md"
+      section: "7 CFR § 273.1(b)(7) — Disabled Member Definition"
+    gross_monthly_income:
+      policy_phrase: "total monthly household income before any deductions"
+      source_doc: "snap_eligibility_fy2026.md"
+      section: "7 CFR § 273.9 — Income and Deductions"
+    earned_income:
+      policy_phrase: "monthly earned income — wages, salaries, net self-employment"
+      source_doc: "snap_eligibility_fy2026.md"
+      section: "7 CFR § 273.9(b) — Earned Income Deduction"
+    unearned_income:
+      policy_phrase: "monthly unearned income — Social Security, child support, unemployment"
+      source_doc: "snap_eligibility_fy2026.md"
+      section: "7 CFR § 273.9 — Income and Deductions"
+    shelter_costs_monthly:
+      policy_phrase: "monthly shelter costs — rent/mortgage plus utilities"
+      source_doc: "snap_eligibility_fy2026.md"
+      section: "7 CFR § 273.9(d)(6) — Excess Shelter Deduction"
+    dependent_care_costs:
+      policy_phrase: "monthly out-of-pocket dependent care costs needed for work or training"
+      source_doc: "snap_eligibility_fy2026.md"
+      section: "7 CFR § 273.9(d)(4) — Dependent Care Deduction"
+computed:
+  earned_income_deduction:
+    policy_phrase: "20 percent of earned income deduction"
+    source_doc: "snap_eligibility_fy2026.md"
+    section: "7 CFR § 273.9(b) — Earned Income Deduction"
+  standard_deduction:
+    policy_phrase: "standard deduction by household size"
+    source_doc: "snap_eligibility_fy2026.md"
+    section: "7 CFR § 273.9(c) — Standard Deduction"
+  dependent_care_deduction:
+    policy_phrase: "dependent care costs deduction"
+    source_doc: "snap_eligibility_fy2026.md"
+    section: "7 CFR § 273.9(d)(4) — Dependent Care Deduction"
+  income_after_prior_deductions:
+    policy_phrase: "gross income after earned, standard, and dependent care deductions"
+    source_doc: "snap_eligibility_fy2026.md"
+    section: "7 CFR § 273.9(d)(6) — Excess Shelter Deduction (base calculation)"
+  shelter_excess:
+    policy_phrase: "shelter costs exceeding 50 percent of remaining income"
+    source_doc: "snap_eligibility_fy2026.md"
+    section: "7 CFR § 273.9(d)(6) — Excess Shelter Deduction"
+  is_exempt_household:
+    policy_phrase: "elderly or disabled household exempt from gross test and shelter cap"
+    source_doc: "snap_eligibility_fy2026.md"
+    section: "7 CFR § 273.1(b)(7) — Elderly/Disabled Exemption"
+  shelter_deduction:
+    policy_phrase: "shelter deduction capped for non-elderly/disabled households"
+    source_doc: "snap_eligibility_fy2026.md"
+    section: "7 CFR § 273.9(d)(6)(ii) — Shelter Deduction Cap"
+  net_income:
+    policy_phrase: "net monthly income after all allowable deductions"
+    source_doc: "snap_eligibility_fy2026.md"
+    section: "7 CFR § 273.9 — Income and Deductions"
+  gross_limit:
+    policy_phrase: "gross income limit at 130 percent FPL for this household size"
+    source_doc: "snap_eligibility_fy2026.md"
+    section: "7 CFR § 273.9(a)(1) — Gross Income Test"
+  net_limit:
+    policy_phrase: "net income limit at 100 percent FPL for this household size"
+    source_doc: "snap_eligibility_fy2026.md"
+    section: "7 CFR § 273.9(a)(2) — Net Income Test"
+  passes_gross_test:
+    policy_phrase: "household passes the gross income test"
+    source_doc: "snap_eligibility_fy2026.md"
+    section: "7 CFR § 273.9(a)(1) — Gross Income Test"
+  passes_net_test:
+    policy_phrase: "household passes the net income test"
+    source_doc: "snap_eligibility_fy2026.md"
+    section: "7 CFR § 273.9(a)(2) — Net Income Test"
