@@ -25,6 +25,23 @@ VALID_RULE_KINDS = {"deny", "allow"}
 VALID_COMPUTED_TYPES = {"money", "bool", "float", "int"}
 
 
+def _validate_review_block(review, prefix, errors):
+    """Validate an optional review: block on a rule or computed field."""
+    if not isinstance(review, dict):
+        errors.append(f"{prefix}.review: must be a mapping")
+        return
+    score_fields = ["extraction_fidelity", "source_clarity", "logic_complexity", "policy_complexity"]
+    for field in score_fields:
+        val = review.get(field)
+        if val is None:
+            errors.append(f"{prefix}.review: '{field}' is required")
+        elif not isinstance(val, int) or val < 1 or val > 5:
+            errors.append(f"{prefix}.review.{field}: must be an integer 1–5, got {val!r}")
+    notes = review.get("notes")
+    if notes is not None and not isinstance(notes, str):
+        errors.append(f"{prefix}.review.notes: must be a string if present")
+
+
 def error(msg):
     print(f"ERROR: {msg}", file=sys.stderr)
 
@@ -145,6 +162,9 @@ def validate(path):
                                 errors.append(f"{prefix}.conditional: '{key}' is required")
                             elif not isinstance(cond[key], str):
                                 errors.append(f"{prefix}.conditional.{key}: must be a string")
+                review = field_def.get("review")
+                if review is not None:
+                    _validate_review_block(review, prefix, errors)
 
     # Validate rule_set
     rule_set = doc["rule_set"]
@@ -190,6 +210,10 @@ def validate(path):
             then = rule.get("then")
             if not then or not isinstance(then, list):
                 errors.append(f"{prefix} ({rule_id!r}): 'then' must be a non-empty list of actions")
+
+            review = rule.get("review")
+            if review is not None:
+                _validate_review_block(review, f"{prefix} ({rule_id!r})", errors)
 
     if errors:
         for e in errors:

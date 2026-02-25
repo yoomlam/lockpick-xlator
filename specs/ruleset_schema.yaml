@@ -297,6 +297,61 @@
 #     tables_override: { ... }      # Tables to add/override (optional)
 
 # =============================================================================
+# REVIEW BLOCK — Inline extraction scoring (optional, on rules and computed fields)
+# =============================================================================
+#
+# review:                           # optional; present on rules: entries and computed: fields
+#   extraction_fidelity: int        # 1–5; how accurately the AI captured the policy intent
+#   source_clarity: int             # 1–5; how clear and unambiguous the source policy text was
+#   logic_complexity: int           # 1–5; number of conditions, boolean depth, table lookups
+#   policy_complexity: int          # 1–5; density of legalese, cross-references, exceptions
+#   notes: string                   # optional; explanation for flagged items (any score ≤2 or ≥4)
+#
+# All four integer fields are required when the block is present.
+# notes: is optional but expected for any item where a score is ≤ 2 or ≥ 4.
+# Flagging threshold for Step 8 review: any score ≤ 2 OR ≥ 4 → HIGH PRIORITY.
+# Scores have no effect on transpilation or OPA evaluation.
+#
+# Scale reference:
+#   1 = very low  (low fidelity / low clarity / trivial / plain English)
+#   3 = moderate  (reasonable translation / some ambiguity / a few conditions / some jargon)
+#   5 = very high (direct quote match / exact formula / many nested conditions / dense statute)
+#
+# Example (on a rule):
+#
+#   rules:
+#     - id: "FED-SNAP-DENY-001"
+#       kind: deny
+#       priority: 1
+#       description: "Gross income exceeds 130% FPL"
+#       when: "Household.gross_income > gross_limit"
+#       then:
+#         - add_reason:
+#             code: GROSS_INCOME_EXCEEDED
+#             message: "Gross income exceeds the 130% FPL limit"
+#       review:
+#         extraction_fidelity: 5
+#         source_clarity: 5
+#         logic_complexity: 2
+#         policy_complexity: 1
+#         notes: "Direct threshold test; formula explicit in 7 CFR § 273.9(a)(1)"
+#
+# Example (on a computed field):
+#
+#   computed:
+#     net_income:
+#       type: money
+#       currency: USD
+#       description: "Net income after all deductions"
+#       expr: "gross_income - total_deductions"
+#       review:
+#         extraction_fidelity: 4
+#         source_clarity: 3
+#         logic_complexity: 2
+#         policy_complexity: 3
+#         notes: "Deduction chain is clear; 'net income' term not explicitly defined in policy"
+
+# =============================================================================
 # EXAMPLE STRUCTURE
 # =============================================================================
 #

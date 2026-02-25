@@ -50,6 +50,24 @@ ls domains/<domain>/specs/*.civil.yaml 2>/dev/null
 
 ---
 
+## Scoring Rubric
+
+When writing `review:` blocks, score each rule and computed field on four dimensions using this table. Apply scores independently — a rule can have high fidelity and high complexity simultaneously.
+
+| Score | extraction_fidelity | source_clarity | logic_complexity | policy_complexity |
+|-------|---------------------|----------------|------------------|-------------------|
+| 1 | Guessed; source is silent on this | Contradictory or absent from source | Single boolean or comparison | Plain everyday English |
+| 2 | Inferred with low confidence | Vague; multiple reasonable interpretations | 2–3 conditions, no table lookups | Some jargon or implicit cross-refs |
+| 3 | Reasonable translation with minor gaps | Reasonably clear with minor ambiguity | 4–6 conditions or 1 table lookup | Moderate legalese or defined terms |
+| 4 | Strong match to source text | Clear but uses statutory defined terms | 7–9 conditions or 2+ table lookups | Dense statutory language or CFR references |
+| 5 | Direct quote or explicit formula | Exact thresholds/formulas stated verbatim | 10+ conditions, nested booleans, multiple tables | Exceptions-to-exceptions, multi-CFR cross-refs |
+
+**Special cases:**
+- Structural allow rules (`when: "true"`) always score `logic_complexity: 1`. Score `extraction_fidelity` and `source_clarity` based on whether the policy explicitly states the default-allow logic or leaves it implicit.
+- `notes:` is required for any item where any score is ≤ 2 or ≥ 4. For all-3 items, `notes:` may be omitted.
+
+---
+
 ## Process — CREATE Mode
 
 ### Step 1: Read All Policy Documents
@@ -162,6 +180,12 @@ computed:  # optional (CIVIL v2) — intermediate derived values for multi-step 
     type: <money|bool|float|int>
     description: "..."
     expr: "<CIVIL expression>"     # single expression
+    review:
+      extraction_fidelity: <1-5>
+      source_clarity: <1-5>
+      logic_complexity: <1-5>
+      policy_complexity: <1-5>
+      notes: "<explain any score ≤2 or ≥4>"  # omit if all scores are 3
   <field_name_2>:
     type: money
     description: "..."
@@ -169,6 +193,12 @@ computed:  # optional (CIVIL v2) — intermediate derived values for multi-step 
       if: "<bool expression>"
       then: "<value expression>"
       else: "<value expression>"
+    review:
+      extraction_fidelity: <1-5>
+      source_clarity: <1-5>
+      logic_complexity: <1-5>
+      policy_complexity: <1-5>
+      notes: "<explain any score ≤2 or ≥4>"  # omit if all scores are 3
 
 rule_set:
   name: "<identifier>"
@@ -189,7 +219,15 @@ rules:
             - label: "7 CFR § 273.9(a)(1)"
               url: "https://..."
               excerpt: "Brief excerpt"
+    review:                          # assign scores while policy text is in context
+      extraction_fidelity: <1-5>
+      source_clarity: <1-5>
+      logic_complexity: <1-5>
+      policy_complexity: <1-5>
+      notes: "<explain any score ≤2 or ≥4>"  # omit if all scores are 3
 ```
+
+**Scoring:** Assign `review:` blocks to every entry in `rules:` and `computed:` as you draft them. Use the Scoring Rubric above. Write scores while the source policy text is in context — do not defer to a separate pass.
 
 **Reference:** See `domains/snap/specs/eligibility.civil.yaml` for a complete working example.
 
@@ -281,16 +319,51 @@ tests:
 
 ### Step 8: Human Review Gate
 
-Present a rule-by-rule summary:
+Partition all `rules:` entries and `computed:` fields into two groups based on their `review:` scores:
 
-For each rule in `rules:`:
-- **Rule ID and description**
-- **Source policy quote** — the exact sentence(s) in the input doc that this rule implements
-- **CIVIL `when:` expression** — how it was encoded
+- **HIGH PRIORITY** — any score ≤ 2 or ≥ 4
+- **LOW PRIORITY** — all four scores exactly 3
+
+Present HIGH PRIORITY items first, followed by the LOW PRIORITY compact list.
+
+**Summary header** (always show first):
+```
+Review summary: <H> HIGH PRIORITY, <L> LOW PRIORITY  (<total> items total)
+```
+
+**HIGH PRIORITY format** (one block per item):
+```
+─────────────────────────────────────────────────────────────────
+⚠️  <rule-id or "computed: <field_name>">
+    Scores: fidelity:<N> clarity:<N> logic:<N> policy:<N>
+    Flagged for: <comma-separated list of triggered dimensions>
+    Policy: "<exact source sentence(s)>"
+    CIVIL:  <when: expression or expr:/conditional:>
+    Notes:  <notes field content, or "(none)" if omitted>
+─────────────────────────────────────────────────────────────────
+```
+
+For `Flagged for:`, list each triggered dimension with a short label:
+- Score ≤ 2 on `extraction_fidelity` → "low extraction fidelity"
+- Score ≤ 2 on `source_clarity` → "low source clarity"
+- Score ≥ 4 on `logic_complexity` → "high logic complexity"
+- Score ≥ 4 on `policy_complexity` → "high policy complexity"
+
+**LOW PRIORITY format** (compact list):
+```
+✅  LOW PRIORITY ITEMS (<N> items — all scores = 3)
+    • FED-SNAP-DENY-001: Gross income exceeds 130% FPL limit
+    • computed: gross_income — total household gross monthly income
+    ...
+```
+
+**Edge cases:**
+- If ALL items are HIGH PRIORITY, omit the LOW PRIORITY section entirely.
+- If ALL items are LOW PRIORITY, omit the HIGH PRIORITY section and show: "All items scored 3/3/3/3 — no flagged items."
 
 Ask: "Does this translation correctly capture the policy intent? Any rules missing or incorrect?"
 
-**On rejection:** Re-extract the specific disputed rule, re-validate (using the retry loop), then re-present the review gate. Do not proceed to transpilation until the user confirms.
+**On rejection:** Re-extract the specific disputed rule or computed field, re-validate (using the retry loop), recompute its `review:` scores, then re-present the full review gate. Do not proceed to transpilation until the user confirms.
 
 ### Step 8b: Write Naming Manifest
 
@@ -498,12 +571,19 @@ Updated CIVIL sections:
     NEW: household_size=3 → max_gross_monthly: $2,945
     Source: "<quote from policy doc>"
 
-  (repeat for each changed row/constant/rule)
+  rules.FED-SNAP-DENY-003:
+    OLD when: <expression>   OLD scores: fidelity:3 clarity:3 logic:2 policy:3
+    NEW when: <expression>   NEW scores: fidelity:2 clarity:2 logic:3 policy:4
+    NEW Notes: "'unless' clause may need a separate allow rule for exemption paths"
+
+  (repeat for each changed row/constant/rule/computed field)
 
 Possibly stale test cases:
   - boundary_gross_001 (uses old threshold $2,888)
   - deny_gross_001 (uses old threshold $2,888)
 ```
+
+**Score reset:** When a rule or computed field is re-extracted, its `review:` block is replaced entirely with fresh scores. Unchanged items retain their existing scores. Score reset applies at section granularity — if a `computed:` section is re-extracted, all fields in that section get new scores.
 
 Ask: "Does this update look correct? Any changes missing or incorrect?"
 
