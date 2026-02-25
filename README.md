@@ -9,13 +9,37 @@ Goal: Represent and translate the given input (federal, state, and local governm
 * AI Collaboration: Use AI to accelerate translation, but human review ensures accuracy and policy compliance.
 * Testing Focus: Comprehensive tests prevent regressions and document expected behavior.
 
+## FAQ
+
+- Is this testing functional feasibility?
+  - Yes. This prototype tests if Claude Code can be used to extract *and maintain* the `specs` of a system (ruleset, workflows, documentation, etc.).
+  - It treats the `specs` as code, so the specs are version-controlled and there are tests for the rulesets (and other parts of the `specs`) to ensure they behave as intended when run in a rules engine.
+- Is this testing experiential value?
+  - Yes. From this prototype, we'll learn can and can't be done with Claude Code, and how well an iterative approach works.
+    The hypothesis is: *incrementally* building up the ruleset produces a more accurate and verifiable ruleset than generating and iterating on an entire ruleset.
+- Is this testing look and feel?
+  - No. User interface and visual design are not the focus of this prototype. However, the experience may inform future ideas about user experience and AI interaction patterns.
+- Is this testing performance or scale?
+  - Yes, it is testing extracted-ruleset accuracy and it will test performance as the policy/ruleset size grows.
+- What is the primary (and secondary) purpose of this prototype?
+  - Primary purpose: explore iterative approach of building and maintaining the `specs`. A desired outcome is that the `specs` are easier to build incrementally.
+  - Secondary purpose: explore capabilities and limitations of Claude Code on a codebase of `specs` containing files in an atypical language.
+- Are we building a foundation we can develop into a product?
+  - Yes. The lessons learned (e.g., capabilities, incremental approach, test-driven validation of rules, transpilation/conversion to target languages) can inform the requirements and design of a product.
+- Are we delivering a win to a client / project team?
+  - TBD. We're testing initially with the Alaska team.
+- Are we trying to prove or disprove a specific piece of the approach?
+  - Yes, we are explicitly testing the hypothesis that *incrementally* building a ruleset results in a more accurate and verifiable outcome than generating a full ruleset and refining it afterward.
+- Are we trying to demonstrate our approach for a potential / current client?
+  - Yes, the prototype aims to demonstrate that an AI-assisted workflow can produce rulesets that are accurate, verifiable, and maintainable.
+
 ## Step-by-Step Process
 
 This project takes an incremental approach where each iteration involves the user (an SME on the policies) to perform the following:
 - The user adds `input` docs and code in manageable-sized amounts of policy docs
     - The codebase contains the input and there is no context window (and hence no limit).
     - The AI searches the codebase for the data it needs (similar to RAG but without a vector DB).
-- The user interacts with an AI to update the `specs`. Once satisfied, the specs are commited into git for version control.
+- The user interacts with an AI to update the `specs`. Once satisfied, the specs are committed into git for version control.
     - The user interacts with the AI to create/update the specs (ruleset, workflows, etc.) in manageable amounts.
     - The specs are in a DSL format that will evolve over time.
     - The specs are machine-readable so that it can be used to build the UI workflows.
