@@ -1,0 +1,92 @@
+version: "1.0"
+entities:
+  Applicant:
+    household_type:
+      policy_phrase: "household type (program/unit code: A1E, B1E, H1E, A2S, B2S, H2S, A2C, B2C, H2C, NHR)"
+      source_doc: "AK_DOH_APA_ADLTC.md"
+      section: "EXPANDED REFUSED CASH INCOME LIMITS"
+    is_blind:
+      policy_phrase: "blind"
+      source_doc: "AK_DOH_APA_ADLTC.md"
+      section: "442-2 G. IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED / 442-2 I. WORK EXPENSES FOR THE BLIND"
+    is_disabled:
+      policy_phrase: "disabled individual"
+      source_doc: "AK_DOH_APA_ADLTC.md"
+      section: "442-2 G. IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED"
+    is_student:
+      policy_phrase: "blind or disabled student under age 22 regularly attending school"
+      source_doc: "AK_DOH_APA_ADLTC.md"
+      section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
+    gross_earned_income:
+      policy_phrase: "gross earned income before exclusions"
+      source_doc: "AK_DOH_APA_ADLTC.md"
+      section: "441-1 EARNED INCOME / 523 B. REASONABLE COMPATIBILITY"
+    general_exclusion_used_on_unearned:
+      policy_phrase: "portion of the $20 general income exclusion excluded from unearned income in the same month"
+      source_doc: "AK_DOH_APA_ADLTC.md"
+      section: "442-2 E. $20 PER MONTH GENERAL INCOME EXCLUSION"
+    infrequent_irregular_excluded:
+      policy_phrase: "infrequent or irregular earned income excluded (up to $30 in a calendar quarter)"
+      source_doc: "AK_DOH_APA_ADLTC.md"
+      section: "442-2 C. INFREQUENT/IRREGULAR EARNED INCOME"
+    student_earned_excluded:
+      policy_phrase: "earned income of a blind or disabled student excluded subject to monthly and yearly maximums"
+      source_doc: "AK_DOH_APA_ADLTC.md"
+      section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
+    irwe_amount:
+      policy_phrase: "impairment-related work expenses"
+      source_doc: "AK_DOH_APA_ADLTC.md"
+      section: "442-2 G. IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED"
+    blind_work_expenses:
+      policy_phrase: "work expenses for the blind"
+      source_doc: "AK_DOH_APA_ADLTC.md"
+      section: "442-2 I. WORK EXPENSES FOR THE BLIND"
+    pass_exclusion:
+      policy_phrase: "earned income used to fulfill an approved plan to achieve self-support"
+      source_doc: "AK_DOH_APA_ADLTC.md"
+      section: "442-2 J. AMOUNT TO FULFILL A PLAN FOR ACHIEVING SELF-SUPPORT"
+    dol_monthly_income_avg:
+      policy_phrase: "most recent quarter reported by DOL divided by three to get the average monthly income amount"
+      source_doc: "AK_DOH_APA_ADLTC.md"
+      section: "523 B. REASONABLE COMPATIBILITY"
+computed:
+  refused_cash_income_limit:
+    policy_phrase: "refused cash income limit by household type"
+    source_doc: "AK_DOH_APA_ADLTC.md"
+    section: "EXPANDED REFUSED CASH INCOME LIMITS"
+  general_exclusion_remaining:
+    policy_phrase: "portion of the $20 general income exclusion not excluded from unearned income"
+    source_doc: "AK_DOH_APA_ADLTC.md"
+    section: "442-2 E. $20 PER MONTH GENERAL INCOME EXCLUSION"
+  income_after_pre_chain_exclusions:
+    policy_phrase: "earned income after infrequent/irregular, student, and PASS exclusions"
+    source_doc: "AK_DOH_APA_ADLTC.md"
+    section: "442-2 C / 442-2 D / 442-2 J"
+  income_after_general_exclusion:
+    policy_phrase: "earned income after $20 general income exclusion"
+    source_doc: "AK_DOH_APA_ADLTC.md"
+    section: "442-2 E. $20 PER MONTH GENERAL INCOME EXCLUSION"
+  income_after_earned_exclusion:
+    policy_phrase: "earned income after $65 earned income exclusion"
+    source_doc: "AK_DOH_APA_ADLTC.md"
+    section: "442-2 F. $65 EARNED INCOME EXCLUSION"
+  disability_work_exclusion:
+    policy_phrase: "work expense exclusion for blind or disabled applicants"
+    source_doc: "AK_DOH_APA_ADLTC.md"
+    section: "442-2 G / 442-2 I"
+  income_after_disability_work_exclusion:
+    policy_phrase: "earned income after impairment-related or blind work expense exclusion"
+    source_doc: "AK_DOH_APA_ADLTC.md"
+    section: "442-2 G / 442-2 I"
+  countable_earned_income:
+    policy_phrase: "one-half of remaining earned income"
+    source_doc: "AK_DOH_APA_ADLTC.md"
+    section: "442-2 H. ONE-HALF OF REMAINING EARNED INCOME"
+  dol_countable_income:
+    policy_phrase: "DOL monthly average after income exclusions applied"
+    source_doc: "AK_DOH_APA_ADLTC.md"
+    section: "523 B. REASONABLE COMPATIBILITY"
+  is_dol_reasonably_compatible:
+    policy_phrase: "reasonably compatible — DOL income within 10% of client stated income"
+    source_doc: "AK_DOH_APA_ADLTC.md"
+    section: "523 B. REASONABLE COMPATIBILITY"

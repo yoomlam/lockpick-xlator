@@ -55,24 +55,24 @@ standard_deductions := {
 # =============================================================================
 
 # 20% earned income deduction (7 CFR § 273.9(b))
-earned_income_deduction := input.earned_income * 0.2
+earned_income_deduction := object.get(input, "earned_income", 0) * 0.2
 
 # Standard deduction by household size (7 CFR § 273.9(c)) — size 7+ same as size 6
 standard_deduction := standard_deductions[input.household_size] if { input.household_size <= 6 } else := standard_deductions[6]
 
 # Dependent care costs deduction (7 CFR § 273.9(d)(4))
-dependent_care_deduction := input.dependent_care_costs
+dependent_care_deduction := object.get(input, "dependent_care_costs", 0)
 
 # Gross income after earned, standard, and dependent care deductions
 income_after_prior_deductions := input.gross_monthly_income - earned_income_deduction - standard_deduction - dependent_care_deduction
 
 # Shelter costs exceeding 50% of remaining income (7 CFR § 273.9(d)(6))
-shelter_excess := max([0, input.shelter_costs_monthly - 0.5 * income_after_prior_deductions])
+shelter_excess := max([0, object.get(input, "shelter_costs_monthly", 0) - 0.5 * income_after_prior_deductions])
 
 # Elderly or disabled household — exempt from gross test and shelter cap
 default is_exempt_household := false
-is_exempt_household if { input.has_elderly_member }
-is_exempt_household if { input.has_disabled_member }
+is_exempt_household if { object.get(input, "has_elderly_member", false) }
+is_exempt_household if { object.get(input, "has_disabled_member", false) }
 
 # Shelter deduction — capped at $744 unless elderly/disabled (7 CFR § 273.9(d)(6))
 shelter_deduction := shelter_excess if { is_exempt_household } else := min([shelter_excess, 744])
@@ -101,8 +101,8 @@ passes_net_test if { net_income <= net_limit }
 
 # FED-SNAP-DENY-001: Gross income exceeds 130% FPL — gross income test failed
 denial_reasons contains reason if {
-    not input.has_elderly_member
-    not input.has_disabled_member
+    not object.get(input, "has_elderly_member", false)
+    not object.get(input, "has_disabled_member", false)
     input.gross_monthly_income > gross_limit
     reason := {
         "code": "GROSS_INCOME_EXCEEDS_LIMIT",

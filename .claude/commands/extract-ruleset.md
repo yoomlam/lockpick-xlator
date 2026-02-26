@@ -141,9 +141,10 @@ Use `<program>` argument if given. Otherwise:
 Before drafting any CIVIL YAML, produce the canonical field name for every fact and computed concept in the policy. For each measurable quantity, flag, or derived value found in the policy documents, apply this algorithm:
 
 1. Find the **exact noun phrase** in the policy text describing the concept
-2. **Strip** any words that duplicate the entity name (e.g., entity is `Household` → strip "household" from "household gross income" → `gross income`)
-3. Convert to **`snake_case`**
-4. If the result would be **ambiguous** with another field in the same entity, append a disambiguating qualifier from the policy text
+2. Use specific field names to evoke the meaning without having to look up the corresponding policy text and minimize risk of name collisions in future extractions
+3. **Strip** any words that duplicate the entity name (e.g., entity is `Household` → strip "household" from "household gross income" → `gross income`)
+4. Convert to **`snake_case`**
+5. If the result would be **ambiguous** with another field in the same entity, append a disambiguating qualifier from the policy text
 
 Present the result as a Markdown table:
 

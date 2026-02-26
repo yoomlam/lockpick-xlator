@@ -9,6 +9,13 @@
 
 - Add confidence score for each extracted rule so that the score can be used to rank rules for user review, i.e., user should focus on verifying low confidence rules and work with the AI to fix them (and potentially remember rule-extraction patterns for future use)
 
+- Explore alternatives using slash commands with other LLMs
+    - Compare extracted rulesets for each LLM
+
+- Scaling improvements
+    - Name Inventory step can be chunked/parallelized/partitioned and each chunk presented as it becomes available.
+
+
 - tools/civil_schema.py is now the single source of truth for both structure and documentation. Every field has a `description` that flows through automatically to specs/ruleset.schema.json — so tools like VS Code or a web UI can provide hover tooltips showing the documentation
 
 - Create Claude skills, agents, commands

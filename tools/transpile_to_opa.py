@@ -62,7 +62,8 @@ def table_to_rego_dict(table_name, table_def, value_col):
     for row in rows:
         key = row[key_col]
         val = row[value_col]
-        lines.append(f"    {key}: {val},")
+        key_repr = f'"{key}"' if isinstance(key, str) else key
+        lines.append(f"    {key_repr}: {val},")
     lines.append("}")
     return "\n".join(lines)
 
@@ -107,13 +108,14 @@ def _replace_binary_fn(expr, fn_name):
     return "".join(result)
 
 
-def translate_expr(expr, constants=None):
+def translate_expr(expr, constants=None, optional_fields=None):
     """
     Translate a CIVIL expression string to an equivalent Rego expression string.
 
     Transformations applied:
     1. table('name', key).col  →  name[translated_key]  (column name dropped)
     2. Entity.field             →  input.field
+                                   (optional fields → object.get(input, "field", default))
     3. max(a, b)                →  max([a, b])
     4. min(a, b)                →  min([a, b])
     5. CONSTANT_NAME            →  literal value (inline substitution)
@@ -135,7 +137,22 @@ def translate_expr(expr, constants=None):
     )
 
     # Step 2: Entity.field  →  input.field
-    result = re.sub(r"\b([A-Z][a-zA-Z]*)\.(\w+)", r"input.\2", result)
+    # Optional fields use object.get(input, "field", default) so absent values
+    # don't cause undefined cascades through computed rules.
+    def replace_field(m):
+        field_name = m.group(2)
+        if optional_fields and field_name in optional_fields:
+            default = optional_fields[field_name]
+            if isinstance(default, bool):
+                default_str = "false" if not default else "true"
+            elif isinstance(default, str):
+                default_str = f'"{default}"'
+            else:
+                default_str = str(default)
+            return f'object.get(input, "{field_name}", {default_str})'
+        return f"input.{field_name}"
+
+    result = re.sub(r"\b([A-Z][a-zA-Z]*)\.(\w+)", replace_field, result)
 
     # Step 3: max(a, b)  →  max([a, b])
     result = _replace_binary_fn(result, "max")
@@ -177,7 +194,7 @@ def _split_on_and(expr):
     return [p for p in parts if p]
 
 
-def translate_when_to_rego_body(when_expr, constants=None):
+def translate_when_to_rego_body(when_expr, constants=None, optional_fields=None):
     """
     Translate a CIVIL when: expression to a list of Rego body condition strings.
 
@@ -194,14 +211,14 @@ def translate_when_to_rego_body(when_expr, constants=None):
     for clause in clauses:
         clause = clause.strip()
         if clause.startswith("!"):
-            inner = translate_expr(clause[1:].strip(), constants)
+            inner = translate_expr(clause[1:].strip(), constants, optional_fields)
             result.append(f"not {inner}")
         else:
-            result.append(translate_expr(clause, constants))
+            result.append(translate_expr(clause, constants, optional_fields))
     return result
 
 
-def emit_computed_section(computed_fields, constants=None, skip=None):
+def emit_computed_section(computed_fields, constants=None, skip=None, optional_fields=None):
     """
     Emit Rego rules for all fields in the computed: section.
 
@@ -236,13 +253,13 @@ def emit_computed_section(computed_fields, constants=None, skip=None):
 
         if has_cond:
             cond = field_def["conditional"]
-            if_expr = translate_expr(cond["if"], constants)
-            then_expr = translate_expr(cond["then"], constants)
-            else_expr = translate_expr(cond["else"], constants)
+            if_expr = translate_expr(cond["if"], constants, optional_fields)
+            then_expr = translate_expr(cond["then"], constants, optional_fields)
+            else_expr = translate_expr(cond["else"], constants, optional_fields)
             lines.append(f"{field_name} := {then_expr} if {{ {if_expr} }} else := {else_expr}")
         else:
             expr = field_def["expr"]
-            rego_expr = translate_expr(expr, constants)
+            rego_expr = translate_expr(expr, constants, optional_fields)
             if ftype == "bool":
                 # Rego rule bodies don't support || — split OR clauses into multiple rules
                 or_clauses = [c.strip() for c in rego_expr.split("||")]
@@ -273,6 +290,16 @@ def transpile(doc, output_path, package):
     computed = doc.get("computed", {})
     rules = doc.get("rules", [])
     decisions = doc.get("decisions", {})
+
+    # Build optional_fields map: field_name → Rego default value for absent inputs.
+    # Optional money/int/float fields default to 0; bool fields default to False.
+    _type_defaults = {"money": 0, "int": 0, "float": 0, "bool": False, "string": ""}
+    optional_fields = {}
+    for entity_def in doc.get("facts", {}).values():
+        for field_name, field_def in entity_def.get("fields", {}).items():
+            if field_def.get("optional"):
+                ftype = field_def.get("type", "money")
+                optional_fields[field_name] = _type_defaults.get(ftype, 0)
 
     civil_path = sys.argv[1]
 
@@ -313,7 +340,7 @@ def transpile(doc, output_path, package):
 
     # Computed section
     if computed:
-        lines += emit_computed_section(computed, constants=constants)
+        lines += emit_computed_section(computed, constants=constants, optional_fields=optional_fields)
 
     # Deny rules → denial_reasons
     deny_rules = [r for r in rules if r.get("kind") == "deny"]
@@ -333,7 +360,7 @@ def transpile(doc, output_path, package):
             if desc:
                 lines.append(f"# {rule_id}: {desc}")
 
-            when_body = translate_when_to_rego_body(when, constants)
+            when_body = translate_when_to_rego_body(when, constants, optional_fields)
 
             for action in actions:
                 if "add_reason" in action:

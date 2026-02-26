@@ -12,7 +12,7 @@
 #   2. Copy this block, replacing SNAP_ prefix and snap- prefixes with your domain name
 #   3. Set DOMAIN_CIVIL, DOMAIN_TESTS, DOMAIN_REGO, DOMAIN_PACKAGE, DOMAIN_OPA_PATH
 
-.PHONY: snap snap-setup snap-validate snap-transpile snap-test snap-demo generate-schema
+.PHONY: snap snap-setup snap-validate snap-transpile snap-test snap-demo generate-schema ak_doh ak_doh-validate ak_doh-transpile ak_doh-test ak_doh-demo
 
 baseline-setup:
 	# Install UV (Python tool) if it doesn't exist
@@ -58,3 +58,27 @@ snap-test:
 
 snap-demo:
 	bash domains/snap/demo/start.sh
+
+# ---------------------------------------------------------------------------
+# AK_DOH — Alaska APA/ADLTC income eligibility
+# ---------------------------------------------------------------------------
+
+AK_DOH_CIVIL    := domains/ak_doh/specs/apa_adltc.civil.yaml
+AK_DOH_TESTS    := domains/ak_doh/specs/tests/apa_adltc_tests.yaml
+AK_DOH_REGO     := domains/ak_doh/output/apa_adltc.rego
+AK_DOH_PACKAGE  := ak_doh.apa_adltc
+AK_DOH_OPA_PATH := /v1/data/ak_doh/apa_adltc/decision
+
+ak_doh: ak_doh-validate ak_doh-transpile ak_doh-test
+
+ak_doh-validate:
+	python tools/validate_civil.py $(AK_DOH_CIVIL)
+
+ak_doh-transpile: ak_doh-validate
+	python tools/transpile_to_opa.py $(AK_DOH_CIVIL) $(AK_DOH_REGO) --package $(AK_DOH_PACKAGE)
+
+ak_doh-test:
+	python tools/run_tests.py $(AK_DOH_TESTS) --opa-path $(AK_DOH_OPA_PATH)
+
+ak_doh-demo:
+	bash domains/ak_doh/demo/start.sh

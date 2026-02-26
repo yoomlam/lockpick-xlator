@@ -1,0 +1,208 @@
+test_suite:
+  spec: "apa_adltc.civil.yaml"
+  description: "Test cases for Alaska APA/ADLTC earned income eligibility (effective 01/01/2026)"
+  version: "1.0"
+
+# =============================================================================
+# Reference Values (used to construct test inputs)
+#
+# Income limits (2026):
+#   Individual (A1E, B1E, H1E, NHR): $1,845
+#   Couple 1 eligible (A2S, B2S, H2S): $2,732
+#   Couple both eligible (A2C, B2C, H2C): $2,732
+#
+# Standard exclusion chain:
+#   1. Pre-chain: infrequent_irregular_excluded + student_earned_excluded + pass_exclusion
+#   2. $20 general exclusion (remainder after unearned offset)
+#   3. $65 earned income exclusion
+#   4. IRWE (disabled) or BWE (blind)
+#   5. × 0.50 (one-half exclusion)
+#
+# Shorthand for chain with no special exclusions:
+#   countable = (gross - 20 - 65) × 0.5 = (gross - 85) × 0.5
+# =============================================================================
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_001 — Happy path, individual below limit
+  # household_type: A1E (limit $1,845)
+  # gross $800 → countable = (800 - 85) × 0.5 = $357.50 ≤ $1,845 ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_001"
+    description: "Individual (A1E) with low earned income passes income test"
+    inputs:
+      household_type: A1E
+      gross_earned_income: 800
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["happy_path", "allow", "individual"]
+
+  # ---------------------------------------------------------------------------
+  # Case: deny_income_001 — Income well over individual limit
+  # household_type: A1E (limit $1,845)
+  # gross $4,000 → countable = (4000 - 85) × 0.5 = $1,957.50 > $1,845 → deny
+  # ---------------------------------------------------------------------------
+  - case_id: "deny_income_001"
+    description: "Individual (A1E) with high earned income exceeds refused cash income limit"
+    inputs:
+      household_type: A1E
+      gross_earned_income: 4000
+    expected:
+      eligible: false
+      denial_reasons:
+        - code: "COUNTABLE_INCOME_EXCEEDS_LIMIT"
+    tags: ["deny", "income_test", "individual"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_boundary_001 — Countable income exactly at limit (≤ = pass)
+  # household_type: NHR (limit $1,845)
+  # gross $3,775 → countable = (3775 - 85) × 0.5 = $1,845.00 = $1,845 ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_boundary_001"
+    description: "Countable income exactly at the refused cash income limit passes (boundary condition)"
+    inputs:
+      household_type: NHR
+      gross_earned_income: 3775
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "boundary", "individual"]
+
+  # ---------------------------------------------------------------------------
+  # Case: deny_boundary_001 — Countable income one dollar over the limit
+  # household_type: B1E (limit $1,845)
+  # gross $3,777 → countable = (3777 - 85) × 0.5 = $1,846.00 > $1,845 → deny
+  # ---------------------------------------------------------------------------
+  - case_id: "deny_boundary_001"
+    description: "Countable income $1 above the refused cash income limit is denied"
+    inputs:
+      household_type: B1E
+      gross_earned_income: 3777
+    expected:
+      eligible: false
+      denial_reasons:
+        - code: "COUNTABLE_INCOME_EXCEEDS_LIMIT"
+    tags: ["deny", "boundary", "individual"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_irwe_001 — Disabled applicant; IRWE exclusion brings income below limit
+  # household_type: B1E (limit $1,845); is_disabled, irwe_amount $1,300
+  # Without IRWE: countable = (5000 - 85) × 0.5 = $2,457.50 > $1,845 → would deny
+  # With IRWE:    after_earned $4,915 - $1,300 = $3,615 → countable = $1,807.50 ≤ $1,845 ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_irwe_001"
+    description: "Disabled individual (B1E) with IRWE exclusion brings countable income below limit"
+    inputs:
+      household_type: B1E
+      is_disabled: true
+      gross_earned_income: 5000
+      irwe_amount: 1300
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "irwe", "disabled", "individual"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_bwe_001 — Blind applicant; blind work expense exclusion saves eligibility
+  # household_type: H1E (limit $1,845); is_blind, blind_work_expenses $1,200
+  # Without BWE: countable = (4500 - 85) × 0.5 = $2,207.50 > $1,845 → would deny
+  # With BWE:    after_earned $4,415 - $1,200 = $3,215 → countable = $1,607.50 ≤ $1,845 ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_bwe_001"
+    description: "Blind individual (H1E) with blind work expense exclusion passes income test"
+    inputs:
+      household_type: H1E
+      is_blind: true
+      gross_earned_income: 4500
+      blind_work_expenses: 1200
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "bwe", "blind", "individual"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_couple_001 — Couple (both eligible), income below couple limit
+  # household_type: A2C (limit $2,732)
+  # gross $4,000 → countable = (4000 - 85) × 0.5 = $1,957.50 ≤ $2,732 ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_couple_001"
+    description: "Couple with both members eligible (A2C) comfortably below income limit"
+    inputs:
+      household_type: A2C
+      gross_earned_income: 4000
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "couple", "both_eligible"]
+
+  # ---------------------------------------------------------------------------
+  # Case: deny_couple_001 — Couple (1 eligible), income over couple limit
+  # household_type: B2S (limit $2,732)
+  # gross $6,500 → countable = (6500 - 85) × 0.5 = $3,207.50 > $2,732 → deny
+  # ---------------------------------------------------------------------------
+  - case_id: "deny_couple_001"
+    description: "Couple with one eligible member (B2S) with combined income exceeding limit"
+    inputs:
+      household_type: B2S
+      gross_earned_income: 6500
+    expected:
+      eligible: false
+      denial_reasons:
+        - code: "COUNTABLE_INCOME_EXCEEDS_LIMIT"
+    tags: ["deny", "couple", "one_eligible"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_pass_001 — PASS exclusion reduces countable income below limit
+  # household_type: A1E (limit $1,845); pass_exclusion $500
+  # Without PASS: countable = (4000 - 85) × 0.5 = $1,957.50 > $1,845 → would deny
+  # With PASS:    pre_chain = 4000 - 500 = 3500 → countable = (3500 - 85) × 0.5 = $1,707.50 ≤ $1,845 ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_pass_001"
+    description: "PASS exclusion reduces gross income enough to pass the income test (A1E)"
+    inputs:
+      household_type: A1E
+      gross_earned_income: 4000
+      pass_exclusion: 500
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "pass_exclusion", "pre_chain"]
+
+  # ---------------------------------------------------------------------------
+  # Case: deny_dol_001 — DOL income far above limit, not reasonably compatible
+  # household_type: A1E (limit $1,845)
+  # Client gross $800 → countable = $357.50 ≤ $1,845 (client passes)
+  # DOL avg $4,000 → dol_countable = (4000 - 85) × 0.5 = $1,957.50 > $1,845
+  # RC check: $1,957.50 ≤ $357.50 × 1.10 = $393.25? NO → not compatible → deny
+  # ---------------------------------------------------------------------------
+  - case_id: "deny_dol_001"
+    description: "Client income passes but DOL-reported income fails reasonable compatibility — denied pending verification"
+    inputs:
+      household_type: A1E
+      gross_earned_income: 800
+      dol_monthly_income_avg: 4000
+    expected:
+      eligible: false
+      denial_reasons:
+        - code: "DOL_INCOME_NOT_REASONABLY_COMPATIBLE"
+    tags: ["deny", "dol", "reasonable_compatibility"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_dol_rc_001 — DOL above limit but within 10% of client (RC passes)
+  # household_type: A1E (limit $1,845)
+  # Client gross $3,525 → countable = (3525 - 85) × 0.5 = $1,720.00 ≤ $1,845 ✓
+  # DOL avg $3,825 → dol_countable = (3825 - 85) × 0.5 = $1,870.00 > $1,845
+  # RC check: $1,870.00 ≤ $1,720.00 × 1.10 = $1,892.00? YES → compatible → no deny
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_dol_rc_001"
+    description: "DOL income slightly above limit but within 10% of client-stated income — reasonable compatibility passes"
+    inputs:
+      household_type: A1E
+      gross_earned_income: 3525
+      dol_monthly_income_avg: 3825
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "dol", "reasonable_compatibility"]
