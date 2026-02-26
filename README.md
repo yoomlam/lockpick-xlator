@@ -56,7 +56,7 @@ This rules extractor initiative:
   - Yes. From this prototype, we'll learn can and can't be done with Claude Code, and how well an iterative approach works.
     The hypothesis is: *incrementally* building up the ruleset produces a more accurate and verifiable ruleset than generating and iterating on an entire ruleset.
 - Is this testing look and feel?
-  - No. User interface and visual design are not the focus of this prototype. However, the experience may inform future ideas about user experience and AI interaction patterns.
+  - No. User interface and visual design are not the focus of this prototype. However, the experience of interacting with the AI and the IDE (e.g., navigating files, hover-tiggered DSL documentation) will inform ideas about user experience and AI interaction patterns.
 - Is this testing performance or scale?
   - Yes, it is testing extracted-ruleset accuracy and it will test performance as the policy/ruleset size grows.
 - What is the primary (and secondary) purpose of this prototype?

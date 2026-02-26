@@ -29,12 +29,6 @@ Run these checks before doing anything else:
 2. **Input docs present?**
    - `domains/<domain>/input/policy_docs/` missing or empty → Print: "No input documents found. Add `.md` files to `domains/<domain>/input/policy_docs/` and re-run." Then stop.
 
-3. **OPA available?**
-   ```bash
-   which opa
-   ```
-   - NOT in PATH → Warn: "OPA not found — transpile and test steps will be skipped." Continue; skip Steps 9–10 at the end.
-
 ## Mode Detection
 
 ```bash
@@ -308,42 +302,7 @@ Validation failed after 3 attempts. Errors:
 Fix manually, then re-run: python tools/validate_civil.py domains/<domain>/specs/<program>.civil.yaml
 ```
 
-### Step 7: Draft Test Cases
-
-Create `domains/<domain>/specs/tests/<program>_tests.yaml` with at least 6 cases:
-
-| Tag | What to cover |
-|-----|---------------|
-| `allow` | All conditions comfortably met |
-| `deny` + gross test | Fails gross income test (if one exists) |
-| `deny` + net test | Passes gross, fails net after deductions |
-| `allow` + exemption | Elderly, disabled, or other exemption path |
-| `allow` + boundary | Income exactly at a threshold (≤ limit = pass) |
-| `deny` + edge | Large household (size 9+), all-zero income, or other extreme |
-
-Test format (inputs always flat key-value, never nested by entity name):
-```yaml
-test_suite:
-  spec: "<program>.civil.yaml"
-  description: "..."
-  version: "1.0"
-
-tests:
-  - case_id: "allow_001"
-    description: "..."
-    inputs:
-      household_size: 3
-      gross_monthly_income: 1800
-      # ... flat key-value
-    expected:
-      eligible: true
-      denial_reasons: []
-    tags: ["happy_path", "allow"]
-```
-
-**Reference:** See `domains/snap/specs/tests/eligibility_tests.yaml`.
-
-### Step 8: Human Review Gate
+### Step 7: Human Review Gate
 
 Partition all `rules:` entries and `computed:` fields into three buckets based on their `review:` scores:
 
@@ -403,7 +362,7 @@ Ask: "Does this translation correctly capture the policy intent? Any rules missi
 
 **On rejection:** Re-extract the specific disputed rule or computed field, re-validate (using the retry loop), recompute its `review:` scores, then re-present the full review gate. Do not proceed until the user confirms.
 
-### Step 8b: Write Naming Manifest
+### Step 7b: Write Naming Manifest
 
 Now that the user has approved the rule-by-rule review, write `domains/<domain>/specs/.naming-manifest.yaml` using every entry from the approved Name Inventory table (Step 3b):
 
@@ -427,66 +386,14 @@ computed:
 
 This file is user-editable. Do **not** add an "auto-generated" comment.
 
-### Step 9: Scaffold Makefile Target
+---
 
-Check if a target for `<domain>` already exists:
-```bash
-grep -n "<domain>-validate" Makefile
+**Extraction complete.**
 ```
-
-If missing, append a new block to `Makefile`, modeled exactly on the SNAP block:
-
-```makefile
-# ---------------------------------------------------------------------------
-# <DOMAIN_UPPER> — <description from CIVIL module>
-# ---------------------------------------------------------------------------
-
-<DOMAIN>_CIVIL    := domains/<domain>/specs/<program>.civil.yaml
-<DOMAIN>_TESTS    := domains/<domain>/specs/tests/<program>_tests.yaml
-<DOMAIN>_REGO     := domains/<domain>/output/<program>.rego
-<DOMAIN>_PACKAGE  := <domain>.<program>
-<DOMAIN>_OPA_PATH := /v1/data/<domain>/<program>/decision
-
-<domain>: <domain>-validate <domain>-transpile <domain>-test
-
-<domain>-validate:
-	python tools/validate_civil.py $(<DOMAIN>_CIVIL)
-
-<domain>-transpile: <domain>-validate
-	python tools/transpile_to_opa.py $(<DOMAIN>_CIVIL) $(<DOMAIN>_REGO) --package $(<DOMAIN>_PACKAGE)
-
-<domain>-test:
-	python tools/run_tests.py $(<DOMAIN>_TESTS) --opa-path $(<DOMAIN>_OPA_PATH)
-
-<domain>-demo:
-	bash domains/<domain>/demo/start.sh
+Next steps:
+  1. /create-tests <domain>
+  2. /transpile-and-test <domain>
 ```
-
-Also add `.PHONY: <domain> <domain>-validate <domain>-transpile <domain>-test <domain>-demo` to the `.PHONY` line at the top of the Makefile.
-
-Derive `<DOMAIN>_PACKAGE` from the CIVIL `module:` field (e.g., `"eligibility.wic_federal"` → package `wic.eligibility`). If ambiguous, prompt the user.
-
-### Step 10: Transpile and Test
-
-```bash
-make <domain>-transpile && make <domain>-test
-```
-
-Or if OPA was not detected in pre-flight, run only:
-```bash
-python tools/transpile_to_opa.py \
-    domains/<domain>/specs/<program>.civil.yaml \
-    domains/<domain>/output/<program>.rego \
-    --package <opa.package.name>
-opa check domains/<domain>/output/<program>.rego
-```
-
-**On test failure:** Show the failing case ID(s) and actual vs. expected output. Ask the user:
-- Is this a **rule error** (the CIVIL `when:` expression is wrong)?
-- Is this a **test expectation error** (the test case itself has wrong expected values)?
-- Is this a **transpiler bug** (the Rego generation is incorrect)?
-
-Then loop back to the appropriate fix (Step 4, Step 7, or file a transpiler issue).
 
 ---
 
@@ -587,15 +494,7 @@ python tools/validate_civil.py domains/<domain>/specs/<program>.civil.yaml
 ```
 Up to 3 auto-fix attempts, then halt with error list.
 
-### Step 9: Identify Stale Test Cases
-
-Examine the changed CIVIL sections to find test cases that may now use outdated values:
-- If `tables:` changed → find test cases whose `inputs` contain values that were table boundaries (exact threshold amounts)
-- If `constants:` changed → find test cases whose expected outcomes depend on the old constant value
-
-List these by `case_id` with a note about which value likely changed.
-
-### Step 10: Human Review Gate (UPDATE)
+### Step 9: Human Review Gate (UPDATE)
 
 Present a **diff-style summary** (not the full ruleset):
 
@@ -615,10 +514,6 @@ Updated CIVIL sections:
     NEW Notes: "'unless' clause may need a separate allow rule for exemption paths"
 
   (repeat for each changed row/constant/rule/computed field)
-
-Possibly stale test cases:
-  - boundary_gross_001 (uses old threshold $2,888)
-  - deny_gross_001 (uses old threshold $2,888)
 ```
 
 **Score reset:** When a rule or computed field is re-extracted, its `review:` block is replaced entirely with fresh scores. Unchanged items retain their existing scores. Score reset applies at section granularity — if a `computed:` section is re-extracted, all fields in that section get new scores.
@@ -627,7 +522,7 @@ Ask: "Does this update look correct? Any changes missing or incorrect?"
 
 **On rejection:** Re-extract the specific disputed section, re-merge, re-validate, re-present. Do not proceed until confirmed.
 
-### Step 10b: Update Naming Manifest
+### Step 9b: Update Naming Manifest
 
 If any new fact or computed fields were added during this UPDATE:
 
@@ -639,19 +534,28 @@ If no naming manifest exists yet (domain was extracted before this feature was a
 
 No additional user confirmation needed; this happens automatically after the review gate passes.
 
-### Step 11: Update Test Cases
+### Step 9c: Write Stale-Cases Hint
 
-For each stale test case identified in Step 9:
-- Update threshold values in `inputs` and `expected` to match new table values
-- Add any new test cases required by new rules (same 6-case coverage as CREATE)
+After the review gate passes, write `domains/<domain>/specs/.stale-cases.yaml` for use by `/create-tests`:
 
-### Step 12: Transpile and Test
-
-Same as CREATE Step 10:
-```bash
-make <domain>-transpile && make <domain>-test
+```yaml
+# Written by /extract-ruleset UPDATE mode. Consumed and deleted by /create-tests.
+stale_cases:
+  - case_id: "<case_id>"
+    reason: "<what changed — e.g., 'gross_limit for household_size 3 changed from 2888 to 2945'>"
 ```
-On failure → show failing cases, ask user to diagnose.
+
+Include any test case whose `inputs` contain a value that was a table boundary or constant value in the old CIVIL file but has changed in the updated version. If no cases are stale, write an empty list:
+```yaml
+stale_cases: []
+```
+
+**Extraction complete.**
+```
+Next steps:
+  1. /create-tests <domain>
+  2. /transpile-and-test <domain>
+```
 
 ---
 
@@ -663,14 +567,14 @@ Files created or modified by this command:
 |------|--------|--------|
 | `domains/<domain>/specs/<program>.civil.yaml` | Created | Updated (affected sections only) |
 | `domains/<domain>/specs/.extraction-manifest.yaml` | Created | Updated |
-| `domains/<domain>/specs/.naming-manifest.yaml` | Created (after Step 8b) | Updated (new fields appended) |
-| `domains/<domain>/specs/tests/<program>_tests.yaml` | Created | Updated (stale cases fixed) |
-| `domains/<domain>/output/<program>.rego` | Created | Regenerated |
-| `Makefile` | Appended (if no target existed) | Not touched |
+| `domains/<domain>/specs/.naming-manifest.yaml` | Created (after Step 7b) | Updated (new fields appended) |
+| `domains/<domain>/specs/.stale-cases.yaml` | — | Created (after Step 9c; consumed by `/create-tests`) |
+| `Makefile` | Appended in pre-flight if no target existed | Not touched |
+
+Tests, transpilation, and Rego output are handled by `/create-tests` and `/transpile-and-test`.
 
 ## Common Mistakes to Avoid
 
-- **Don't nest inputs by entity name** in test cases — inputs are always flat key-value
 - **Don't forget `default eligible := false`** — OPA boolean rules are undefined (not false) when conditions don't match; the transpiler handles this automatically for all `bool` fields in `decisions:` and `computed:`
 - **Cite the actual CFR/USC section** for each rule, not just "Program Policy Manual"
 - **Use `optional: true`** for fact fields that may not always be provided (e.g., `earned_income`, `shelter_costs`)
