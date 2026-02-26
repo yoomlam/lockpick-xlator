@@ -68,6 +68,44 @@ When writing `review:` blocks, score each rule and computed field on four dimens
 
 ---
 
+## CIVIL Reference
+
+> **Do NOT read `tools/civil_schema.py`, `tools/transpile_to_opa.py`, or any other
+> file in `tools/` before authoring any CIVIL YAML (Step 4 in CREATE, Step 5 in UPDATE).**
+> All syntax and type constraints needed for authoring are in this section and in
+> [`docs/civil-quickref.md`](../docs/civil-quickref.md).
+
+### Expression Language
+
+For `when:` conditions and `computed:` expressions:
+
+- Field access: `Household.household_size`, `Applicant.age`
+- Constants: `MIN_AGE`, `INCOME_MULTIPLIER`
+- Table lookup: `table('gross_income_limits', Household.household_size).max_gross_monthly`
+- Boolean: `&&`, `||`, `!`
+- Comparison: `==`, `!=`, `<`, `<=`, `>`, `>=`
+- Arithmetic: `+`, `-`, `*`, `/`
+- Functions: `exists(field)`, `is_null(field)`, `between(value, min, max)`, `in(value, [a, b, c])`
+- `computed:` only: `max(a, b)`, `min(a, b)` — computed field names as bare identifiers
+
+**Multi-step formulas (CIVIL v2):** Use a `computed:` section for chains where each step depends on the prior (e.g., a deduction chain). The `when:` clause references the final computed field name directly.
+
+### Schema Constraints
+
+Non-obvious type and structural rules:
+
+- **`FactField` has no `default:` attribute** — use `optional: true` instead; defaults are input-level concerns
+- **String type is `string`**, not `str` — valid types: `int`, `float`, `bool`, `string`, `date`, `money`, `list`, `set`, `enum`
+- **`ComputedField.type` is limited** to `money`, `bool`, `float`, `int` — no `string` in computed fields
+- **`Jurisdiction` requires `country:`** — e.g., `country: US` — it is not optional
+- **`Rule.then` must be non-empty** — every rule (allow and deny) needs at least one action
+- **`Conditional` requires all three branches** — `if`, `then`, and `else` are all required; no optional else
+- **Transpiler ignores allow rules** — only `deny` rules generate Rego; `then:` actions on allow rules are documentary only
+
+For full attribute tables (required vs optional fields for each model), see [`docs/civil-quickref.md`](../docs/civil-quickref.md).
+
+---
+
 ## Process — CREATE Mode
 
 ### Step 1: Read All Policy Documents
@@ -229,19 +267,7 @@ rules:
 
 **Scoring:** Assign `review:` blocks to every entry in `rules:` and `computed:` as you draft them. Use the Scoring Rubric above. Write scores while the source policy text is in context — do not defer to a separate pass.
 
-**Reference:** See `domains/snap/specs/eligibility.civil.yaml` for a complete working example.
-
-**CIVIL Expression Language** (for `when:` and `computed:` expressions):
-- Field access: `Household.household_size`, `Applicant.age`
-- Constants: `MIN_AGE`, `INCOME_MULTIPLIER`
-- Table lookup: `table('gross_income_limits', Household.household_size).max_gross_monthly`
-- Boolean: `&&`, `||`, `!`
-- Comparison: `==`, `!=`, `<`, `<=`, `>`, `>=`
-- Arithmetic: `+`, `-`, `*`, `/`
-- Functions: `exists(field)`, `is_null(field)`, `between(value, min, max)`, `in(value, [a, b, c])`
-- `computed:` only: `max(a, b)`, `min(a, b)` — computed field names as bare identifiers
-
-**Multi-step formulas (CIVIL v2):** Use a `computed:` section for chains where each step depends on the prior (e.g., a deduction chain). The `when:` clause references the final computed field name directly.
+**Reference:** See `domains/snap/specs/eligibility.civil.yaml` for a complete working example. See the **CIVIL Reference** section above for expression language syntax and multi-step formula guidance.
 
 ### Step 5: Write Extraction Manifest
 
@@ -319,51 +345,63 @@ tests:
 
 ### Step 8: Human Review Gate
 
-Partition all `rules:` entries and `computed:` fields into two groups based on their `review:` scores:
+Partition all `rules:` entries and `computed:` fields into three buckets based on their `review:` scores:
 
-- **HIGH PRIORITY** — any score ≤ 2 or ≥ 4
-- **LOW PRIORITY** — all four scores exactly 3
+| Bucket | Condition | Meaning |
+|--------|-----------|---------|
+| **Uncertain Extractions** | `extraction_fidelity` ≤ 2 OR `source_clarity` ≤ 2 | Claude wasn't confident — human must verify |
+| **Complex Rules** | `logic_complexity` ≥ 4 OR `policy_complexity` ≥ 4 | Inherently dense — worth careful review |
+| **Verified** | Not in either bucket above | All scores in range fidelity 3–5, clarity 3–5, logic 1–3, policy 1–3 |
 
-Present HIGH PRIORITY items first, followed by the LOW PRIORITY compact list.
+Items in **both** buckets appear once under Uncertain Extractions with both flags noted.
 
 **Summary header** (always show first):
 ```
-Review summary: <H> HIGH PRIORITY, <L> LOW PRIORITY  (<total> items total)
+Review summary: X uncertain, Y complex, Z verified  (N items total)
 ```
 
-**HIGH PRIORITY format** (one block per item):
+**Uncertain Extractions format** (one block per item):
 ```
 ─────────────────────────────────────────────────────────────────
-⚠️  <rule-id or "computed: <field_name>">
+⚠️  UNCERTAIN: <rule-id or "computed: <field_name>">
     Scores: fidelity:<N> clarity:<N> logic:<N> policy:<N>
-    Flagged for: <comma-separated list of triggered dimensions>
+    Flagged for: <"low extraction fidelity" and/or "low source clarity">
+                 <+ "high logic complexity" and/or "high policy complexity" if also complex>
     Policy: "<exact source sentence(s)>"
     CIVIL:  <when: expression or expr:/conditional:>
     Notes:  <notes field content, or "(none)" if omitted>
 ─────────────────────────────────────────────────────────────────
 ```
 
-For `Flagged for:`, list each triggered dimension with a short label:
-- Score ≤ 2 on `extraction_fidelity` → "low extraction fidelity"
-- Score ≤ 2 on `source_clarity` → "low source clarity"
-- Score ≥ 4 on `logic_complexity` → "high logic complexity"
-- Score ≥ 4 on `policy_complexity` → "high policy complexity"
-
-**LOW PRIORITY format** (compact list):
+**Complex Rules format** (one block per item; excludes items already shown under Uncertain):
 ```
-✅  LOW PRIORITY ITEMS (<N> items — all scores = 3)
+─────────────────────────────────────────────────────────────────
+🔍  COMPLEX: <rule-id or "computed: <field_name>">
+    Scores: fidelity:<N> clarity:<N> logic:<N> policy:<N>
+    Flagged for: <"high logic complexity" and/or "high policy complexity">
+    Policy: "<exact source sentence(s)>"
+    CIVIL:  <when: expression or expr:/conditional:>
+    Notes:  <notes field content, or "(none)" if omitted>
+─────────────────────────────────────────────────────────────────
+```
+
+**Verified compact list**:
+```
+✅  VERIFIED (<N> items — not uncertain, not complex)
     • FED-SNAP-DENY-001: Gross income exceeds 130% FPL limit
     • computed: gross_income — total household gross monthly income
     ...
 ```
 
 **Edge cases:**
-- If ALL items are HIGH PRIORITY, omit the LOW PRIORITY section entirely.
-- If ALL items are LOW PRIORITY, omit the HIGH PRIORITY section and show: "All items scored 3/3/3/3 — no flagged items."
+- If no uncertain items → omit the Uncertain Extractions section entirely.
+- If no complex items → omit the Complex Rules section entirely.
+- If no verified items → omit the Verified list.
+- If ALL items verified → show: "All items verified — no uncertain or complex items."
 
 Ask: "Does this translation correctly capture the policy intent? Any rules missing or incorrect?"
 
-**On rejection:** Re-extract the specific disputed rule or computed field, re-validate (using the retry loop), recompute its `review:` scores, then re-present the full review gate. Do not proceed to transpilation until the user confirms.
+**On rejection:** Re-extract the specific disputed rule or computed field, re-validate (using the retry loop), recompute its `review:` scores, then re-present the full review gate. Do not proceed until the user confirms.
 
 ### Step 8b: Write Naming Manifest
 

@@ -19,6 +19,10 @@ Expression language reference (for 'when:' conditions and 'expr:' strings):
 See specs/CIVIL_DSL_spec.md for full specification and design rationale.
 """
 
+# IMPORTANT: If you change types, field attributes, or add new model classes,
+# update docs/civil-quickref.md to match and refresh its "last verified" date.
+# Also update specs/CIVIL_DSL_spec.md if the change affects the DSL design.
+
 from __future__ import annotations
 
 import sys
