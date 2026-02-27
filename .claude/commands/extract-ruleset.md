@@ -5,9 +5,12 @@ Create or incrementally update a CIVIL DSL ruleset for a domain, based on docume
 ## Input
 
 ```
-/extract-ruleset <domain>               # auto-detect program or prompt if ambiguous
-/extract-ruleset <domain> <program>     # target a specific <program>.civil.yaml
+/extract-ruleset <domain>                          # auto-detect program or prompt if ambiguous
+/extract-ruleset <domain> <program>                # target a specific <program>.civil.yaml
+/extract-ruleset <domain> <program> <filename>     # scope extraction to one input file
 ```
+
+`<filename>` is the basename of a `.md` file in `domains/<domain>/input/policy_docs/` (e.g., `APA.md`). The `.md` extension is appended automatically if omitted. When given, `<filename>` scopes the full pipeline: only that file is read as the policy corpus, and only its manifest entry is updated.
 
 If `<domain>` is not provided, list all `domains/*/input/policy_docs/` directories and prompt the user to choose.
 
@@ -28,6 +31,25 @@ Run these checks before doing anything else:
 
 2. **Input docs present?**
    - `domains/<domain>/input/policy_docs/` missing or empty → Print: "No input documents found. Add `.md` files to `domains/<domain>/input/policy_docs/` and re-run." Then stop.
+
+3. **`<filename>` valid (if given)?**
+   - If `<filename>` has no `.md` extension, append it automatically (e.g., `APA` → `APA.md`)
+   - Verify `domains/<domain>/input/policy_docs/<filename>` exists on disk
+   - If not found: print `"File not found: domains/<domain>/input/policy_docs/<filename>"`, list available `.md` files, then stop.
+
+4. **Multiple input docs + no `<filename>`?**
+   - If `domains/<domain>/input/policy_docs/` contains 2+ `.md` files and `<filename>` was **not** given, prompt:
+     ```
+     Multiple policy documents found in domains/<domain>/input/policy_docs/:
+       1. <file1>.md
+       2. <file2>.md
+       ...
+       a. All files (unified corpus)
+
+     Process which file? [1/2/.../a]:
+     ```
+   - Selecting `a` proceeds with all files as a unified corpus (unchanged behavior).
+   - Selecting a number sets `<filename>` to that file for the rest of the run.
 
 ## Mode Detection
 
@@ -102,9 +124,12 @@ For full attribute tables (required vs optional fields for each model), see [`do
 
 ## Process — CREATE Mode
 
-### Step 1: Read All Policy Documents
+### Step 1: Read Policy Documents
 
-Read every `.md` file in `domains/<domain>/input/policy_docs/` as a unified policy corpus. Identify:
+If `<filename>` is given, read only `domains/<domain>/input/policy_docs/<filename>`.
+Otherwise, read every `.md` file in `domains/<domain>/input/policy_docs/` as a unified policy corpus.
+
+Identify:
 
 1. **Program name and jurisdiction** — what benefit/program, which level of government
 2. **Effective dates** — when do these rules apply?
@@ -390,6 +415,15 @@ This file is user-editable. Do **not** add an "auto-generated" comment.
 ---
 
 **Extraction complete.**
+
+If `<filename>` was given and other `.md` files exist in `domains/<domain>/input/policy_docs/` that were not processed, print:
+```
+Note: this domain has other policy docs not included in this run:
+  - <other_file>.md
+  ...
+To extract from all files as a unified corpus, run without specifying a filename.
+```
+
 ```
 Next steps:
   1. /create-tests <domain>
@@ -433,13 +467,30 @@ Read `domains/<domain>/specs/.extraction-manifest.yaml` to get the git SHA for e
 1. Get the CIVIL file's last commit SHA: `git log -1 --format="%H" -- domains/<domain>/specs/<program>.civil.yaml`
 2. If no git history at all → treat as CREATE mode (full re-extraction)
 
-### Step 2: Detect Changes
+### Step 1b: Reconcile Manifest
+
+Before change detection, remove stale entries from `.extraction-manifest.yaml` for files that no longer exist on disk:
 
 ```bash
-# Changes committed since baseline
-git diff <baseline-sha>..HEAD -- domains/<domain>/input/policy_docs/
+# For each path listed in source_docs:
+ls domains/<domain>/input/policy_docs/<path_basename> 2>/dev/null
+# If the file is absent: remove that entry from source_docs and print:
+#   Removed stale manifest entry: <path>
+```
 
-# Untracked new files (not yet committed)
+This runs on every UPDATE invocation, regardless of whether `<filename>` was given. It ensures deleted or renamed input files don't cause change detection failures.
+
+### Step 2: Detect Changes
+
+If `<filename>` is given, scope change detection to that file only:
+
+```bash
+# Scoped (when <filename> is given):
+git diff <baseline-sha>..HEAD -- domains/<domain>/input/policy_docs/<filename>
+git status domains/<domain>/input/policy_docs/<filename>
+
+# Full (when <filename> is not given):
+git diff <baseline-sha>..HEAD -- domains/<domain>/input/policy_docs/
 git status domains/<domain>/input/policy_docs/
 ```
 
@@ -484,7 +535,15 @@ Update the existing `domains/<domain>/specs/<program>.civil.yaml` at section gra
 ### Step 7: Update Manifest
 
 Update `domains/<domain>/specs/.extraction-manifest.yaml`:
-- Update the `git_sha` for each changed source doc
+
+**If `<filename>` was given (partial update):**
+- Update `extracted_at` to today's date
+- In `source_docs:`, find the entry for `<filename>` and update its `git_sha` and `last_extracted`
+- If no entry exists yet for `<filename>`, add one
+- Preserve all other `source_docs:` entries verbatim (files not processed this run keep their existing SHA)
+
+**If `<filename>` was not given (full update):**
+- Update `git_sha` for each changed source doc
 - Update `extracted_at` to today's date
 
 ### Step 8: Validate
@@ -552,6 +611,15 @@ stale_cases: []
 ```
 
 **Extraction complete.**
+
+If `<filename>` was given and other `.md` files exist in `domains/<domain>/input/policy_docs/` that were not processed, print:
+```
+Note: this domain has other policy docs not included in this run:
+  - <other_file>.md
+  ...
+To extract from all files as a unified corpus, run without specifying a filename.
+```
+
 ```
 Next steps:
   1. /create-tests <domain>
