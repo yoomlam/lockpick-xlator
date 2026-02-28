@@ -1,0 +1,217 @@
+# ADLTC Income Eligibility — CIVIL DSL Module
+# Translated from: input/policy_docs/ADLTC.md
+# Primary authority: Alaska ADLTC Manual Addendum 1; §523B
+
+module: "eligibility.adltc"
+description: "Alaska ADLTC income eligibility — refused cash income limit test and DOL reasonable compatibility check (effective 01/01/2026)"
+version: "2026Q1"
+jurisdiction:
+  level: state
+  country: US
+  state: AK
+
+effective:
+  start: 2026-01-01
+
+# =============================================================================
+# FACTS — Input Schema
+# =============================================================================
+
+facts:
+  Applicant:
+    description: "An individual applying for ADLTC Medicaid"
+    fields:
+      household_type:
+        type: enum
+        values: [A1E, B1E, H1E, A2S, B2S, H2S, A2C, B2C, H2C, NHR]
+        description: "Household type code determining the refused cash income limit (ADLTC Addendum 1)"
+
+      countable_earned_income:
+        type: money
+        currency: USD
+        description: "Client's monthly countable earned income after all APA exclusions (§442-2E–H) — computed externally by the APA exclusion chain"
+
+      dol_monthly_income_avg:
+        type: money
+        currency: USD
+        optional: true
+        description: "DOL-reported gross earned income — most recent quarter divided by 3, before exclusions (§523B reasonable compatibility check)"
+
+# =============================================================================
+# DECISIONS — Output Schema
+# =============================================================================
+
+decisions:
+  eligible:
+    type: bool
+    default: false
+    description: "Whether the applicant passes the ADLTC income eligibility test"
+
+  denial_reasons:
+    type: list
+    item: Reason
+    default: []
+    description: "Reasons for ineligibility (empty if eligible)"
+
+# =============================================================================
+# TABLES — 2026 Refused Cash Income Limits
+# =============================================================================
+# Source: ADLTC Manual Addendum 1, effective 01/01/2026
+# http://dpaweb.hss.state.ak.us/manuals/adltc/adltc.htm#t=addenda%2Faddendum_1.htm
+
+tables:
+  refused_cash_income_limits:
+    description: "Maximum monthly countable income by household type — income above this limit results in refused (denied) cash aid (effective 01/01/2026)"
+    key: [household_type]
+    value: [max_monthly_income]
+    rows:
+      - { household_type: "A1E",  max_monthly_income: 1845 }
+      - { household_type: "B1E",  max_monthly_income: 1845 }
+      - { household_type: "H1E",  max_monthly_income: 1845 }
+      - { household_type: "A2S",  max_monthly_income: 2732 }
+      - { household_type: "B2S",  max_monthly_income: 2732 }
+      - { household_type: "H2S",  max_monthly_income: 2732 }
+      - { household_type: "A2C",  max_monthly_income: 2732 }
+      - { household_type: "B2C",  max_monthly_income: 2732 }
+      - { household_type: "H2C",  max_monthly_income: 2732 }
+      - { household_type: "NHR",  max_monthly_income: 1845 }
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+
+constants:
+  GENERAL_INCOME_EXCLUSION: 20           # §523B worked example / APA §442-2E: $20/month
+  EARNED_INCOME_EXCLUSION: 65            # §523B worked example / APA §442-2F: $65/month
+  EARNED_INCOME_HALF_RATE: 0.5           # §523B worked example / APA §442-2H: one-half exclusion
+  REASONABLE_COMPATIBILITY_TOLERANCE: 0.10  # §523B: DOL income must be within 10% of client stated income
+
+# =============================================================================
+# COMPUTED — Derived Values (CIVIL v2)
+# =============================================================================
+
+computed:
+
+  refused_cash_income_limit:
+    type: money
+    currency: USD
+    description: "Maximum allowable monthly countable income for this household type (ADLTC Addendum 1 table, 01/01/2026 column)"
+    expr: "table('refused_cash_income_limits', Applicant.household_type).max_monthly_income"
+    review:
+      extraction_fidelity: 4
+      source_clarity: 3
+      logic_complexity: 2
+      policy_complexity: 3
+      notes: "Table values explicitly stated for 01/01/2026 column; source doc presents three date columns and 2026 is assumed current. The deny logic ('deny if above limit') is inferred from 'REFUSED CASH' framing and §523B — not stated as an explicit rule."
+
+  dol_countable_income:
+    type: money
+    currency: USD
+    description: "DOL average monthly income with standard $20/$65/50% exclusion chain applied — used for reasonable compatibility comparison (§523B)"
+    expr: "max(Applicant.dol_monthly_income_avg - GENERAL_INCOME_EXCLUSION - EARNED_INCOME_EXCLUSION, 0) * EARNED_INCOME_HALF_RATE"
+    review:
+      extraction_fidelity: 4
+      source_clarity: 4
+      logic_complexity: 3
+      policy_complexity: 3
+      notes: "§523B worked example explicitly applies $20, $65, then 50% to the DOL average. Special exclusions (IRWE, BWE, PASS, student) are not applied to DOL — consistent with example which uses only the standard chain."
+
+  is_dol_reasonably_compatible:
+    type: bool
+    description: "True if DOL-reported countable income is within 10% of client-stated countable income (§523B)"
+    expr: "dol_countable_income <= Applicant.countable_earned_income * (1 + REASONABLE_COMPATIBILITY_TOLERANCE)"
+    review:
+      extraction_fidelity: 4
+      source_clarity: 3
+      logic_complexity: 3
+      policy_complexity: 3
+      notes: "§523B states 'within 10% of the client stated gross monthly income' but the worked example applies exclusions first; interpreted as DOL countable ≤ client countable × 1.10. Only the upper-bound direction is tested — this flag only matters when DOL > client."
+
+# =============================================================================
+# RULE SET
+# =============================================================================
+
+rule_set:
+  name: "ak_adltc_income_eligibility"
+  precedence: "deny_overrides_allow"
+  description: "ADLTC income eligibility — countable earned income vs. refused cash income limit; DOL reasonable compatibility check"
+
+# =============================================================================
+# RULES
+# =============================================================================
+
+rules:
+
+  # ---------------------------------------------------------------------------
+  # DENY-001: Countable earned income exceeds the refused cash income limit
+  # ---------------------------------------------------------------------------
+  - id: "AK-ADLTC-DENY-001"
+    kind: deny
+    priority: 1
+    description: "Countable earned income (after all APA exclusions) exceeds the refused cash income limit for this household type"
+    when: "Applicant.countable_earned_income > refused_cash_income_limit"
+    then:
+      - add_reason:
+          code: "COUNTABLE_INCOME_EXCEEDS_LIMIT"
+          message: "Countable monthly earned income after all exclusions exceeds the refused cash income limit for this household type"
+          citations:
+            - label: "ADLTC Manual Addendum 1 — Expanded Refused Cash Income Limits"
+              url: "http://dpaweb.hss.state.ak.us/manuals/adltc/adltc.htm#t=addenda%2Faddendum_1.htm"
+              excerpt: "EXPANDED REFUSED CASH INCOME LIMITS — A Individual (A1E): $1,845; A Couple, Both Eligible (A2C): $2,732 (01/01/2026)"
+    review:
+      extraction_fidelity: 3
+      source_clarity: 2
+      logic_complexity: 2
+      policy_complexity: 3
+      notes: "The income limit table is explicit, but the deny logic itself is not stated — inferred from 'REFUSED CASH' framing and §523B context comparing exclusion-adjusted income to 'the income standard'."
+
+  # ---------------------------------------------------------------------------
+  # DENY-002: DOL income exceeds limit and is not reasonably compatible
+  # Applies only when client-stated income is at or below the limit but DOL data
+  # is above — §523B case 4. RC failure triggers further verification; modeled
+  # as a deny pending that verification.
+  # ---------------------------------------------------------------------------
+  - id: "AK-ADLTC-DENY-002"
+    kind: deny
+    priority: 2
+    description: "Client-stated income is at or below the limit, but DOL-reported income exceeds the limit and is not within 10% of client-stated (§523B)"
+    when: "Applicant.countable_earned_income <= refused_cash_income_limit && Applicant.dol_monthly_income_avg > 0 && dol_countable_income > refused_cash_income_limit && !is_dol_reasonably_compatible"
+    then:
+      - add_reason:
+          code: "DOL_INCOME_NOT_REASONABLY_COMPATIBLE"
+          message: "DOL-reported income exceeds the income limit and is more than 10% above client-stated income — further verification required before approval"
+          citations:
+            - label: "Alaska ADLTC Manual §523B — Reasonable Compatibility"
+              url: "http://dpaweb.hss.state.ak.us/manuals/adltc/adltc.htm#t=524_medicaid_exceptions_to_apa_resource_policy%2F524_medicaid_except_to_resource.htm"
+              excerpt: "To be considered reasonably compatible, income electronically reported by Department of Labor (DOL) must be within 10% of the client stated gross monthly income."
+    review:
+      extraction_fidelity: 2
+      source_clarity: 3
+      logic_complexity: 4
+      policy_complexity: 3
+      notes: "§523B states that when RC fails the caseworker 'must pursue further verification' — not an automatic denial. Modeling as deny is a conservative interpretation; a caseworker may still approve with additional evidence. High logic_complexity from four conditions: client ≤ limit, DOL present, DOL > limit, DOL outside 10% band."
+
+  # ---------------------------------------------------------------------------
+  # ALLOW-001: Applicant passes the income eligibility test
+  # ---------------------------------------------------------------------------
+  - id: "AK-ADLTC-ALLOW-001"
+    kind: allow
+    priority: 100
+    description: "Applicant passes the ADLTC income eligibility test"
+    when: "true"
+    then:
+      - set:
+          eligible: true
+      - add_reason:
+          code: "INCOME_ELIGIBLE"
+          message: "Countable monthly earned income is at or below the refused cash income limit for this household type"
+          citations:
+            - label: "ADLTC Manual Addendum 1 — Expanded Refused Cash Income Limits"
+              url: "http://dpaweb.hss.state.ak.us/manuals/adltc/adltc.htm#t=addenda%2Faddendum_1.htm"
+              excerpt: "..."
+    review:
+      extraction_fidelity: 2
+      source_clarity: 2
+      logic_complexity: 1
+      policy_complexity: 1
+      notes: "Policy never states a default-approve rule explicitly. Allow logic inferred from 'refused' framing — income below the limit is implicitly approved. Structural allow rule per CIVIL convention."

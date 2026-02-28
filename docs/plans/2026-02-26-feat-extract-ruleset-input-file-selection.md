@@ -150,6 +150,6 @@ No other files need modification. The manifest schema already supports a `source
 ## References
 
 - Command definition: [`.claude/commands/extract-ruleset.md`](.claude/commands/extract-ruleset.md)
-- Broken manifest (motivating case): [`domains/ak_doh/specs/.extraction-manifest.yaml`](domains/ak_doh/specs/.extraction-manifest.yaml)
+- Broken manifest (motivating case): [`domains/ak_doh/specs/extraction-manifest.yaml`](domains/ak_doh/specs/extraction-manifest.yaml)
 - New split policy docs: [`domains/ak_doh/input/policy_docs/APA.md`](domains/ak_doh/input/policy_docs/APA.md), [`domains/ak_doh/input/policy_docs/ADLTC.md`](domains/ak_doh/input/policy_docs/ADLTC.md)
 - Decomposition plan (established argument patterns): [`docs/plans/2026-02-25.e-refactor-extract-ruleset-decomposition.md`](docs/plans/2026-02-25.e-refactor-extract-ruleset-decomposition.md)

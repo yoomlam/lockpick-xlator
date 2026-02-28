@@ -3,7 +3,7 @@ entities:
   Applicant:
     household_type:
       policy_phrase: "household type (program/unit code: A1E, B1E, H1E, A2S, B2S, H2S, A2C, B2C, H2C, NHR)"
-      source_doc: "AK_DOH_APA_ADLTC.md"
+      source_doc: "ADLTC.md"
       section: "EXPANDED REFUSED CASH INCOME LIMITS"
     is_blind:
       policy_phrase: "blind"
@@ -47,12 +47,12 @@ entities:
       section: "442-2 J. AMOUNT TO FULFILL A PLAN FOR ACHIEVING SELF-SUPPORT"
     dol_monthly_income_avg:
       policy_phrase: "most recent quarter reported by DOL divided by three to get the average monthly income amount"
-      source_doc: "AK_DOH_APA_ADLTC.md"
+      source_doc: "ADLTC.md"
       section: "523 B. REASONABLE COMPATIBILITY"
 computed:
   refused_cash_income_limit:
     policy_phrase: "refused cash income limit by household type"
-    source_doc: "AK_DOH_APA_ADLTC.md"
+    source_doc: "ADLTC.md"
     section: "EXPANDED REFUSED CASH INCOME LIMITS"
   general_exclusion_remaining:
     policy_phrase: "portion of the $20 general income exclusion not excluded from unearned income"
@@ -84,9 +84,9 @@ computed:
     section: "442-2 H. ONE-HALF OF REMAINING EARNED INCOME"
   dol_countable_income:
     policy_phrase: "DOL monthly average after income exclusions applied"
-    source_doc: "AK_DOH_APA_ADLTC.md"
+    source_doc: "ADLTC.md"
     section: "523 B. REASONABLE COMPATIBILITY"
   is_dol_reasonably_compatible:
     policy_phrase: "reasonably compatible — DOL income within 10% of client stated income"
-    source_doc: "AK_DOH_APA_ADLTC.md"
+    source_doc: "ADLTC.md"
     section: "523 B. REASONABLE COMPATIBILITY"

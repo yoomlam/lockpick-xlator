@@ -15,7 +15,7 @@ Add a `source` field to the CIVIL DSL on every `FactField`, `TableDef`, `Compute
 
 Currently, CIVIL YAML captures *what* a rule does but not *where in the policy document it comes from*. A reviewer looking at a rule like `gross_income_exceeds_limit` cannot tell at a glance whether it derives from §273.9(a) or §273.10(b) without hunting through the source document.
 
-The `.naming-manifest.yaml` already tracks a `section` field per `FactField`, but:
+The `naming-manifest.yaml` already tracks a `section` field per `FactField`, but:
 - It only covers fields, not tables or rules
 - It lives outside the CIVIL file (a separate artifact)
 
@@ -104,7 +104,7 @@ No changes. Test YAML files (`domains/*/specs/tests/`) operate on OPA inputs/out
 
 ### Naming Manifest Relationship
 
-The `.naming-manifest.yaml` `section` field (per `FactField`/`ComputedField`) and the new CIVIL `source:` block are **independent and coexisting** — no enforcement of consistency between them. The manifest serves naming stability (UPDATE mode divergence detection); `source:` serves inline provenance. Keep the manifest `section` field so it can be shared independently of the CIVIL ruleset file.
+The `naming-manifest.yaml` `section` field (per `FactField`/`ComputedField`) and the new CIVIL `source:` block are **independent and coexisting** — no enforcement of consistency between them. The manifest serves naming stability (UPDATE mode divergence detection); `source:` serves inline provenance. Keep the manifest `section` field so it can be shared independently of the CIVIL ruleset file.
 
 ### UPDATE Mode Behavior
 
@@ -154,7 +154,7 @@ UPDATE mode re-extracts some sections and preserves others verbatim. The resulti
 - `DecisionField` (output declarations like `eligible: boolean`)
 - `constants:` — structural change too disruptive; track separately
 - Backfilling `source:` into existing CIVIL files — optional follow-up
-- Deprecating `section` from `.naming-manifest.yaml` in favour of CIVIL `source:` — tracked in Dependencies & Risks as future resolution
+- Deprecating `section` from `naming-manifest.yaml` in favour of CIVIL `source:` — tracked in Dependencies & Risks as future resolution
 - Sub-action provenance within multi-`then:` rules
 - Normalizing `source:` values across runs (e.g., enforcing CFR citation format)
 - Emitting `source:` as Rego comments in the transpiler — optional cosmetic follow-up
@@ -177,6 +177,6 @@ UPDATE mode re-extracts some sections and preserves others verbatim. The resulti
 - Transpiler: [tools/transpile_to_opa.py](tools/transpile_to_opa.py)
 - Extract command: [.claude/commands/extract-ruleset.md](.claude/commands/extract-ruleset.md)
 - Authoring quickref: [docs/civil-quickref.md](docs/civil-quickref.md)
-- Naming manifest example: [domains/snap/specs/.naming-manifest.yaml](domains/snap/specs/.naming-manifest.yaml)
+- Naming manifest example: [domains/snap/specs/naming-manifest.yaml](domains/snap/specs/naming-manifest.yaml)
 - Prior schema extension plan (review/scoring): [docs/plans/2026-02-25.b-feat-civil-review-scoring-annotation.md](docs/plans/2026-02-25.b-feat-civil-review-scoring-annotation.md)
 - Prior Pydantic migration plan: [docs/plans/2026-02-25.c-feat-pydantic-civil-schema.md](docs/plans/2026-02-25.c-feat-pydantic-civil-schema.md)
