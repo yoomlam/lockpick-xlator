@@ -117,6 +117,7 @@ Non-obvious type and structural rules:
 - **`Rule.then` must be non-empty** — every rule (allow and deny) needs at least one action
 - **`Conditional` requires all three branches** — `if`, `then`, and `else` are all required; no optional else
 - **Transpiler ignores allow rules** — only `deny` rules generate Rego; `then:` actions on allow rules are documentary only
+- **`source:` vs `citations:` are distinct** — `source:` on a field/table/rule identifies *where in the policy doc the element was defined* (developer traceability); `citations:` inside an `add_reason` action is the *legal authority shown to applicants in a denial explanation*. A deny rule may have the same CFR section in both — that is expected and not redundant.
 
 For full attribute tables (required vs optional fields for each model), see [`docs/civil-quickref.md`](../docs/civil-quickref.md).
 
@@ -185,6 +186,13 @@ Present the result as a Markdown table:
 
 Ask: "Do the field names in this table match your intent? You may edit any name." If the user changes any name, update the table and re-present. Loop until the user explicitly approves. Use the approved names in Step 4 onward.
 
+**`source:` population:** In Step 4, populate `source:` on every `FactField`, `ComputedField`, `TableDef`, and `Rule` using the "Source Section" value from the Name Inventory table above, *combined* with the surrounding document heading:
+
+- Format: `"<§ citation> — <heading>"`, e.g. `"7 CFR § 273.9(a) — Income and Deductions"`
+- If the "Source Section" column contains only a bare citation (`"§ 273.9(a)"`), prepend the full CFR title reference and append the heading from the enclosing document section
+- For `Rule` entries (not in the Name Inventory table), derive `source:` from the heading and paragraph of the policy text where the rule's condition is stated
+- `source:` is optional — if the policy document has no clear section for a given element, omit it rather than guessing
+
 ### Step 4: Draft the CIVIL Module
 
 Create `domains/<domain>/specs/<program>.civil.yaml`:
@@ -208,6 +216,7 @@ facts:
       <field_name>:
         type: <int|float|bool|string|money|date|list|set|enum>
         description: "..."
+        source: "<§ citation> — <heading>"  # e.g., "7 CFR § 273.9(a) — Income and Deductions"
         currency: USD  # for money type
         optional: true  # if not required
 
@@ -225,6 +234,7 @@ decisions:
 tables:
   <table_name>:
     description: "..."
+    source: "<§ citation> — <heading>"  # e.g., "7 CFR § 273.9(a)(1) — Gross Income Limits Table"
     key: [<key_field>]
     value: [<value_field>]
     rows:
@@ -237,6 +247,7 @@ computed:  # optional (CIVIL v2) — intermediate derived values for multi-step 
   <field_name>:
     type: <money|bool|float|int>
     description: "..."
+    source: "<§ citation> — <heading>"  # e.g., "7 CFR § 273.9(d)(1) — Earned Income Deduction"
     expr: "<CIVIL expression>"     # single expression
     review:
       extraction_fidelity: <1-5>
@@ -247,6 +258,7 @@ computed:  # optional (CIVIL v2) — intermediate derived values for multi-step 
   <field_name_2>:
     type: money
     description: "..."
+    source: "<§ citation> — <heading>"
     conditional:
       if: "<bool expression>"
       then: "<value expression>"
@@ -268,6 +280,7 @@ rules:
     kind: deny  # or: allow
     priority: 1  # lower = higher priority; allow rules typically 100+
     description: "..."
+    source: "<§ citation> — <heading>"  # e.g., "7 CFR § 273.9(a)(1) — Gross Income Test"
     when: "<CIVIL expression>"
     then:
       - add_reason:
@@ -399,13 +412,13 @@ entities:
     <field_name>:
       policy_phrase: "<exact policy phrase from Name Inventory>"
       source_doc: "<source filename>"
-      section: "<section heading>"
+      section: "<source title, heading, and paragraph>"
   # repeat for each entity
 computed:
   <field_name>:
     policy_phrase: "<exact policy phrase>"
     source_doc: "<source filename>"
-    section: "<section heading>"
+    section: "<source title, heading, and paragraph>"
 ```
 
 **If `.naming-manifest.yaml` already exists** (CREATE re-run): merge — preserve all existing entries unchanged and append only new entries.

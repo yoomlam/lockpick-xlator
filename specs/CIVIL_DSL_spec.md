@@ -210,6 +210,69 @@ rules:
 
 ---
 
+### 2d) Source provenance (optional, on fact fields, computed fields, tables, and rules)
+
+The `source:` field records where in the source policy document an element was defined. It is a plain free-text string — typically a CFR section plus heading. Its value is purely for human traceability; it has no effect on transpilation or OPA evaluation.
+
+```yaml
+source: "7 CFR § 273.9(a)(1) — Gross Income Test"
+```
+
+**Where it applies:** `FactField`, `ComputedField`, `TableDef`, `Rule`.
+
+**Where it does not apply:** `FactEntity` (container, not a leaf definition), `DecisionField` (output), `constants` (untyped dict).
+
+**`source:` vs `citations:` distinction:**
+
+| Field | Purpose | Audience |
+|-------|---------|---------|
+| `source:` (on field/table/rule) | Where in the policy doc this element was *extracted from* — developer traceability | CIVIL authors, auditors |
+| `citations:` (in add_reason actions) | Legal authority shown in *denial explanations to applicants* | End users, caseworkers |
+
+A deny rule will often have the same CFR section in both. That is expected — they serve different audiences.
+
+Example on a fact field, computed field, table, and rule:
+
+```yaml
+facts:
+  Household:
+    fields:
+      gross_monthly_income:
+        type: money
+        currency: USD
+        description: "Total gross monthly income before deductions"
+        source: "7 CFR § 273.9(a) — Income and Deductions"
+
+computed:
+  gross_income_exceeds_limit:
+    type: bool
+    expr: "Household.gross_monthly_income > gross_limit"
+    source: "7 CFR § 273.9(a)(1) — Gross Income Test"
+
+tables:
+  gross_income_limits:
+    key: [household_size]
+    value: [monthly_limit]
+    source: "7 CFR § 273.9(a)(1) — Gross Income Limits Table"
+    rows:
+      - { household_size: 1, monthly_limit: 1580 }
+
+rules:
+  - id: "FED-SNAP-DENY-GROSS"
+    kind: deny
+    priority: 1
+    source: "7 CFR § 273.9(a)(1) — Gross Income Test"
+    when: "gross_income_exceeds_limit"
+    then:
+      - add_reason:
+          code: GROSS_INCOME_EXCEEDED
+          message: "Gross income exceeds the 130% FPL limit."
+          citations:
+            - { label: "7 CFR § 273.9(a)(1)" }
+```
+
+---
+
 ### 3) Rule set
 
 ```yaml

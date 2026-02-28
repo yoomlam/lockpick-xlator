@@ -1,6 +1,6 @@
 # CIVIL DSL — Authoring Quick Reference
 
-<!-- Last verified against tools/civil_schema.py: 2026-02-25 -->
+<!-- Last verified against tools/civil_schema.py: 2026-02-27 -->
 
 This is a **Claude authoring cheat sheet** for writing valid CIVIL YAML modules.
 For full specification and design rationale, see [specs/CIVIL_DSL_spec.md](../specs/CIVIL_DSL_spec.md).
@@ -42,6 +42,7 @@ Entity names use **PascalCase** (e.g. `Household`, `Applicant`).
 |-------|----------|-------|
 | `type` | ✅ | See valid fact types below |
 | `description` | — | Human-readable field description |
+| `source` | — | Policy document location, e.g. `"7 CFR § 273.9(a) — Income and Deductions"` |
 | `optional` | — | `true` if the field may be absent (default: `false`) |
 | `currency` | — | Currency code for `money` type, e.g. `USD` |
 | `values` | — | List of allowed strings for `enum` type |
@@ -62,6 +63,7 @@ Valid `type` values for fact fields:
 | `type` | ✅ | `money`, `bool`, `float`, or `int` only |
 | `currency` | — | Currency code for `money` type |
 | `description` | — | Human-readable description |
+| `source` | — | Policy document location, e.g. `"7 CFR § 273.9(d)(1) — Earned Income Deduction"` |
 | `expr` | ✅ or `conditional` | CIVIL expression (mutually exclusive with `conditional`) |
 | `conditional` | ✅ or `expr` | If/then/else branch (mutually exclusive with `expr`) |
 | `review` | — | `ReviewBlock` with extraction quality scores |
@@ -98,6 +100,7 @@ Valid `type` values for fact fields:
 | Field | Required | Notes |
 |-------|----------|-------|
 | `description` | — | Human-readable description |
+| `source` | — | Policy document location, e.g. `"7 CFR § 273.9(a)(1) — Gross Income Limits Table"` |
 | `key` | ✅ | List of key column name(s), e.g. `[household_size]` |
 | `value` | ✅ | List of value column name(s), e.g. `[max_gross_monthly]` |
 | `rows` | ✅ | List of row dicts, e.g. `[{household_size: 1, max_gross_monthly: 1580}]` |
@@ -116,6 +119,7 @@ Table reference in expressions: `table('table_name', key_expr).value_column`
 | `when` | ✅ | Boolean CIVIL expression |
 | `then` | ✅ | List of `Action` objects — **must be non-empty** |
 | `description` | — | Human-readable description |
+| `source` | — | Policy document location, e.g. `"7 CFR § 273.9(a)(1) — Gross Income Test"` |
 | `review` | — | `ReviewBlock` with extraction quality scores |
 
 > ⚠️ **`then:` must be non-empty for all rules**, including allow rules.

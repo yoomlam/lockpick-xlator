@@ -127,6 +127,13 @@ class FactField(BaseModel):
         )
     )
     description: str | None = Field(default=None, description="Human-readable field description.")
+    source: str | None = Field(
+        default=None,
+        description=(
+            "Policy document location where this field is defined, "
+            "e.g. '7 CFR § 273.9(a) — Income and Deductions'."
+        ),
+    )
     optional: bool = Field(
         default=False,
         description="Whether this field may be absent in input (default: false = always required).",
@@ -190,6 +197,13 @@ class TableDef(BaseModel):
     description: str | None = Field(
         default=None, description="Description of what this table represents."
     )
+    source: str | None = Field(
+        default=None,
+        description=(
+            "Policy document location where this table is defined, "
+            "e.g. '7 CFR § 273.9(a)(1) — Gross Income Limits Table'."
+        ),
+    )
     key: list[str] = Field(description="Key column name(s) used for lookup.")
     value: list[str] = Field(description="Value column name(s) returned by lookup.")
     rows: list[dict[str, Any]] = Field(description="Table data rows as a list of dicts.")
@@ -219,6 +233,13 @@ class ComputedField(BaseModel):
     description: str | None = Field(
         default=None,
         description="Human-readable explanation of what this field computes.",
+    )
+    source: str | None = Field(
+        default=None,
+        description=(
+            "Policy document location where this computed field is derived from, "
+            "e.g. '7 CFR § 273.9(d)(1) — Earned Income Deduction'."
+        ),
     )
     expr: str | None = Field(
         default=None,
@@ -352,6 +373,13 @@ class Rule(BaseModel):
     )
     description: str | None = Field(
         default=None, description="Optional human-readable description of this rule."
+    )
+    source: str | None = Field(
+        default=None,
+        description=(
+            "Policy document location where this rule is defined, "
+            "e.g. '7 CFR § 273.9(a)(1) — Gross Income Test'."
+        ),
     )
     review: ReviewBlock | None = Field(
         default=None, description="Extraction quality scores for this rule."

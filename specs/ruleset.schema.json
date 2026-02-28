@@ -214,6 +214,19 @@
           "description": "Human-readable explanation of what this field computes.",
           "title": "Description"
         },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Policy document location where this computed field is derived from, e.g. '7 CFR \u00a7 273.9(d)(1) \u2014 Earned Income Deduction'.",
+          "title": "Source"
+        },
         "expr": {
           "anyOf": [
             {
@@ -401,6 +414,19 @@
           "default": null,
           "description": "Human-readable field description.",
           "title": "Description"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Policy document location where this field is defined, e.g. '7 CFR \u00a7 273.9(a) \u2014 Income and Deductions'.",
+          "title": "Source"
         },
         "optional": {
           "default": false,
@@ -612,6 +638,19 @@
           "description": "Optional human-readable description of this rule.",
           "title": "Description"
         },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Policy document location where this rule is defined, e.g. '7 CFR \u00a7 273.9(a)(1) \u2014 Gross Income Test'.",
+          "title": "Source"
+        },
         "review": {
           "anyOf": [
             {
@@ -697,6 +736,19 @@
           "default": null,
           "description": "Description of what this table represents.",
           "title": "Description"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Policy document location where this table is defined, e.g. '7 CFR \u00a7 273.9(a)(1) \u2014 Gross Income Limits Table'.",
+          "title": "Source"
         },
         "key": {
           "description": "Key column name(s) used for lookup.",

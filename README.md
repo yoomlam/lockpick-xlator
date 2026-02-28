@@ -70,6 +70,12 @@ This rules extractor initiative:
   - Yes, we are explicitly testing the hypothesis that *incrementally* building a ruleset results in a more accurate and verifiable outcome than generating a full ruleset and refining it afterward.
 - Are we trying to demonstrate our approach for a potential / current client?
   - Yes, the prototype aims to demonstrate that an AI-assisted workflow can produce rulesets that are accurate, verifiable, and maintainable.
+- Why a custom DSL?
+  - Easier to customize for our evolving purposes
+  - Understand the degress of expressiveness needed for ruleset generation, which will help decide on a rules engine
+  - Versatile output: can be converted/transpiled to different output languages like Rego for OPA, OpenFisca, and natural language for humans
+  - Easier to adapt for input to other tools (e.g., ruleset comparison against ruleset-from-code, subset-of-rules extraction for a subtopic)
+
 
 ## Step-by-Step Process
 
