@@ -9,7 +9,7 @@ date: 2026-03-03
 
 ## Overview
 
-Create a new slash command `/index-inputs` that scans a domain's `input/policy_docs/` directory and generates `specs/input-index.yaml` — a structured index of all policy document sections with LLM-generated summaries and topic tags. On first run (CREATE), all files are processed. On subsequent runs (UPDATE), only changed or new files are re-indexed using git SHA comparison, preserving existing index entries for unchanged files.
+Create a new slash command `/index-inputs` that scans a domain's `input/policy_docs/` directory and generates `core/input-index.yaml` — a structured index of all policy document sections with LLM-generated summaries and topic tags. On first run (CREATE), all files are processed. On subsequent runs (UPDATE), only changed or new files are re-indexed using git SHA comparison, preserving existing index entries for unchanged files.
 
 ## Problem Statement / Motivation
 
@@ -93,7 +93,7 @@ Conventions:
 ```markdown
 # Index Input Policy Documents
 
-Scan a domain's `input/policy_docs/` directory and produce `specs/input-index.yaml` — a structured index of all policy document sections with LLM-generated summaries and topic tags. The index is the first place to look when searching for which document covers a given policy topic; specific documents can then be read for full detail.
+Scan a domain's `input/policy_docs/` directory and produce `core/input-index.yaml` — a structured index of all policy document sections with LLM-generated summaries and topic tags. The index is the first place to look when searching for which document covers a given policy topic; specific documents can then be read for full detail.
 
 On first run (CREATE), all files are indexed. On subsequent runs (UPDATE), only changed or new files are re-processed using git SHA comparison.
 
@@ -176,7 +176,7 @@ For each file (in sorted order):
 3. For each section: generate a 1-sentence summary describing the policy content, and 3–5 topic tags (short noun phrases).
 4. If a file has **no H1–H3 headings**, emit one entry for the whole file using the filename stem as the heading, prefixed with `#`.
 
-### Step 4: Write `specs/input-index.yaml`
+### Step 4: Write `core/input-index.yaml`
 
 Ensure `domains/<domain>/specs/` exists. Write the full index:
 
@@ -205,7 +205,7 @@ sections:
 After writing, print:
 
 \```
-✓ specs/input-index.yaml written (CREATE).
+✓ core/input-index.yaml written (CREATE).
   <N> file(s) indexed, <M> section(s) total.
 
 To use this index:
@@ -268,7 +268,7 @@ If any current files have `"untracked"` SHA, prompt the user:
 
 For each file marked REINDEX: follow Steps 2–3 from CREATE mode (read, extract headings, generate summaries and tags). Replace the old sections for that file in the sections list with the newly generated ones.
 
-### Step 6: Write updated `specs/input-index.yaml`
+### Step 6: Write updated `core/input-index.yaml`
 
 Rebuild the complete index using:
 - The updated `files:` block (all current files with current SHAs)
@@ -278,7 +278,7 @@ Rebuild the complete index using:
 After writing, print:
 
 \```
-✓ specs/input-index.yaml updated (UPDATE).
+✓ core/input-index.yaml updated (UPDATE).
   <X> file(s) re-indexed, <Y> skipped (unchanged), <Z> removed.
   <M> section(s) total.
 \```

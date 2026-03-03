@@ -229,7 +229,7 @@ curl http://localhost:8181/health  # should return {}
 | `domains/snap/input/policy_docs/snap_eligibility_fy2026.md` | Source policy document |
 | `domains/snap/specs/eligibility.civil.yaml` | CIVIL intermediate representation |
 | `domains/snap/specs/tests/eligibility_tests.yaml` | 8 test cases |
-| `specs/ruleset_schema.yaml` | CIVIL DSL schema reference |
+| `core/ruleset_schema.yaml` | CIVIL DSL schema reference |
 | `tools/validate_civil.py` | Validates CIVIL YAML structure |
 | `tools/transpile_to_opa.py` | CIVIL → OPA/Rego transpiler |
 | `tools/run_tests.py` | Runs YAML test cases against OPA REST |

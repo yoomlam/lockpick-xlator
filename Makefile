@@ -28,7 +28,7 @@ baseline-setup:
 	# Use OPA for now, but we'll support other ruleset languages and rule engines
 	command -v opa || brew install opa
 
-generate-schema: ## Regenerate specs/ruleset.schema.json from Pydantic models in tools/civil_schema.py
+generate-schema: ## Regenerate core/ruleset.schema.json from Pydantic models in tools/civil_schema.py
 	python tools/civil_schema.py
 
 # ---------------------------------------------------------------------------

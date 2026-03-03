@@ -43,7 +43,7 @@ Invoked as:
 /extract-ruleset wic income_test        # new domain, new program
 ```
 
-The domain name constructs paths: `domains/<domain>/input/policy_docs/`, `domains/<domain>/specs/`, `domains/<domain>/output/`. The optional `<program>` name identifies which `<program>.civil.yaml` to create or update when multiple CIVIL files exist in `specs/`.
+The domain name constructs paths: `domains/<domain>/input/policy_docs/`, `domains/<domain>/specs/`, `domains/<domain>/output/`. The optional `<program>` name identifies which `<program>.civil.yaml` to create or update when multiple CIVIL files exist in `core/`.
 
 ### Pre-flight Checks (always runs first)
 
@@ -54,7 +54,7 @@ Before mode detection, the skill validates preconditions and handles errors grac
    NO → Prompt: "Which domain? (e.g., snap, wic)" → retry
 
 2. Does domains/<domain>/ exist?
-   NO → Offer to scaffold: domains/<domain>/{input/policy_docs/,specs/,output/,demo/}
+   NO → Offer to scaffold: domains/<domain>/{input/policy_docs/,core/,output/,demo/}
         Print structure, instruct user to add policy docs, then exit.
 
 3. Does domains/<domain>/input/policy_docs/ exist and contain files?
@@ -200,14 +200,14 @@ The skill's CREATE mode includes instructions to append a new Makefile block for
 ## Acceptance Criteria
 
 ### Pre-flight
-- [ ] `/extract-ruleset nonexistent` with no domain folder offers to scaffold `domains/nonexistent/{input/policy_docs/,specs/,output/,demo/}` and exits
+- [ ] `/extract-ruleset nonexistent` with no domain folder offers to scaffold `domains/nonexistent/{input/policy_docs/,core/,output/,demo/}` and exits
 - [ ] `/extract-ruleset snap` with empty `input/policy_docs/` prints a clear "no docs found" message and exits without writing any files
 
 ### CREATE mode
-- [ ] Given `/extract-ruleset <new-domain>` with docs in `domains/<domain>/input/policy_docs/`, produces a valid `specs/<program>.civil.yaml`
+- [ ] Given `/extract-ruleset <new-domain>` with docs in `domains/<domain>/input/policy_docs/`, produces a valid `core/<program>.civil.yaml`
 - [ ] Produced CIVIL file passes `validate_civil.py` with zero errors
 - [ ] Produces `extraction-manifest.yaml` recording git SHAs of source docs
-- [ ] Produces at least 6 test cases in `specs/tests/<program>_tests.yaml`
+- [ ] Produces at least 6 test cases in `core/tests/<program>_tests.yaml`
 - [ ] Human review gate is presented with rule list + source quotes before transpilation
 - [ ] Review gate rejection triggers targeted re-extraction of the disputed rule
 - [ ] After confirmation, Makefile block is appended for the new domain
@@ -225,7 +225,7 @@ The skill's CREATE mode includes instructions to append a new Makefile block for
 - [ ] Updates `extraction-manifest.yaml` with new git SHAs after successful update
 
 ### Multi-CIVIL handling
-- [ ] `/extract-ruleset snap` with 2 CIVIL files in specs/ and no `<program>` arg prompts user to select one
+- [ ] `/extract-ruleset snap` with 2 CIVIL files in core/ and no `<program>` arg prompts user to select one
 - [ ] `/extract-ruleset snap eligibility` directly targets `eligibility.civil.yaml` without prompting
 
 ### Validation
@@ -258,7 +258,7 @@ The skill's CREATE mode includes instructions to append a new Makefile block for
 - `.claude/skills/translate-policy.md` — structural pattern to follow
 - `domains/snap/specs/eligibility.civil.yaml` — CIVIL working example
 - `domains/snap/specs/tests/eligibility_tests.yaml` — test format reference
-- `specs/ruleset_schema.yaml` — CIVIL DSL schema reference
+- `core/ruleset_schema.yaml` — CIVIL DSL schema reference
 
 ## Success Metrics
 
@@ -288,7 +288,7 @@ These are resolved defaults — document here for implementation reference:
 - Existing skill pattern: [.claude/skills/translate-policy.md](.claude/skills/translate-policy.md)
 - CIVIL working example: [domains/snap/specs/eligibility.civil.yaml](domains/snap/specs/eligibility.civil.yaml)
 - Test format: [domains/snap/specs/tests/eligibility_tests.yaml](domains/snap/specs/tests/eligibility_tests.yaml)
-- CIVIL schema: [specs/ruleset_schema.yaml](specs/ruleset_schema.yaml)
+- CIVIL schema: [core/ruleset_schema.yaml](core/ruleset_schema.yaml)
 - Settings/permissions: [.claude/settings.local.json](.claude/settings.local.json)
 
 ### External References (from project_status.md)

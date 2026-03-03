@@ -88,7 +88,7 @@ A deny rule will often have the same CFR section in both. That is expected and n
 - Add `source: str | None = Field(default=None, description="...")` to `FactField`, `TableDef`, `ComputedField`, `Rule`
 - No new model class needed
 - **Do not** add `source:` to `FactEntity` (container concept, not a leaf definition), `DecisionField` (output, not a policy input), or `constants` (raw `dict[str, Any]` — structural change would be breaking)
-- After editing `civil_schema.py`, regenerate `specs/ruleset.schema.json` by running `python tools/civil_schema.py`
+- After editing `civil_schema.py`, regenerate `core/ruleset.schema.json` by running `python tools/civil_schema.py`
 
 ### Validator
 
@@ -116,8 +116,8 @@ UPDATE mode re-extracts some sections and preserves others verbatim. The resulti
 
 - [ ] `SourceRef` model added to `tools/civil_schema.py` with `heading`, `section`, `paragraph` all `str | None`
 - [ ] `source: SourceRef | None = None` added to `FactField`, `TableDef`, `ComputedField`, and `Rule`
-- [ ] `specs/ruleset.schema.json` regenerated (run `python tools/civil_schema.py`)
-- [ ] `specs/CIVIL_DSL_spec.md` updated to document the new model
+- [ ] `core/ruleset.schema.json` regenerated (run `python tools/civil_schema.py`)
+- [ ] `core/CIVIL_DSL_spec.md` updated to document the new model
 
 ### Backward Compatibility
 
@@ -162,9 +162,9 @@ UPDATE mode re-extracts some sections and preserves others verbatim. The resulti
 ## Implementation Order
 
 1. `tools/civil_schema.py` — add `source: str | None` to `FactField`, `TableDef`, `ComputedField`, `Rule`
-2. `python tools/civil_schema.py` → regenerate `specs/ruleset.schema.json`
+2. `python tools/civil_schema.py` → regenerate `core/ruleset.schema.json`
 3. Verify backward compatibility and transpiler invariance: `make snap-validate && make ak-doh-validate && make snap-transpile` (output must be identical to before)
-4. `specs/CIVIL_DSL_spec.md` — document the new field
+4. `core/CIVIL_DSL_spec.md` — document the new field
 5. `docs/civil-quickref.md` — add `source` row to all four attribute tables; bump "last verified" date
 6. `.claude/commands/extract-ruleset.md` — update Step 4 template and instructions
 

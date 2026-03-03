@@ -2,7 +2,7 @@
 CIVIL DSL — Pydantic v2 schema models.
 
 This file is the single source of truth for the CIVIL DSL structure and
-field-level documentation. Run as a script to regenerate specs/ruleset.schema.json:
+field-level documentation. Run as a script to regenerate core/ruleset.schema.json:
 
     python tools/civil_schema.py
 
@@ -16,12 +16,12 @@ Expression language reference (for 'when:' conditions and 'expr:' strings):
                 between(value, min, max)
   computed: only: max(a, b), min(a, b)
 
-See specs/CIVIL_DSL_spec.md for full specification and design rationale.
+See core/CIVIL_DSL_spec.md for full specification and design rationale.
 """
 
 # IMPORTANT: If you change types, field attributes, or add new model classes,
-# update specs/civil-quickref.md to match and refresh its "last verified" date.
-# Also update specs/CIVIL_DSL_spec.md if the change affects the DSL design.
+# update core/civil-quickref.md to match and refresh its "last verified" date.
+# Also update core/CIVIL_DSL_spec.md if the change affects the DSL design.
 
 from __future__ import annotations
 
@@ -518,6 +518,6 @@ if __name__ == "__main__":
     import pathlib
 
     schema = CivilModule.model_json_schema()
-    out = pathlib.Path("specs/ruleset.schema.json")
+    out = pathlib.Path("core/ruleset.schema.json")
     out.write_text(json.dumps(schema, indent=2) + "\n")
     print(f"Generated {out}")

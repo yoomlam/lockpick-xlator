@@ -10,13 +10,13 @@ brainstorm: docs/brainstorms/2026-02-23-multi-domain-structure-brainstorm.md
 
 ## Overview
 
-Reorganize xlator from a flat, SNAP-specific layout to a **domain-first** structure where each policy program lives under `domains/<name>/` with its own `input/`, `specs/`, `output/`, and `demo/`. Shared tooling (`tools/`, `specs/schema.yaml`) remains at the project root. A top-level `Makefile` provides per-domain pipeline targets.
+Reorganize xlator from a flat, SNAP-specific layout to a **domain-first** structure where each policy program lives under `domains/<name>/` with its own `input/`, `core/`, `output/`, and `demo/`. Shared tooling (`tools/`, `core/schema.yaml`) remains at the project root. A top-level `Makefile` provides per-domain pipeline targets.
 
 ## Problem Statement
 
 The current layout is flat and tightly coupled to SNAP:
 
-- All pipeline stages (`input/`, `specs/`, `output/`, `demo/`) live at the project root as if there will only ever be one domain
+- All pipeline stages (`input/`, `core/`, `output/`, `demo/`) live at the project root as if there will only ever be one domain
 - `tools/transpile_to_opa.py` has a `transpile_snap()` function that hardcodes the OPA package name, table/constant names, and decision object shape
 - `tools/run_tests.py` has a hardcoded module-level `OPA_DECISION_PATH` constant
 - `demo/main.py` and `demo/start.sh` are entirely SNAP-specific
@@ -32,7 +32,7 @@ Five sequential phases:
 4. **Parameterize demo** — each domain's `start.sh` manages its own OPA instance; no shared demo logic
 5. **Add Makefile** — top-level `Makefile` with per-domain pipeline targets
 
-After these phases, adding a new domain = create `domains/<name>/`, populate `specs/`, and add Makefile targets. No tool code changes required.
+After these phases, adding a new domain = create `domains/<name>/`, populate `core/`, and add Makefile targets. No tool code changes required.
 
 ## Technical Considerations
 
@@ -63,16 +63,16 @@ Each domain's `demo/start.sh` starts its own OPA process on its own port. The OP
 
 ### Schema location change
 
-`specs/ruleset/schema.yaml` moves to `specs/schema.yaml`. The `.claude/skills/translate-policy.md` skill file references paths and will need updating.
+`core/ruleset/schema.yaml` moves to `core/schema.yaml`. The `.claude/skills/translate-policy.md` skill file references paths and will need updating.
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] `domains/snap/` exists with `input/policy_docs/`, `specs/`, `output/`, `demo/` subdirectories
+- [ ] `domains/snap/` exists with `input/policy_docs/`, `core/`, `output/`, `demo/` subdirectories
 - [ ] All existing SNAP files are in their new locations (moved via `git mv` to preserve history)
-- [ ] `specs/schema.yaml` is the shared CIVIL schema (moved from `specs/ruleset/schema.yaml`)
-- [ ] `specs/ruleset/example_benefit.yaml` and `specs/tests/example_benefit_tests.yaml` are deleted
+- [ ] `core/schema.yaml` is the shared CIVIL schema (moved from `core/ruleset/schema.yaml`)
+- [ ] `core/ruleset/example_benefit.yaml` and `core/tests/example_benefit_tests.yaml` are deleted
 - [ ] `tools/transpile_to_opa.py` accepts `--package <name>` and generates correct Rego without SNAP-specific hardcoding in the generic path
 - [ ] `tools/run_tests.py` accepts `--opa-path <path>` instead of using a hardcoded constant
 - [ ] `domains/snap/demo/start.sh` starts OPA pointing at `domains/snap/output/eligibility.rego` and brings up the FastAPI demo
@@ -81,7 +81,7 @@ Each domain's `demo/start.sh` starts its own OPA process on its own port. The OP
 - [ ] `make snap-test` runs tests against a live OPA instance and passes
 - [ ] `make snap-demo` starts the SNAP demo (OPA + FastAPI) successfully
 - [ ] `README.md` and `.claude/skills/translate-policy.md` updated to reflect new paths
-- [ ] Old top-level `input/`, `specs/ruleset/`, `output/`, `demo/` directories removed (or empty and gitignored)
+- [ ] Old top-level `input/`, `core/ruleset/`, `output/`, `demo/` directories removed (or empty and gitignored)
 
 ---
 
@@ -97,10 +97,10 @@ Files to move (use `git mv` throughout):
 input/policy_docs/snap_eligibility_fy2026.md
   → domains/snap/input/policy_docs/snap_eligibility_fy2026.md
 
-specs/ruleset/snap_eligibility.civil.yaml
+core/ruleset/snap_eligibility.civil.yaml
   → domains/snap/specs/eligibility.civil.yaml
 
-specs/tests/snap_eligibility_tests.yaml
+core/tests/snap_eligibility_tests.yaml
   → domains/snap/specs/tests/eligibility_tests.yaml
 
 output/ruleset/snap_eligibility.rego
@@ -109,22 +109,22 @@ output/ruleset/snap_eligibility.rego
 demo/main.py, demo/static/, demo/requirements.txt, demo/start.sh
   → domains/snap/demo/
 
-specs/ruleset/schema.yaml
-  → specs/schema.yaml
+core/ruleset/schema.yaml
+  → core/schema.yaml
 ```
 
 Files to delete:
 ```
-specs/ruleset/example_benefit.yaml
-specs/tests/example_benefit_tests.yaml
+core/ruleset/example_benefit.yaml
+core/tests/example_benefit_tests.yaml
 ```
 
 Directories to clean up (remove if empty after moves):
 ```
 input/policy_docs/   (keep input/ with updated README)
 output/ruleset/
-specs/ruleset/
-specs/tests/
+core/ruleset/
+core/tests/
 demo/
 ```
 
@@ -249,7 +249,7 @@ Files to update:
 | `transpile_snap()` generalization misses SNAP-specific edge cases | Verify `make snap-test` passes before merging; keep the SNAP test suite as regression guard |
 | `git mv` not used → git loses file history | Strictly use `git mv` (or `git add -A` after shell `mv` with rename detection) for all file moves |
 | SNAP standard_deduction size-7+ fallback currently in transpiler | Move to CIVIL YAML `computed:` conditional before removing transpiler hardcode |
-| Old paths referenced elsewhere (e.g. shell scripts, README commands) | Phase 6 update pass; search for `output/ruleset`, `specs/ruleset`, `demo/` in all text files |
+| Old paths referenced elsewhere (e.g. shell scripts, README commands) | Phase 6 update pass; search for `output/ruleset`, `core/ruleset`, `demo/` in all text files |
 
 ---
 
@@ -261,5 +261,5 @@ Files to update:
 - Transpiler: [tools/transpile_to_opa.py](../../tools/transpile_to_opa.py)
 - Test runner: [tools/run_tests.py](../../tools/run_tests.py)
 - Current demo: [demo/start.sh](../../demo/start.sh), [demo/main.py](../../demo/main.py)
-- CIVIL schema: [specs/ruleset/schema.yaml](../../specs/ruleset/schema.yaml)
+- CIVIL schema: [core/ruleset/schema.yaml](../../core/ruleset/schema.yaml)
 - Skill: [.claude/skills/translate-policy.md](../../.claude/skills/translate-policy.md)

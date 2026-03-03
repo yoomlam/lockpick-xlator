@@ -109,7 +109,7 @@ domains/
   <next-domain>/                     ← add new domains here
     input/ specs/ output/ demo/
 
-specs/
+core/
   ruleset_schema.yaml                ← shared CIVIL DSL schema reference
 tools/
   validate_civil.py                  ← CIVIL validator
@@ -124,7 +124,7 @@ Makefile                             ← per-domain pipeline targets
 
 ### 2. Spec Creation (AI-Assisted)
 - Work with AI to create `domains/<name>/specs/<module>.civil.yaml`
-- Follow the CIVIL DSL schema at `specs/ruleset_schema.yaml`
+- Follow the CIVIL DSL schema at `core/ruleset_schema.yaml`
 - Commit completed specs to version control
 
 ### 3. Test Definition (AI-Assisted)

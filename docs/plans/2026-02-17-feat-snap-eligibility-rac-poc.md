@@ -15,7 +15,7 @@ Build a complete end-to-end proof of concept demonstrating the Xlator pipeline u
 ```
 input/policy_docs/snap_eligibility_fy2026.md
     → Claude Code skill (translate-policy)
-    → specs/ruleset/snap_eligibility.civil.yaml
+    → core/ruleset/snap_eligibility.civil.yaml
     → tools/transpile_to_opa.py
     → output/ruleset/snap_eligibility.rego
     → OPA REST server (port 8181)
@@ -112,8 +112,8 @@ Browser renders: eligible badge + deduction breakdown table + denial reasons lis
 
 **Deliverables:**
 - `input/policy_docs/snap_eligibility_fy2026.md`
-- `specs/ruleset/snap_eligibility.civil.yaml`
-- `specs/tests/snap_eligibility_tests.yaml`
+- `core/ruleset/snap_eligibility.civil.yaml`
+- `core/tests/snap_eligibility_tests.yaml`
 - `tools/validate_civil.py`
 
 #### 1.1 Source SNAP Policy Document
@@ -129,7 +129,7 @@ This document is what the Claude Code translation skill reads. It should be clea
 
 #### 1.2 CIVIL Module
 
-Create `specs/ruleset/snap_eligibility.civil.yaml` with this structure:
+Create `core/ruleset/snap_eligibility.civil.yaml` with this structure:
 
 **Module header:**
 ```yaml
@@ -177,7 +177,7 @@ decisions:
 
 #### 1.3 Test Cases
 
-Create `specs/tests/snap_eligibility_tests.yaml` with 8 test cases:
+Create `core/tests/snap_eligibility_tests.yaml` with 8 test cases:
 
 | case_id | scenario | expected |
 |---|---|---|
@@ -199,7 +199,7 @@ Create `tools/validate_civil.py` — a Python script that reads a CIVIL YAML fil
 - Exits with code 0 on success, 1 with descriptive errors on failure
 
 ```
-Usage: python tools/validate_civil.py specs/ruleset/snap_eligibility.civil.yaml
+Usage: python tools/validate_civil.py core/ruleset/snap_eligibility.civil.yaml
 ```
 
 ---
@@ -230,7 +230,7 @@ For the SNAP module specifically, the transpiler must:
 - Return a structured `decision` object: `{eligible, denial_reasons, computed: {net_income, deductions_applied}}`
 
 ```
-Usage: python tools/transpile_to_opa.py specs/ruleset/snap_eligibility.civil.yaml output/ruleset/snap_eligibility.rego
+Usage: python tools/transpile_to_opa.py core/ruleset/snap_eligibility.civil.yaml output/ruleset/snap_eligibility.rego
 ```
 
 #### 2.2 Rego Verification Steps
@@ -250,7 +250,7 @@ Python script that:
 - Exits 0 if all pass, 1 if any fail
 
 ```
-Usage: python tools/run_tests.py specs/tests/snap_eligibility_tests.yaml
+Usage: python tools/run_tests.py core/tests/snap_eligibility_tests.yaml
 ```
 
 ---
@@ -354,12 +354,12 @@ The skill guides Claude through translating any government policy doc into a CIV
 3. **Identify the decisions**: what yes/no determinations does the policy make?
 4. **Identify constants and tables**: thresholds, rates, lookup values
 5. **Identify the rules**: what conditions map to allow/deny + what reasons are given?
-6. **Draft the CIVIL module** following `specs/ruleset/schema.yaml`
+6. **Draft the CIVIL module** following `core/ruleset/schema.yaml`
 7. **Run the validator**: `python tools/validate_civil.py <output_file>`
 8. **Draft test cases** covering at least: one clear allow, one gross deny, one net deny, one boundary case
 9. **Human review gate**: present a diff of policy text vs. CIVIL module and ask for sign-off before proceeding to transpilation
 
-The skill includes the CIVIL module structure as a template and references `specs/ruleset/example_benefit.yaml` as an annotated example.
+The skill includes the CIVIL module structure as a template and references `core/ruleset/example_benefit.yaml` as an annotated example.
 
 ---
 
@@ -388,7 +388,7 @@ Step-by-step walkthrough covering:
 input/
   policy_docs/
     snap_eligibility_fy2026.md       ← Phase 1.1
-specs/
+core/
   ruleset/
     snap_eligibility.civil.yaml      ← Phase 1.2
   tests/
@@ -423,7 +423,7 @@ docs/
 
 ### Functional Requirements
 - [x] `input/policy_docs/snap_eligibility_fy2026.md` contains SNAP gross + net income rules with FY2026 thresholds and 7 CFR citations
-- [x] `specs/ruleset/snap_eligibility.civil.yaml` passes `tools/validate_civil.py` with exit code 0
+- [x] `core/ruleset/snap_eligibility.civil.yaml` passes `tools/validate_civil.py` with exit code 0
 - [x] CIVIL module includes correct FY2026 threshold tables (sizes 1–8) and standard deduction table
 - [x] CIVIL module defines `has_elderly_member` and `has_disabled_member` as optional bool facts
 - [x] CIVIL module defines separate `earned_income` and `unearned_income` fact fields
@@ -480,10 +480,10 @@ After the POC is validated:
 ## References
 
 ### Internal
-- CIVIL DSL specification: [specs/ruleset/README.md](specs/ruleset/README.md)
-- CIVIL schema reference: [specs/ruleset/schema.yaml](specs/ruleset/schema.yaml)
-- Example CIVIL module: [specs/ruleset/example_benefit.yaml](specs/ruleset/example_benefit.yaml)
-- Example test suite: [specs/tests/example_benefit_tests.yaml](specs/tests/example_benefit_tests.yaml)
+- CIVIL DSL specification: [core/ruleset/README.md](core/ruleset/README.md)
+- CIVIL schema reference: [core/ruleset/schema.yaml](core/ruleset/schema.yaml)
+- Example CIVIL module: [core/ruleset/example_benefit.yaml](core/ruleset/example_benefit.yaml)
+- Example test suite: [core/tests/example_benefit_tests.yaml](core/tests/example_benefit_tests.yaml)
 - Brainstorm: [docs/brainstorms/2026-02-17-first-translation-poc-brainstorm.md](docs/brainstorms/2026-02-17-first-translation-poc-brainstorm.md)
 
 ### External

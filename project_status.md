@@ -16,7 +16,7 @@
     - Name Inventory step can be chunked/parallelized/partitioned and each chunk presented as it becomes available.
 
 
-- tools/civil_schema.py is now the single source of truth for both structure and documentation. Every field has a `description` that flows through automatically to specs/ruleset.schema.json — so tools like VS Code or a web UI can provide hover tooltips showing the documentation
+- tools/civil_schema.py is now the single source of truth for both structure and documentation. Every field has a `description` that flows through automatically to core/ruleset.schema.json — so tools like VS Code or a web UI can provide hover tooltips showing the documentation
 
 - Create Claude skills, agents, commands
     - Borrow from [policyengine-claude](https://github.com/PolicyEngine/policyengine-claude/blob/main/agents/country-models/rules-engineer.md)

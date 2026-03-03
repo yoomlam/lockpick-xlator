@@ -48,9 +48,9 @@ This proves the value proposition: that AI-assisted translation from raw governm
 ## Proposed Steps
 
 1. **Source input material** — Download/copy SNAP eligibility rules from USDA FNS into `input/policy_docs/`
-2. **Translate to CIVIL** — Use Claude to generate a CIVIL module (`specs/ruleset/snap_eligibility.civil.yaml`) following `schema.yaml`
-3. **Write test cases** — Use Claude to generate test scenarios (`specs/tests/snap_eligibility_tests.yaml`) covering allow/deny cases
-4. **Validate structure** — Confirm the CIVIL module validates against `specs/ruleset/schema.yaml`
+2. **Translate to CIVIL** — Use Claude to generate a CIVIL module (`core/ruleset/snap_eligibility.civil.yaml`) following `schema.yaml`
+3. **Write test cases** — Use Claude to generate test scenarios (`core/tests/snap_eligibility_tests.yaml`) covering allow/deny cases
+4. **Validate structure** — Confirm the CIVIL module validates against `core/ruleset/schema.yaml`
 5. **Transpile to OPA** — Build a Python script that converts CIVIL YAML → OPA/Rego policy file
 6. **Run OPA evaluation** — Set up OPA CLI, feed in fact bundles, confirm decisions match test expectations
 7. **Build web view** — FastAPI backend wraps OPA evaluation; simple HTML form posts facts and displays decision + reasons

@@ -84,8 +84,8 @@ Run these checks before doing anything else:
    - Store its content for injection in Step 1 (CREATE) or Step 5 (UPDATE)
 
    **If it does not exist:**
-   - Scan `specs/goals/*.yaml` for all available goal files
-   - **If no goal files found:** Print `No goal templates found in specs/goals/. Proceeding without guidance.` and continue (do not block)
+   - Scan `core/goals/*.yaml` for all available goal files
+   - **If no goal files found:** Print `No goal templates found in core/goals/. Proceeding without guidance.` and continue (do not block)
    - **If exactly one goal file found:** Print `One goal template found: <display_name>. Using it.` and confirm: `Continue with this goal? [y/n]` — if `n`, stop
    - **If multiple goal files found:** Present a numbered menu of `display_name` values (same numbered-list style as the file selection prompt above); user selects one
    - Print the selected goal template content for review
@@ -136,7 +136,7 @@ When writing `review:` blocks, score each rule and computed field on four dimens
 > **Do NOT read `tools/civil_schema.py`, `tools/transpile_to_opa.py`, or any other
 > file in `tools/` before authoring any CIVIL YAML (Step 4 in CREATE, Step 5 in UPDATE).**
 > All syntax and type constraints needed for authoring are in this section and in
-> [`specs/civil-quickref.md`](../specs/civil-quickref.md).
+> [`core/civil-quickref.md`](../core/civil-quickref.md).
 
 ### Expression Language
 
@@ -166,7 +166,7 @@ Non-obvious type and structural rules:
 - **Transpiler ignores allow rules** — only `deny` rules generate Rego; `then:` actions on allow rules are documentary only
 - **`source:` vs `citations:` are distinct** — `source:` on a field/table/rule identifies *where in the policy doc the element was defined* (developer traceability); `citations:` inside an `add_reason` action is the *legal authority shown to applicants in a denial explanation*. A deny rule may have the same CFR section in both — that is expected and not redundant.
 
-For full attribute tables (required vs optional fields for each model), see [`specs/civil-quickref.md`](../specs/civil-quickref.md).
+For full attribute tables (required vs optional fields for each model), see [`core/civil-quickref.md`](../core/civil-quickref.md).
 
 ---
 
