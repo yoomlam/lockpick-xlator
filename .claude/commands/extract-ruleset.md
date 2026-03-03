@@ -19,15 +19,13 @@ If `<domain>` is not provided, list all `domains/*/input/policy_docs/` directori
 Run these checks before doing anything else:
 
 1. **Domain folder exists?**
-   - NO → Offer to scaffold the standard structure:
+   - NO → Print:
      ```
-     domains/<domain>/
-       input/policy_docs/
-       specs/
-       output/
-       demo/
+     Domain not found: domains/<domain>/
+     Run: /new-domain <domain>
+     Then add .md policy documents to domains/<domain>/input/policy_docs/ and re-run.
      ```
-     Print the structure, tell the user to add `.md` policy documents to `input/policy_docs/`, then stop.
+     Then stop.
 
 2. **Input docs present?**
    - `domains/<domain>/input/policy_docs/` missing or empty → Print: "No input documents found. Add `.md` files to `domains/<domain>/input/policy_docs/` and re-run." Then stop.
@@ -80,7 +78,7 @@ Run these checks before doing anything else:
      - Selecting `a` proceeds with all files as a unified corpus (unchanged behavior).
      - Selecting a number sets `<filename>` to that file for the rest of the run.
 
-5. **Load or create `ai-guidance.yaml`?**
+5. **Load `ai-guidance.yaml`**
 
    Check for `domains/<domain>/specs/ai-guidance.yaml`:
 
@@ -90,19 +88,13 @@ Run these checks before doing anything else:
    - Store its content for injection in Step 1 (CREATE) or Step 5 (UPDATE)
 
    **If it does not exist:**
-   - Scan `core/goals/*.yaml` for all available goal files
-   - **If no goal files found:** Print `No goal templates found in core/goals/. Proceeding without guidance.` and continue (do not block)
-   - **If exactly one goal file found:** Print `One goal template found: <display_name>. Using it.` and confirm: `Continue with this goal? [y/n]` — if `n`, stop
-   - **If multiple goal files found:** Present a numbered menu of `display_name` values (same numbered-list style as the file selection prompt above); user selects one
-   - Print the selected goal template content for review
-   - Ask: `Any domain-specific customizations to add? (Describe changes, or press Enter to use the template as-is.)`
-   - Apply any described customizations to the template content
-   - Add a `source_template: <goal_id>` field at the top of the file (after `goal_id:`)
-   - Write the result to `domains/<domain>/specs/ai-guidance.yaml`
-   - Print: `Created domains/<domain>/specs/ai-guidance.yaml`
-   - Store the written content for injection
-
-   If the user exits during goal selection or customization, no file is written; the next run will re-prompt.
+   - Print:
+     ```
+     No AI guidance found for this domain.
+     Run: /refine-guidance <domain>
+     Then re-run /extract-ruleset.
+     ```
+   - Stop.
 
 ## Mode Detection
 
@@ -736,7 +728,7 @@ Files created or modified by this command:
 | `domains/<domain>/specs/.stale-cases.yaml` | — | Created (after Step 9c; consumed by `/create-tests`) |
 | `Makefile` | Appended in pre-flight if no target existed | Not touched |
 | `domains/<domain>/specs/input-index.yaml` | Read-only (if present) | Read-only (if present) |
-| `domains/<domain>/specs/ai-guidance.yaml` | Created (first run) / Read-only (subsequent) | Read-only (if present) |
+| `domains/<domain>/specs/ai-guidance.yaml` | Read-only (required — run `/refine-guidance <domain>` first) | Read-only (required) |
 
 Tests, transpilation, and Rego output are handled by `/create-tests` and `/transpile-and-test`.
 
