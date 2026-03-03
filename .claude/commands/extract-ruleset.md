@@ -89,7 +89,7 @@ When writing `review:` blocks, score each rule and computed field on four dimens
 > **Do NOT read `tools/civil_schema.py`, `tools/transpile_to_opa.py`, or any other
 > file in `tools/` before authoring any CIVIL YAML (Step 4 in CREATE, Step 5 in UPDATE).**
 > All syntax and type constraints needed for authoring are in this section and in
-> [`docs/civil-quickref.md`](../docs/civil-quickref.md).
+> [`specs/civil-quickref.md`](../specs/civil-quickref.md).
 
 ### Expression Language
 
@@ -119,7 +119,7 @@ Non-obvious type and structural rules:
 - **Transpiler ignores allow rules** — only `deny` rules generate Rego; `then:` actions on allow rules are documentary only
 - **`source:` vs `citations:` are distinct** — `source:` on a field/table/rule identifies *where in the policy doc the element was defined* (developer traceability); `citations:` inside an `add_reason` action is the *legal authority shown to applicants in a denial explanation*. A deny rule may have the same CFR section in both — that is expected and not redundant.
 
-For full attribute tables (required vs optional fields for each model), see [`docs/civil-quickref.md`](../docs/civil-quickref.md).
+For full attribute tables (required vs optional fields for each model), see [`specs/civil-quickref.md`](../specs/civil-quickref.md).
 
 ---
 

@@ -3,7 +3,7 @@
 <!-- Last verified against tools/civil_schema.py: 2026-02-27 -->
 
 This is a **Claude authoring cheat sheet** for writing valid CIVIL YAML modules.
-For full specification and design rationale, see [specs/CIVIL_DSL_spec.md](../specs/CIVIL_DSL_spec.md).
+For full specification and design rationale, see [CIVIL_DSL_spec.md](CIVIL_DSL_spec.md).
 
 ---
 

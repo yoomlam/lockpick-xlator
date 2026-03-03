@@ -2,6 +2,11 @@
 
 **Civic Instructions & Validations Intermediate Language**
 
+This specification is the authoritative what and why of the DSL. It includes design rationale, goals, full syntax narrative, examples of all constructs, compilation targets, jurisdiction layering. It is written in prose with embedded YAML examples.
+
+* Read CIVIL_DSL_spec.md to understand the DSL
+* Read civil-quickref.md to write a CIVIL module (used by AI)
+
 ---
 
 ## Introduction
