@@ -74,6 +74,30 @@ Run these checks before doing anything else:
    - Selecting `a` proceeds with all files as a unified corpus (unchanged behavior).
    - Selecting a number sets `<filename>` to that file for the rest of the run.
 
+5. **Load or create `ai-guidance.yaml`?**
+
+   Check for `domains/<domain>/specs/ai-guidance.yaml`:
+
+   **If it exists:**
+   - Read the file
+   - Print: `Using goal: <display_name> (source: <source_template>)`
+   - Store its content for injection in Step 1 (CREATE) or Step 5 (UPDATE)
+
+   **If it does not exist:**
+   - Scan `specs/goals/*.yaml` for all available goal files
+   - **If no goal files found:** Print `No goal templates found in specs/goals/. Proceeding without guidance.` and continue (do not block)
+   - **If exactly one goal file found:** Print `One goal template found: <display_name>. Using it.` and confirm: `Continue with this goal? [y/n]` — if `n`, stop
+   - **If multiple goal files found:** Present a numbered menu of `display_name` values (same numbered-list style as the file selection prompt above); user selects one
+   - Print the selected goal template content for review
+   - Ask: `Any domain-specific customizations to add? (Describe changes, or press Enter to use the template as-is.)`
+   - Apply any described customizations to the template content
+   - Add a `source_template: <goal_id>` field at the top of the file (after `goal_id:`)
+   - Write the result to `domains/<domain>/specs/ai-guidance.yaml`
+   - Print: `Created domains/<domain>/specs/ai-guidance.yaml`
+   - Store the written content for injection
+
+   If the user exits during goal selection or customization, no file is written; the next run will re-prompt.
+
 ## Mode Detection
 
 ```bash
@@ -147,6 +171,22 @@ For full attribute tables (required vs optional fields for each model), see [`sp
 ---
 
 ## Process — CREATE Mode
+
+### AI Guidance Directive
+
+**If `ai-guidance.yaml` was loaded in pre-flight**, internalize the following before reading any policy documents:
+
+```
+---
+[ai-guidance.yaml content — paste verbatim as loaded]
+---
+
+Use this goal to scope your reading:
+- Prioritize policy sections relevant to the input_variables categories listed above.
+- Watch for intermediate values matching the intermediate_variables categories.
+- Target a <output_variables.primary.type> primary output (mapped to CIVIL decisions[0]).
+- Apply all constraints and standards listed above throughout Steps 1–7.
+```
 
 ### Step 1: Read Policy Documents
 
@@ -566,6 +606,16 @@ For each changed doc, read the diff and determine which CIVIL sections need upda
 
 ### Step 5: Re-extract Affected Sections
 
+**If `ai-guidance.yaml` was loaded in pre-flight**, recall the extraction goal before re-reading any policy sections:
+
+```
+---
+[ai-guidance.yaml content — paste verbatim as loaded]
+---
+
+Apply these constraints and standards when re-extracting the affected CIVIL sections.
+```
+
 For each affected section, re-read the relevant parts of the changed policy doc and re-extract only that section. Do not touch sections not identified in Step 4.
 
 When re-extracting any section that contains `facts:` or `computed:` fields, inject the frozen names from `naming-manifest.yaml` into your extraction reasoning: "These fields must keep their exact current names: [list all names from manifest]. Only introduce new field names for policy concepts not in this list, using the 4-step algorithm: (1) exact noun phrase, (2) strip entity-name words, (3) snake_case, (4) disambiguate if needed." **Never rename an existing field.**
@@ -685,6 +735,7 @@ Files created or modified by this command:
 | `domains/<domain>/specs/.stale-cases.yaml` | — | Created (after Step 9c; consumed by `/create-tests`) |
 | `Makefile` | Appended in pre-flight if no target existed | Not touched |
 | `domains/<domain>/specs/input-index.yaml` | Read-only (if present) | Read-only (if present) |
+| `domains/<domain>/specs/ai-guidance.yaml` | Created (first run) / Read-only (subsequent) | Read-only (if present) |
 
 Tests, transpilation, and Rego output are handled by `/create-tests` and `/transpile-and-test`.
 
