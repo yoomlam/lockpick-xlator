@@ -38,7 +38,30 @@ Run these checks before doing anything else:
    - If not found: print `"File not found: domains/<domain>/input/policy_docs/<filename>"`, list available `.md` files, then stop.
 
 4. **Multiple input docs + no `<filename>`?**
-   - If `domains/<domain>/input/policy_docs/` contains 2+ `.md` files and `<filename>` was **not** given, prompt:
+   - If `domains/<domain>/input/policy_docs/` contains 2+ `.md` files and `<filename>` was **not** given:
+
+   **If `domains/<domain>/specs/input-index.yaml` exists**, read it and display a context-rich selection prompt:
+     ```
+     Multiple policy documents found. Consulting specs/input-index.yaml for context...
+
+       1. input/policy_docs/<file1>.md
+          Tags: [tag1, tag2, tag3]
+          <section heading> — <summary>
+          <section heading> — <summary>
+
+       2. input/policy_docs/<file2>.md
+          Tags: [tag1, tag2]
+          <section heading> — <summary>
+          ...
+
+       a. All files (unified corpus)
+
+     Process which file(s)? Enter a number, comma-separated numbers, or 'a' for all:
+     ```
+   Show only the file's top-level H1 sections from the index (level `#` entries) to keep the prompt scannable. Omit H2/H3 entries.
+   Selecting comma-separated numbers (e.g., `1,3`) reads those files as a unified corpus for the rest of the run.
+
+   **If `input-index.yaml` does not exist**, fall back to the plain filename list:
      ```
      Multiple policy documents found in domains/<domain>/input/policy_docs/:
        1. <file1>.md
@@ -128,7 +151,14 @@ For full attribute tables (required vs optional fields for each model), see [`sp
 ### Step 1: Read Policy Documents
 
 If `<filename>` is given, read only `domains/<domain>/input/policy_docs/<filename>`.
-Otherwise, read every `.md` file in `domains/<domain>/input/policy_docs/` as a unified policy corpus.
+Otherwise, read the files selected via the pre-flight prompt (all files if `a` was chosen, or the specific file(s) selected by number).
+
+**If `specs/input-index.yaml` exists**, use the index as a reading guide: skim the index entries for the selected files to understand their structure before reading the full content. This helps prioritize which sections to extract from when the docs are long.
+
+**If `specs/input-index.yaml` does not exist** and multiple `.md` files are present, consider noting:
+```
+Tip: run /index-inputs <domain> first to generate a searchable index of input documents.
+```
 
 Identify:
 
@@ -654,6 +684,7 @@ Files created or modified by this command:
 | `domains/<domain>/specs/naming-manifest.yaml` | Created (after Step 7b) | Updated (new fields appended) |
 | `domains/<domain>/specs/.stale-cases.yaml` | — | Created (after Step 9c; consumed by `/create-tests`) |
 | `Makefile` | Appended in pre-flight if no target existed | Not touched |
+| `domains/<domain>/specs/input-index.yaml` | Read-only (if present) | Read-only (if present) |
 
 Tests, transpilation, and Rego output are handled by `/create-tests` and `/transpile-and-test`.
 
