@@ -35,7 +35,25 @@ Run these checks before doing anything else:
    - Verify `domains/<domain>/input/policy_docs/<filename>` exists on disk
    - If not found: print `"File not found: domains/<domain>/input/policy_docs/<filename>"`, list available `.md` files, then stop.
 
-4. **Multiple input docs + no `<filename>`?**
+4. **Load `ai-guidance.yaml`**
+
+   Check for `domains/<domain>/specs/ai-guidance.yaml`:
+
+   **If it exists:**
+   - Read the file
+   - Print: `Using goal: <display_name> (source: <source_template>)`
+   - Store its content for injection in Step 1 (CREATE) or Step 5 (UPDATE)
+
+   **If it does not exist:**
+   - Print:
+     ```
+     No AI guidance found for this domain.
+     Run: /refine-guidance <domain>
+     Then re-run /extract-ruleset.
+     ```
+   - Stop.
+
+5. **Multiple input docs + no `<filename>`?**
    - If `domains/<domain>/input/policy_docs/` contains 2+ `.md` files and `<filename>` was **not** given:
 
    **If `domains/<domain>/specs/input-index.yaml` exists**, read it and display a context-rich selection prompt:
@@ -77,24 +95,6 @@ Run these checks before doing anything else:
      ```
      - Selecting `a` proceeds with all files as a unified corpus (unchanged behavior).
      - Selecting a number sets `<filename>` to that file for the rest of the run.
-
-5. **Load `ai-guidance.yaml`**
-
-   Check for `domains/<domain>/specs/ai-guidance.yaml`:
-
-   **If it exists:**
-   - Read the file
-   - Print: `Using goal: <display_name> (source: <source_template>)`
-   - Store its content for injection in Step 1 (CREATE) or Step 5 (UPDATE)
-
-   **If it does not exist:**
-   - Print:
-     ```
-     No AI guidance found for this domain.
-     Run: /refine-guidance <domain>
-     Then re-run /extract-ruleset.
-     ```
-   - Stop.
 
 ## Mode Detection
 
@@ -579,7 +579,7 @@ Collect the list of changed/added/deleted input docs.
 If no changes detected:
 ```
 All input docs are up to date. Nothing to extract.
-Run with --force to re-extract regardless.
+To re-extract anyway, delete or rename domains/<domain>/specs/extraction-manifest.yaml and re-run.
 ```
 Stop. Do not modify any files.
 
@@ -726,7 +726,6 @@ Files created or modified by this command:
 | `domains/<domain>/specs/extraction-manifest.yaml` | Created | Updated |
 | `domains/<domain>/specs/naming-manifest.yaml` | Created (after Step 7b) | Updated (new fields appended) |
 | `domains/<domain>/specs/.stale-cases.yaml` | — | Created (after Step 9c; consumed by `/create-tests`) |
-| `Makefile` | Appended in pre-flight if no target existed | Not touched |
 | `domains/<domain>/specs/input-index.yaml` | Read-only (if present) | Read-only (if present) |
 | `domains/<domain>/specs/ai-guidance.yaml` | Read-only (required — run `/refine-guidance <domain>` first) | Read-only (required) |
 

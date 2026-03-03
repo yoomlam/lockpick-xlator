@@ -1,10 +1,10 @@
-# Brainstorm: First Real Translation POC
-
-**Date:** 2026-02-17
-**Status:** Draft
-**Author:** Collaborative brainstorm
-
 ---
+date: 2026-02-17
+status: done
+author: Collaborative brainstorm
+---
+
+# Brainstorm: First Real Translation POC
 
 ## What We're Building
 

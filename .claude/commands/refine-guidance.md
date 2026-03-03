@@ -8,14 +8,21 @@ Create or update `ai-guidance.yaml` for a domain — the extraction goal file th
 /refine-guidance <domain>
 ```
 
-If `<domain>` is not provided, list all `domains/*/` directories and prompt the user to choose.
+If `<domain>` is not provided, list all `domains/*/` directories as a numbered menu, prompt the user to choose, await their response, and use it as `<domain>` before continuing.
 
 ## Pre-flight
 
 Run these checks before doing anything else:
 
 1. **Domain argument provided?**
-   - NO → List all directories matching `domains/*/` and prompt: "Which domain? (provide as argument)" Then stop.
+   - NO → List all directories matching `domains/*/` as a numbered menu and prompt:
+     ```
+     Available domains:
+       1. snap
+       2. example_domain
+     Which domain? Enter a number or domain name:
+     ```
+     Await the user's response and use it as `<domain>`. Then continue.
 
 2. **Domain folder exists?**
    - NO → Print:
@@ -51,10 +58,10 @@ Check for `domains/<domain>/specs/input-index.yaml`:
 - **Absent** → Ask:
   ```
   No input index found for this domain. An index enables doc-aware guidance suggestions.
-  Run /index-inputs <domain> first, or continue without doc analysis? [index / continue]:
+  Run /index-inputs <domain> now? [y (recommended) / n — continue without index]:
   ```
-  - `index` → Execute the `/index-inputs` flow inline for this domain (creating `specs/input-index.yaml`), then proceed to Step 3.
-  - `continue` → Skip to Step 4 (Q&A with goal-template defaults only).
+  - **y** → Execute the `/index-inputs` flow inline for this domain (creating `specs/input-index.yaml`), then proceed to Step 3.
+  - **n** → Skip to Step 4 (Q&A with goal-template defaults only).
 
 ### Step 3: Doc analysis *(only if input-index.yaml available)*
 
@@ -123,10 +130,10 @@ Check for `domains/<domain>/specs/input-index.yaml`:
 - **Absent** → Ask:
   ```
   No input index found for this domain. An index enables doc-aware guidance suggestions.
-  Run /index-inputs <domain> first, or continue without doc analysis? [index / continue]:
+  Run /index-inputs <domain> now? [y (recommended) / n — continue without index]:
   ```
-  - `index` → Execute `/index-inputs` inline, then proceed to Step 3.
-  - `continue` → Skip to Step 4.
+  - **y** → Execute `/index-inputs` inline, then proceed to Step 3.
+  - **n** → Skip to Step 4.
 
 ### Step 3: Doc analysis *(same as CREATE Step 3, if index available)*
 

@@ -1,9 +1,9 @@
-# Multi-Domain Project Structure Brainstorm
-
-**Date:** 2026-02-23
-**Status:** Draft
-
 ---
+date: 2026-02-23
+status: done
+---
+
+# Multi-Domain Project Structure Brainstorm
 
 ## What We're Building
 

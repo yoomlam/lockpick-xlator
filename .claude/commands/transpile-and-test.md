@@ -50,7 +50,7 @@ If `<domain>` is not provided, list all `domains/*/specs/*.civil.yaml` files and
 
      Also add `.PHONY: <domain> <domain>-validate <domain>-transpile <domain>-test <domain>-demo` to the `.PHONY` line at the top of the Makefile.
 
-     For `<DOMAIN>_PACKAGE`: if `domains/<domain>/specs/<program>.civil.yaml` exists, derive from its `module:` field (e.g., `"eligibility.snap_federal"` → `snap.eligibility`). Otherwise use `<domain>.<program>` as a placeholder.
+     For `<DOMAIN>_PACKAGE`: if `domains/<domain>/specs/<program>.civil.yaml` exists, derive from its `module:` field by reversing the two dot-separated segments (e.g., `module: "eligibility.snap"` in domain `snap` → package `snap.eligibility`). Otherwise use `<domain>.<program>` as a placeholder.
 
 3. **OPA available?**
    ```bash

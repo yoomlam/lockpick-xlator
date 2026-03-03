@@ -10,14 +10,21 @@ On first run (CREATE), all files are indexed. On subsequent runs (UPDATE), only 
 /index-inputs <domain>
 ```
 
-If `<domain>` is not provided, list all `domains/*/input/policy_docs/` directories and prompt the user to choose.
+If `<domain>` is not provided, list all `domains/*/input/policy_docs/` directories as a numbered menu, prompt the user to choose, await their response, and use it as `<domain>` before continuing.
 
 ## Pre-flight
 
 Run these checks before doing anything else:
 
 1. **Domain argument provided?**
-   - NO → List all directories matching `domains/*/input/policy_docs/` and prompt: "Which domain? (provide as argument)" Then stop.
+   - NO → List all directories matching `domains/*/input/policy_docs/` as a numbered menu and prompt:
+     ```
+     Available domains:
+       1. snap
+       2. example_domain
+     Which domain? Enter a number or domain name:
+     ```
+     Await the user's response and use it as `<domain>`. Then continue.
 
 2. **Domain folder exists?**
    - NO → Print: `"Domain not found: domains/<domain>/"` Then stop.
