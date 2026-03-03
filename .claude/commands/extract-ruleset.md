@@ -61,7 +61,13 @@ Run these checks before doing anything else:
    Show only the file's top-level H1 sections from the index (level `#` entries) to keep the prompt scannable. Omit H2/H3 entries.
    Selecting comma-separated numbers (e.g., `1,3`) reads those files as a unified corpus for the rest of the run.
 
-   **If `input-index.yaml` does not exist**, fall back to the plain filename list:
+   **If `input-index.yaml` does not exist**, ask the user whether to generate it first:
+     ```
+     specs/input-index.yaml not found. An index enables faster and richer file selection with summaries and tags.
+     Run /index-inputs <domain> now? [y (recommended) / n — continue without index]:
+     ```
+   - **y (or Enter):** Run `/index-inputs <domain>` now (creating `specs/input-index.yaml`), then re-display the selection prompt using the rich indexed format (same as the "exists" path above).
+   - **n:** Fall back to the plain filename list:
      ```
      Multiple policy documents found in domains/<domain>/input/policy_docs/:
        1. <file1>.md
@@ -71,8 +77,8 @@ Run these checks before doing anything else:
 
      Process which file? [1/2/.../a]:
      ```
-   - Selecting `a` proceeds with all files as a unified corpus (unchanged behavior).
-   - Selecting a number sets `<filename>` to that file for the rest of the run.
+     - Selecting `a` proceeds with all files as a unified corpus (unchanged behavior).
+     - Selecting a number sets `<filename>` to that file for the rest of the run.
 
 5. **Load or create `ai-guidance.yaml`?**
 
@@ -194,11 +200,6 @@ If `<filename>` is given, read only `domains/<domain>/input/policy_docs/<filenam
 Otherwise, read the files selected via the pre-flight prompt (all files if `a` was chosen, or the specific file(s) selected by number).
 
 **If `specs/input-index.yaml` exists**, use the index as a reading guide: skim the index entries for the selected files to understand their structure before reading the full content. This helps prioritize which sections to extract from when the docs are long.
-
-**If `specs/input-index.yaml` does not exist** and multiple `.md` files are present, consider noting:
-```
-Tip: run /index-inputs <domain> first to generate a searchable index of input documents.
-```
 
 Identify:
 
