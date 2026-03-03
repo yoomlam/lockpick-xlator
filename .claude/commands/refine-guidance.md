@@ -90,22 +90,89 @@ Ask one question per section, in order. For each:
 
 All four sections are asked in sequence. The user can answer "nothing to add" or press Enter to accept proposals as-is or skip a section.
 
-### Step 5: Write `ai-guidance.yaml`
-
-Compose the file from:
+After each section answer, write or update `domains/<domain>/specs/ai-guidance.yaml` immediately — before asking the next section's question. Compose the file from:
 
 - Goal template base (all fields from the selected goal, or an empty scaffold if no template was available)
 - `source_template: <goal_id>` — added after `goal_id:` field (use `"none"` if no template was selected)
 - `generated_at: <YYYY-MM-DD>` — added after `source_template:`
-- Updated `constraints:`, `standards:`, `guidance:` — merged from template + Q&A answers
-- `edge_cases:` — new top-level list, populated from Q&A (empty list `[]` if user skipped)
+- Updated `constraints:`, `standards:`, `guidance:` — merged from template + Q&A answers so far
+- `edge_cases:` — populated from Q&A so far (empty list `[]` if not yet answered)
 
-Write to `domains/<domain>/specs/ai-guidance.yaml`.
+The file is created on the first section answer and overwritten on each subsequent one. By the time Step 4 completes, the file is fully populated.
 
-Print: `Created domains/<domain>/specs/ai-guidance.yaml`
+### Step 5: Preview Gate
 
-Print next steps:
+`ai-guidance.yaml` was written after each Q&A answer in Step 4 and is fully current.
+Print: `ai-guidance.yaml is up to date at domains/<domain>/specs/ai-guidance.yaml`
+
+Using observations from Step 3 (topic clusters, section headings, policy excerpts from `input-index.yaml`), synthesize 2–3 illustrative CIVIL rules this guidance would shape the AI to extract. Select examples spanning different rule types (categorical, computed, table-lookup) where the policy supports it.
+
+If Step 3 was skipped (no input index), synthesize examples from the Q&A answers and goal template alone; omit "Source:" lines and add:
+> *(No input index available — examples are illustrative only. Run `/index-inputs <domain>` for source-grounded previews.)*
+
+If Step 3 observations are no longer in context (large docs), re-read `domains/<domain>/specs/input-index.yaml` silently to reconstruct.
+
+Present:
+
+─────────────────────────────────────────────
+Preview: Rules this guidance would extract
+─────────────────────────────────────────────
+
+Rule 1 — [rule name / topic area]
+  Source: "[quoted sentence from input-index.yaml section summary]"
+  CIVIL:
+    rules:
+      - id: ...
+        when: ...
+        then: ...
+
+Rule 2 — [rule name / topic area]
+  Source: "..."
+  CIVIL:
+    computed:
+      - name: ...
+        ...
+
+[Rule 3 if a third distinct type is identifiable — otherwise 2 is sufficient]
+
+*(Illustrative samples — run `/extract-ruleset` for the full validated ruleset.)*
+─────────────────────────────────────────────
+Do these look right?
+  [a] Looks good
+  [1] Refine constraints
+  [2] Refine standards
+  [3] Refine guidance
+  [4] Refine edge_cases
+  [x] Reset (rollback file, restart Step 4 Q&A)
+  [q] Quit (keep file as-is)
+
+**On [a]:** Proceed to Step 6.
+
+**On [1]–[4]:** Re-ask only that section's Q&A question, showing the user's most recent answer for that section as the pre-filled default:
 ```
+Current [<section>]: (N items)
+  - ...
+<section key question> (Enter to keep as-is):
+```
+After the user answers, update `ai-guidance.yaml` immediately, regenerate the preview, and return to this step. Do not continue through the other sections automatically.
+
+**On [x]:** Delete `domains/<domain>/specs/ai-guidance.yaml` and return to the beginning of Step 4.
+
+**On [q]:** Print:
+```
+Exiting. ai-guidance.yaml saved at domains/<domain>/specs/ai-guidance.yaml
+Run /refine-guidance <domain> to continue refining.
+```
+Stop.
+
+**On unrecognized input:** Re-display the gate options and re-prompt.
+
+### Step 6: Confirm
+
+Print:
+```
+Created domains/<domain>/specs/ai-guidance.yaml
+
 Next: Run /extract-ruleset <domain> to extract the CIVIL ruleset.
       Re-run /refine-guidance <domain> at any time to update guidance.
 ```
@@ -147,6 +214,8 @@ Potential gaps found in current guidance:
 
 ### Step 4: Q&A refinement (targeted)
 
+Before beginning Q&A, capture the current `ai-guidance.yaml` contents as a rollback snapshot (already in memory from Step 1). This snapshot is used if the user chooses [x] Reset.
+
 If doc analysis flagged gaps, show them first (as above).
 
 Then ask all four section questions in sequence. Prefix each question by showing the existing content for that section:
@@ -159,11 +228,85 @@ What should I *not* infer or assume in this domain? (Enter to keep as-is, or des
 
 Only sections where the user provides input are rewritten. Others are preserved verbatim.
 
-### Step 5: Write updated file
+After each section answer, write or update `domains/<domain>/specs/ai-guidance.yaml` immediately — before asking the next section's question. Preserve `source_template` unchanged; update `generated_at` to today's date. The file is overwritten on each section answer. By the time Step 4 completes, the file is fully populated.
 
-Overwrite `domains/<domain>/specs/ai-guidance.yaml`. Preserve `source_template` unchanged. Update `generated_at` to today's date.
+### Step 5: Preview Gate
 
-Print: `Updated domains/<domain>/specs/ai-guidance.yaml`
+`ai-guidance.yaml` was written after each Q&A answer in Step 4 and is fully current.
+Print: `ai-guidance.yaml is up to date at domains/<domain>/specs/ai-guidance.yaml`
+
+Using observations from Step 3 (topic clusters, section headings, policy excerpts from `input-index.yaml`), synthesize 2–3 illustrative CIVIL rules this guidance would shape the AI to extract. Select examples spanning different rule types (categorical, computed, table-lookup) where the policy supports it.
+
+If Step 3 was skipped (no input index), synthesize examples from the Q&A answers and goal template alone; omit "Source:" lines and add:
+> *(No input index available — examples are illustrative only. Run `/index-inputs <domain>` for source-grounded previews.)*
+
+If Step 3 observations are no longer in context (large docs), re-read `domains/<domain>/specs/input-index.yaml` silently to reconstruct.
+
+Present:
+
+─────────────────────────────────────────────
+Preview: Rules this guidance would extract
+─────────────────────────────────────────────
+*(Showing illustrative samples based on updated guidance — existing rules will be preserved in the merge.)*
+
+Rule 1 — [rule name / topic area]
+  Source: "[quoted sentence from input-index.yaml section summary]"
+  CIVIL:
+    rules:
+      - id: ...
+        when: ...
+        then: ...
+
+Rule 2 — [rule name / topic area]
+  Source: "..."
+  CIVIL:
+    computed:
+      - name: ...
+        ...
+
+[Rule 3 if a third distinct type is identifiable — otherwise 2 is sufficient]
+
+*(Illustrative samples — run `/extract-ruleset` for the full validated ruleset.)*
+─────────────────────────────────────────────
+Do these look right?
+  [a] Looks good
+  [1] Refine constraints
+  [2] Refine standards
+  [3] Refine guidance
+  [4] Refine edge_cases
+  [x] Reset (restore original file, restart Step 4 Q&A)
+  [q] Quit (keep file as-is)
+
+**On [a]:** Proceed to Step 6.
+
+**On [1]–[4]:** Re-ask only that section's Q&A question, showing the user's most recent answer for that section as the pre-filled default:
+```
+Current [<section>]: (N items)
+  - ...
+<section key question> (Enter to keep as-is):
+```
+After the user answers, update `ai-guidance.yaml` immediately, regenerate the preview, and return to this step. Do not continue through the other sections automatically.
+
+**On [x]:** Restore `domains/<domain>/specs/ai-guidance.yaml` to the rollback snapshot captured before Step 4 began, then return to the beginning of Step 4.
+
+**On [q]:** Print:
+```
+Exiting. ai-guidance.yaml saved at domains/<domain>/specs/ai-guidance.yaml
+Run /refine-guidance <domain> to continue refining.
+```
+Stop.
+
+**On unrecognized input:** Re-display the gate options and re-prompt.
+
+### Step 6: Confirm
+
+Print:
+```
+Updated domains/<domain>/specs/ai-guidance.yaml
+
+Next: Run /extract-ruleset <domain> to extract the CIVIL ruleset.
+      Re-run /refine-guidance <domain> at any time to update guidance.
+```
 
 ---
 
