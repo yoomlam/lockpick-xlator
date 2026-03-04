@@ -4,7 +4,7 @@ CIVIL Computation Graph Generator
 
 Reads a CIVIL DSL YAML file and produces two artifacts in the same directory:
   <program>.graph.yaml — dependency-ordered graph of all nodes (inputs, computed, rules)
-  <program>.graph.md   — Mermaid diagram for visual inspection
+  <program>.mmd        — Raw Mermaid diagram (loadable directly in any Mermaid viewer)
 
 Each node records its kind, type, location (YAML path), depends_on list, and
 used_by list (the reverse index of depends_on).
@@ -119,7 +119,7 @@ def _mermaid_label(key: str, node: dict) -> str:
 
 
 def build_mermaid(nodes: dict[str, dict]) -> str:
-    lines = ["```mermaid", "graph TD"]
+    lines = ["graph TD"]
     id_map: dict[str, str] = {}
 
     # Node declarations
@@ -137,7 +137,6 @@ def build_mermaid(nodes: dict[str, dict]) -> str:
                 dep_id = _mermaid_id(dep, id_map)
             lines.append(f"  {dep_id} --> {nid}")
 
-    lines.append("```")
     return "\n".join(lines)
 
 
@@ -294,7 +293,7 @@ def main() -> None:
     out_dir = p.parent
 
     graph_yaml_path = out_dir / f"{program}.graph.yaml"
-    graph_md_path = out_dir / f"{program}.graph.md"
+    mmd_path = out_dir / f"{program}.mmd"
 
     # Write YAML — preserve insertion order, no sorting
     yaml_dumper = yaml.Dumper
@@ -303,15 +302,13 @@ def main() -> None:
     with open(graph_yaml_path, "w") as f:
         yaml.dump(graph_data, f, Dumper=yaml_dumper, sort_keys=False, allow_unicode=True)
 
-    # Write Mermaid markdown
-    with open(graph_md_path, "w") as f:
-        f.write(f"# Computation Graph — {graph_data['domain']}/{graph_data['program']}\n\n")
-        f.write(f"Generated: {graph_data['generated']}\n\n")
+    # Write raw Mermaid (no markdown wrapper)
+    with open(mmd_path, "w") as f:
         f.write(mermaid)
         f.write("\n")
 
     print(f"✓ Graph written: {graph_yaml_path}")
-    print(f"✓ Diagram:       {graph_md_path}")
+    print(f"✓ Diagram:       {mmd_path}")
 
 
 if __name__ == "__main__":

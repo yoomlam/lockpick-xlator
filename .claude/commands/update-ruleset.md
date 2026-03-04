@@ -175,7 +175,7 @@ Proceed to Step 9 without showing graph content.
 **If Step 8b succeeded**, show the following block before the `Changed input docs:` block:
 
 ```
-✓ Draft graph: domains/<domain>/specs/<program>.graph.md
+✓ Draft graph: domains/<domain>/specs/<program>.mmd
 
 Dependency graph (computed fields):
   <field_1>    ← <dep_1>, <dep_2>    → <used_by_1>
@@ -189,10 +189,10 @@ Format each line as: `<node_key>  ← <depends_on list>  → <used_by list>`
 - Empty `depends_on`: show `← [no deps]`; empty `used_by`: show `→ [unused]` (potential dead-code)
 - Zero computed fields: replace the table with `(No computed fields in this module.)` but still show the Mermaid block
 
-Then embed the fenced `mermaid` block from `<program>.graph.md` exactly as written (do not re-generate):
+Then embed the contents of `<program>.mmd` in a ```mermaid fence:
 
 ````mermaid
-[contents of <program>.graph.md — the flowchart LR block]
+[contents of <program>.mmd]
 ````
 
 ---
@@ -265,7 +265,7 @@ Files created or modified by this command:
 | `domains/<domain>/specs/extraction-manifest.yaml` | Updated |
 | `domains/<domain>/specs/naming-manifest.yaml` | Updated (new fields appended) |
 | `domains/<domain>/specs/<program>.graph.yaml` | Generated (Step 8b) / Refreshed (Step 9d) |
-| `domains/<domain>/specs/<program>.graph.md` | Generated (Step 8b) / Refreshed (Step 9d) |
+| `domains/<domain>/specs/<program>.mmd` | Generated (Step 8b) / Refreshed (Step 9d) |
 | `domains/<domain>/specs/.stale-cases.yaml` | Created (after Step 9c; consumed by `/create-tests`) |
 | `domains/<domain>/specs/input-index.yaml` | Read-only (if present) |
 | `domains/<domain>/specs/ai-guidance.yaml` | Read (required — run `/refine-guidance <domain>` first) / Updated by Sub-C if guidance items accepted |
