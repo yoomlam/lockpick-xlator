@@ -25,35 +25,24 @@ import time
 import urllib.request
 from pathlib import Path
 
+from rich.console import Console
+from rich.table import Table
+
 ROOT = Path(__file__).parent
+_console = Console()
+_err_console = Console(stderr=True)
 
-
-# ---------------------------------------------------------------------------
-# Rich — lazy-import with plain fallback (needed before ./x setup installs it)
-# ---------------------------------------------------------------------------
 
 def _print_ok(msg):
-    try:
-        from rich.console import Console
-        Console().print(f"[green]✓[/green] {msg}")
-    except ImportError:
-        print(f"✓ {msg}")
+    _console.print(f"[green]✓[/green] {msg}")
 
 
 def _print_err(msg):
-    try:
-        from rich.console import Console
-        Console(stderr=True).print(f"[red]✗[/red] {msg}")
-    except ImportError:
-        print(f"✗ {msg}", file=sys.stderr)
+    _err_console.print(f"[red]✗[/red] {msg}")
 
 
 def _print_info(msg):
-    try:
-        from rich.console import Console
-        Console().print(msg)
-    except ImportError:
-        print(msg)
+    _console.print(msg)
 
 
 # ---------------------------------------------------------------------------
@@ -68,8 +57,8 @@ def resolve_paths(domain, module):
         "tests":    base / "specs" / "tests" / f"{module}_tests.yaml",
         "package":  f"{domain}.{module}",
         "opa_path": f"/v1/data/{domain}/{module}/decision",
-        "demo_sh":  base / "demo" / "start.sh",
-        "demo_req": base / "demo" / "requirements.txt",
+        "demo_sh":  base / "output" / f"demo-{module}" / "start.sh",
+        "demo_req": base / "output" / f"demo-{module}" / "requirements.txt",
     }
 
 
@@ -171,7 +160,7 @@ def cmd_demo(domain, module):
     if not paths["demo_sh"].exists():
         _print_err(
             f"No demo script found at {paths['demo_sh']}. "
-            f"Create domains/{domain}/demo/start.sh to enable the demo."
+            f"Create domains/{domain}/output/demo-{module}/start.sh to enable the demo."
         )
         sys.exit(1)
     _print_info(f"Starting demo for {domain}/{module}...")
@@ -205,19 +194,12 @@ def cmd_list():
         _print_info("No domain/module pairs found under domains/*/specs/")
         return
 
-    try:
-        from rich.table import Table
-        from rich.console import Console
-        table = Table(show_header=True, header_style="bold")
-        table.add_column("Domain")
-        table.add_column("Module")
-        for domain, module in rows:
-            table.add_row(domain, module)
-        Console().print(table)
-    except ImportError:
-        col_w = max(len(d) for d, _ in rows) + 2
-        for domain, module in rows:
-            print(f"{domain:<{col_w}}{module}")
+    table = Table(show_header=True, header_style="bold")
+    table.add_column("Domain")
+    table.add_column("Module")
+    for domain, module in rows:
+        table.add_row(domain, module)
+    _console.print(table)
 
 
 # ---------------------------------------------------------------------------

@@ -12,7 +12,7 @@ cmd_setup() {
     echo "Installing core dependencies..."
     uv pip install -r requirements.txt
 
-    for demo_req in domains/*/demo/requirements.txt; do
+    for demo_req in domains/*/output/demo-*/requirements.txt; do
         [ -f "$demo_req" ] || continue
         domain=$(echo "$demo_req" | cut -d/ -f2)
         echo "Installing demo dependencies for $domain..."

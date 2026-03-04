@@ -11,9 +11,9 @@ domains/snap/specs/eligibility.civil.yaml                   ← CIVIL DSL interm
     ↓  (make snap-transpile)
 domains/snap/output/eligibility.rego                        ← OPA/Rego policy (generated)
     ↓  (OPA REST server)
-domains/snap/demo/main.py (FastAPI)                         ← API layer
+domains/snap/output/demo-eligibility/main.py (FastAPI)                         ← API layer
     ↓  (HTTP)
-domains/snap/demo/static/index.html                         ← browser form
+domains/snap/output/demo-eligibility/static/index.html                         ← browser form
 ```
 
 ---
@@ -234,7 +234,7 @@ curl http://localhost:8181/health  # should return {}
 | `tools/transpile_to_opa.py` | CIVIL → OPA/Rego transpiler |
 | `tools/run_tests.py` | Runs YAML test cases against OPA REST |
 | `domains/snap/output/eligibility.rego` | Generated OPA policy (do not edit) |
-| `domains/snap/demo/main.py` | FastAPI backend |
-| `domains/snap/demo/static/index.html` | Browser form |
-| `domains/snap/demo/start.sh` | Starts OPA + FastAPI |
+| `domains/snap/output/demo-eligibility/main.py` | FastAPI backend |
+| `domains/snap/output/demo-eligibility/static/index.html` | Browser form |
+| `domains/snap/output/demo-eligibility/start.sh` | Starts OPA + FastAPI |
 | `.claude/commands/extract-ruleset.md` | Claude Code slash command to extract from policy documents |

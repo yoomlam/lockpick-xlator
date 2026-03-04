@@ -3,17 +3,17 @@
 # Launches OPA REST server + FastAPI backend
 #
 # Usage (from the repo root or this directory):
-#   bash domains/snap/demo/start.sh
+#   bash domains/snap/output/demo-eligibility/start.sh
 #
 # Prerequisites:
 #   - opa CLI installed (brew install opa)
-#   - Python deps installed (uv venv && source .venv/bin/activate && uv pip install -r domains/snap/demo/requirements.txt)
-#   - Rego policy generated (make snap-transpile)
+#   - Python deps installed (uv venv && source .venv/bin/activate && uv pip install -r domains/snap/output/demo-eligibility/requirements.txt)
+#   - Rego policy generated (./x transpile snap eligibility)
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 REGO_FILE="$REPO_ROOT/domains/snap/output/eligibility.rego"
 OPA_PORT=8181
 FASTAPI_PORT=8000
@@ -27,7 +27,7 @@ fi
 if [ ! -f "$REGO_FILE" ]; then
   echo "ERROR: Rego policy not found at $REGO_FILE"
   echo "Generate it first:"
-  echo "  make snap-transpile"
+  echo "  ./x transpile snap eligibility"
   exit 1
 fi
 
