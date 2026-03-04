@@ -1,7 +1,7 @@
-*Source: http://dpaweb.hss.state.ak.us/manuals/apa/442*
+*Source: http://dpaweb.hss.state.ak.us/manuals/apa/441/441-2_unearned_income.htm*
 
 
-Page title: [441-2 UNEARNED INCOME](http://dpaweb.hss.state.ak.us/manuals/apa/442)
+Page title: [441-2 UNEARNED INCOME](http://dpaweb.hss.state.ak.us/manuals/apa/441/441-2_unearned_income.htm)
 
 
 ## 441-2 UNEARNED INCOME
@@ -10,7 +10,7 @@ Unearned income is any income that is not earned. Unearned income includes but i
 
 ### 441-2 A. BENEFITS PAID UNDER TITLE II OF THE SOCIAL SECURITY ACT
 
-Retirement, survivors, and disability insurance (RSDIRetirement, Survivors, and Disability Insurance (Social Security)) monthly benefits count as unearned income. The amount of any premiums deducted for Supplementary Medical Insurance (SMISupplemental Medical Insurance (Medicare Part B)) under Medicare from RSDIRetirement, Survivors, and Disability Insurance (Social Security) benefits is included in unearned income.
+Retirement, survivors, and disability insurance (RSDI (Retirement, Survivors, and Disability Insurance (Social Security))) monthly benefits count as unearned income. The amount of any premiums deducted for Supplementary Medical Insurance (SMI (Supplemental Medical Insurance (Medicare Part B))) under Medicare from RSDI (Retirement, Survivors, and Disability Insurance (Social Security)) benefits is included in unearned income.
 
 ### 441-2 B. ANNUITIES, PENSIONS, RETIREMENT, OR DISABILITY PAYMENTS
 
@@ -26,26 +26,26 @@ Annuities, pensions, retirement benefits, and disability benefits count as unear
 
 **1\. Needs based** **VS** **not Needs based**
 
-The Department of Veteran Affairs (VADepartment of Veterans Affairs) compensation payments are based on a service-connected disability or death. VADepartment of Veterans Affairs compensation payments may or may not be based on need. VADepartment of Veterans Affairs compensation payments are countable unearned income. If they are needs based, the $20 general income exclusion does not apply.
+The Department of Veteran Affairs (VA (Department of Veterans Affairs)) compensation payments are based on a service-connected disability or death. VA (Department of Veterans Affairs) compensation payments may or may not be based on need. VA (Department of Veterans Affairs) compensation payments are countable unearned income. If they are needs based, the $20 general income exclusion does not apply.
 
 Needs Based:
 
-  * Parents Dependency and Indemnity Compensation (Parents DICDependency and Indemnity Compensation)
+  * Parents Dependency and Indemnity Compensation (Parents DIC (Dependency and Indemnity Compensation))
 
 
 Not Needs Based:
 
-  * Dependency and Indemnity Compensation (DICDependency and Indemnity Compensation)
+  * Dependency and Indemnity Compensation (DIC (Dependency and Indemnity Compensation))
   * Disability Compensation
-  * Surviving Spouse DICDependency and Indemnity Compensation
-  * Surviving Child DICDependency and Indemnity Compensation
+  * Surviving Spouse DIC (Dependency and Indemnity Compensation)
+  * Surviving Child DIC (Dependency and Indemnity Compensation)
 
 
 Special Monthly Compensation (also known as aid and attendance) is not countable income.
 
 If the veteran or their spouse is receiving extra compensation designated for the veteran's dependent, the augmented portion of the payment that is designated for the dependent is not countable income. An augmented benefit is an increase in the benefit payment to a veteran or a veteran's surviving spouse because of a dependent. We do not count the dependent's portion of the benefit as income to the veteran or the veterans surviving spouse. The dependent's portion is income to the dependent.
 
-All VADepartment of Veterans Affairs Pension payments are countable income (except for the Medal of Honor Pension). If they are needs based, the $20 general income exclusion does not apply.
+All VA (Department of Veterans Affairs) Pension payments are countable income (except for the Medal of Honor Pension). If they are needs based, the $20 general income exclusion does not apply.
 
 Needs Based:
 
@@ -62,37 +62,37 @@ Not Needs Based:
 
 #### 2\. EDUCATIONAL PAYMENTS:
 
-The VADepartment of Veterans Affairs provides educational assistance under a number of different programs, including vocational rehabilitation. Depending on the nature of the VADepartment of Veterans Affairs program, different income and resources policies apply. Payments are usually made on a monthly basis only for months in which the veteran is in school. However, if school attendance is less than half time, the payments may be made less frequently. Dependents and survivors of veterans may also be eligible for educational assistance. Some programs are "contributory." That is, the money is contributed by the active service-person to an educational fund and the government matches the money when it is withdrawn while the veteran is pursuing an education. The portion of funds contributed by a veteran are treated as an available resource because the veteran has the right to withdraw this contribution at any time.
+The VA (Department of Veterans Affairs) provides educational assistance under a number of different programs, including vocational rehabilitation. Depending on the nature of the VA (Department of Veterans Affairs) program, different income and resources policies apply. Payments are usually made on a monthly basis only for months in which the veteran is in school. However, if school attendance is less than half time, the payments may be made less frequently. Dependents and survivors of veterans may also be eligible for educational assistance. Some programs are "contributory." That is, the money is contributed by the active service-person to an educational fund and the government matches the money when it is withdrawn while the veteran is pursuing an education. The portion of funds contributed by a veteran are treated as an available resource because the veteran has the right to withdraw this contribution at any time.
 
-Any VADepartment of Veterans Affairs educational benefit payment, or portion of such payment, which is funded by the government, and is not part of a program of vocational rehabilitation, is unearned income for APAAdult Public Assistance purposes. Payments made as part of a VADepartment of Veterans Affairs program of vocational rehabilitation are not income.
+Any VA (Department of Veterans Affairs) educational benefit payment, or portion of such payment, which is funded by the government, and is not part of a program of vocational rehabilitation, is unearned income for APA (Adult Public Assistance) purposes. Payments made as part of a VA (Department of Veterans Affairs) program of vocational rehabilitation are not income.
 
-Any portion of a VADepartment of Veterans Affairs educational benefit payment which is a withdrawal of the veteran's own contribution is a conversion of resource and is not income. Because of this, only that portion of an educational payment which is income to the individual obtaining the education is subject to the income exclusion for educational expenses. (Refer to manual section [442-3A(7)(b)](<http://dpaweb.hss.state.ak.us/manuals/442/442-3_unearned_income_exclusions.htm#442_3_A_7__Educational_Assistance>).)
+Any portion of a VA (Department of Veterans Affairs) educational benefit payment which is a withdrawal of the veteran's own contribution is a conversion of resource and is not income. Because of this, only that portion of an educational payment which is income to the individual obtaining the education is subject to the income exclusion for educational expenses. (Refer to manual section [442-3A(7)(b)](<http://dpaweb.hss.state.ak.us/manuals/442/442-3_unearned_income_exclusions.htm#442_3_A_7__Educational_Assistance>).)
 
-Any portion of a VADepartment of Veterans Affairs educational benefit payment that is augmented for a dependent is counted as income to the dependent if the dependent is living with the veteran. If the dependent is not living with the veteran, the augmented portion is disregarded as income to both the veteran and the dependent. However, if the veteran gives any portion of the augmented benefit payment to the absent dependent, that portion is counted as income to the dependent.
-
-**Verification.** 
- 
-A VADepartment of Veterans Affairs check, award letter, or other documentation in the individuals possession may be used to verify VADepartment of Veterans Affairs benefit amounts. IN the absence of such proof, the case worker MUST contact the VADepartment of Veterans Affairs to obtain the information.
-
-3\. VADepartment of Veterans Affairs CLOTHING ALLOWANCE
-
-A VADepartment of Veterans Affairs clothing allowance related to the use of prosthetic or orthopedic appliance is not income. This type of payment is considered as cash received in conjunction with medical and social services from a governmental or private agency. (Refer to manual section [440-3B](<http://dpaweb.hss.state.ak.us/manuals/apa/440/440-3_items_that_are_not_income.htm>))
+Any portion of a VA (Department of Veterans Affairs) educational benefit payment that is augmented for a dependent is counted as income to the dependent if the dependent is living with the veteran. If the dependent is not living with the veteran, the augmented portion is disregarded as income to both the veteran and the dependent. However, if the veteran gives any portion of the augmented benefit payment to the absent dependent, that portion is counted as income to the dependent.
 
 **Verification.** 
  
-Accept the individual's allegation concerning a VADepartment of Veterans Affairs clothing allowance received by a veteran who uses a prosthetic or orthopedic appliance.
+A VA (Department of Veterans Affairs) check, award letter, or other documentation in the individuals possession may be used to verify VA (Department of Veterans Affairs) benefit amounts. IN the absence of such proof, the case worker MUST contact the VA (Department of Veterans Affairs) to obtain the information.
 
-4\. VADepartment of Veterans Affairs PAYMENT ADJUSTMENT FOR UNUSUAL MEDICAL EXPENSES
+3\. VA (Department of Veterans Affairs) CLOTHING ALLOWANCE
 
-Any increase in a needs-based VADepartment of Veterans Affairs compensation or pension payment which is the direct result of unusual medical expenses is not counted as income.
+A VA (Department of Veterans Affairs) clothing allowance related to the use of prosthetic or orthopedic appliance is not income. This type of payment is considered as cash received in conjunction with medical and social services from a governmental or private agency. (Refer to manual section [440-3B](<http://dpaweb.hss.state.ak.us/manuals/apa/440/440-3_items_that_are_not_income.htm>))
 
 **Verification.** 
  
-A VADepartment of Veterans Affairs check, award letter, or other documentation in the individual's possession may be used to verify VADepartment of Veterans Affairs benefit amounts. In the absence of such proof, the case worker MUST contact the VADepartment of Veterans Affairs to obtain the information.
+Accept the individual's allegation concerning a VA (Department of Veterans Affairs) clothing allowance received by a veteran who uses a prosthetic or orthopedic appliance.
+
+4\. VA (Department of Veterans Affairs) PAYMENT ADJUSTMENT FOR UNUSUAL MEDICAL EXPENSES
+
+Any increase in a needs-based VA (Department of Veterans Affairs) compensation or pension payment which is the direct result of unusual medical expenses is not counted as income.
+
+**Verification.** 
+ 
+A VA (Department of Veterans Affairs) check, award letter, or other documentation in the individual's possession may be used to verify VA (Department of Veterans Affairs) benefit amounts. In the absence of such proof, the case worker MUST contact the VA (Department of Veterans Affairs) to obtain the information.
 
 ### 441-2 D. INCOME BASED ON NEED
 
-Needs-based income received by an eligible individual or couple (or by an alien sponsor) is counted as unearned income. However, needs-based income received by an ineligible spouse (except for SSISupplemental Security Income benefits, or income taken into account in determining eligibility for and the amount of SSISupplemental Security Income benefits) is excluded from the eligible individual's income. (Refer to section [460-6](<http://dpaweb.hss.state.ak.us/manuals/460/460-6_income_exclusions_of_ineligible_spouse.htm>) for the policy on this exclusion for ineligible spouses).
+Needs-based income received by an eligible individual or couple (or by an alien sponsor) is counted as unearned income. However, needs-based income received by an ineligible spouse (except for SSI (Supplemental Security Income) benefits, or income taken into account in determining eligibility for and the amount of SSI (Supplemental Security Income) benefits) is excluded from the eligible individual's income. (Refer to section [460-6](<http://dpaweb.hss.state.ak.us/manuals/460/460-6_income_exclusions_of_ineligible_spouse.htm>) for the policy on this exclusion for ineligible spouses).
 
 Needs-based income is income that is:
 
@@ -101,7 +101,7 @@ Needs-based income is income that is:
   2. Provided under a program which uses income as a factor of eligibility.
 
 
-Programs that provide needs-based income include Bureau of Indian Affairs General Assistance (BIA GA ), most Veteran's Administration (VA ) pensions, Refugee Cash Assistance and Supplemental Security Income (SSI ) payments. (Refer to Administrative Procedures Manual [section 128-4](<http://dpaweb.hss.state.ak.us/manuals/admin/128/128-4_refugee_assistance.htm>) for more information about Refugee Assistance.)
+Programs that provide needs-based income include Bureau of Indian Affairs General Assistance (BIA GA), most Veteran's Administration (VA) pensions, Refugee Cash Assistance and Supplemental Security Income (SSI) payments. (Refer to Administrative Procedures Manual [section 128-4](<http://dpaweb.hss.state.ak.us/manuals/admin/128/128-4_refugee_assistance.htm>) for more information about Refugee Assistance.)
 
 **Note:**  
  
@@ -121,9 +121,9 @@ Unemployment insurance benefits are counted as unearned income. Unemployment ins
 
 ### 441-2 G. DEATH BENEFITS
 
-A death benefit is payment received as the result of another's death. Examples of death benefits include: proceeds of life insurance policies, lump sum death benefits from SSASocial Security Administration, Railroad Retirement burial benefits, inheritances, and cash gifts from relatives, friends, or community groups to "help out" with expenses related to death. Recurring survivor benefits, such as those received from SSASocial Security Administration or from a private pension, are not death benefits.
+A death benefit is payment received as the result of another's death. Examples of death benefits include: proceeds of life insurance policies, lump sum death benefits from SSA (Social Security Administration), Railroad Retirement burial benefits, inheritances, and cash gifts from relatives, friends, or community groups to "help out" with expenses related to death. Recurring survivor benefits, such as those received from SSA (Social Security Administration) or from a private pension, are not death benefits.
 
-Death benefits are income to an APAAdult Public Assistance applicant or recipient to the extent that the total amount received by the applicant or recipient exceeds the amount paid, or obligated to be paid, by the applicant or recipient toward the deceased person's last illness and burial.
+Death benefits are income to an APA (Adult Public Assistance) applicant or recipient to the extent that the total amount received by the applicant or recipient exceeds the amount paid, or obligated to be paid, by the applicant or recipient toward the deceased person's last illness and burial.
 
 Last illness and burial expenses include: related hospital and medical expenses, funeral, burial plot, interment expenses, and other expenses related to last illness and burial. Other expenses may include such items as: new clothing to wear to the funeral; food for visiting relatives; taxi fare to and from the hospital or funeral home, etc.
 
@@ -141,7 +141,7 @@ In some cases, some or all of an award may not count as income. For example, the
 
 **Note:**  
  
-The case worker must notify the Division of Health Care Services (DHCSDivision of Health Care Services), Third Party Liability (TPLThird Party Liability) Unit at [doh.hcs.rec.info@alaska.gov](<mailto:doh.hcs.rec.info@alaska.gov>) whenever he or she becomes aware of an award which includes reimbursement for a medical expense which may have been paid for by Alaska's Medicaid program.
+The case worker must notify the Division of Health Care Services (DHCS (Division of Health Care Services)), Third Party Liability (TPL (Third Party Liability)) Unit at [doh.hcs.rec.info@alaska.gov](<mailto:doh.hcs.rec.info@alaska.gov>) whenever he or she becomes aware of an award which includes reimbursement for a medical expense which may have been paid for by Alaska's Medicaid program.
 
 **Verification.**  
  
@@ -165,7 +165,7 @@ A prize is something won in a contest, lottery, or game of chance such as bingo 
 
 Prizes such as bingo winnings or pull tabs are not anticipated when determining eligibility or payment amount. Only income that can reasonably be expected to be received is counted when anticipating income. Since bingo or pull-tabs are a game of chance, winnings cannot reasonably be anticipated, even if the individual has a previous pattern of winning.
 
-Prize income is only counted after it is received. For example, bingo winnings that an applicant reports receiving in an application month will count in determining APAAdult Public Assistance eligibility and payment for that month.
+Prize income is only counted after it is received. For example, bingo winnings that an applicant reports receiving in an application month will count in determining APA (Adult Public Assistance) eligibility and payment for that month.
 
 Small cash prizes may be excluded as infrequent/irregular income. (Refer to section [442-1A](<http://dpaweb.hss.state.ak.us/manuals/442/442-1_income_exclusions_which_apply_to_both_.htm#442_1_A_INFREQUENT_IRREGULAR_INCOME>) for the policy on this income exclusion.)
 
@@ -189,9 +189,9 @@ Support and alimony payments may be verified by viewing a divorce decree, suppor
 
 Exception: 
  
-Child support income is a benefit for the child not the APAAdult Public Assistance recipient and not countable income if the child is in the home. If the applicant or recipient keeps child support for a child who is no longer in the home and uses the money, it is counted as income to the APAAdult Public Assistance client.
+Child support income is a benefit for the child not the APA (Adult Public Assistance) recipient and not countable income if the child is in the home. If the applicant or recipient keeps child support for a child who is no longer in the home and uses the money, it is counted as income to the APA (Adult Public Assistance) client.
 
-There is a limited income exclusion for child support payments received by or for an individual who is eligible for SSISupplemental Security Income or APAAdult Public Assistance. This exclusion does not apply to alimony payments. Refer to section [442-3I](<http://dpaweb.hss.state.ak.us/manuals/442/442-3_unearned_income_exclusions.htm#442_3_I_CHILD_SUPPORT_PAYMENTS_FROM_AN_ABSENT_PARENT>) for an explanation of this limited income exclusion.
+There is a limited income exclusion for child support payments received by or for an individual who is eligible for SSI (Supplemental Security Income) or APA (Adult Public Assistance). This exclusion does not apply to alimony payments. Refer to section [442-3I](<http://dpaweb.hss.state.ak.us/manuals/442/442-3_unearned_income_exclusions.htm#442_3_I_CHILD_SUPPORT_PAYMENTS_FROM_AN_ABSENT_PARENT>) for an explanation of this limited income exclusion.
 
 ### 441-2 M. RENTAL INCOME
 
@@ -267,11 +267,11 @@ Royalty payments may be verified by viewing any receipts or royalty agreements i
 
 ### 441-2 P. DEPOSITS MADE TO A JOINT ACCOUNT
 
-An APAAdult Public Assistance applicant or recipient may sometimes own a joint bank account with other individual(s) whose income and resources are not considered available (deemed) to meet the needs of the applicant or recipient. The entire amount of deposits made to the joint account by the other individual(s) are income to the applicant or recipient.
+An APA (Adult Public Assistance) applicant or recipient may sometimes own a joint bank account with other individual(s) whose income and resources are not considered available (deemed) to meet the needs of the applicant or recipient. The entire amount of deposits made to the joint account by the other individual(s) are income to the applicant or recipient.
 
-The only exception to this rule is that if each owner of a joint account is eligible for SSISupplemental Security Income or APAAdult Public Assistance, deposits made to the joint account by one account owner are not income to the other account owner(s). This exception does not apply to situations where the other joint owner receives another type of assistance such as Temporary Assistance.
+The only exception to this rule is that if each owner of a joint account is eligible for SSI (Supplemental Security Income) or APA (Adult Public Assistance), deposits made to the joint account by one account owner are not income to the other account owner(s). This exception does not apply to situations where the other joint owner receives another type of assistance such as Temporary Assistance.
 
-An APAAdult Public Assistance applicant or recipient who is an owner of a joint account may argue that some or all of the funds deposited to the joint account do not belong to him or her. To establish non-ownership of the funds, the APAAdult Public Assistance client must:
+An APA (Adult Public Assistance) applicant or recipient who is an owner of a joint account may argue that some or all of the funds deposited to the joint account do not belong to him or her. To establish non-ownership of the funds, the APA (Adult Public Assistance) client must:
 
   1. Provide a written statement that explains why some or all of the funds in the account do not belong to him or her. If the client indicates that only some of the funds do not belong to him or her, the client must specify what portion of the funds are not his or hers; and 
 
@@ -280,7 +280,7 @@ An APAAdult Public Assistance applicant or recipient who is an owner of a joint 
   3. Change the account designation to either remove the individual's name from the account, or show that the owner(s) have restricted access to the account. 
 
 
-Once all three of these things are done, any funds determined to be owned by the other account holder(s), and that the individual can no longer withdraw from the account, were not and are not counted as income to the individual. When this happens, the case worker shall redetermine APAAdult Public Assistance eligibility and benefit amounts for any affected months.
+Once all three of these things are done, any funds determined to be owned by the other account holder(s), and that the individual can no longer withdraw from the account, were not and are not counted as income to the individual. When this happens, the case worker shall redetermine APA (Adult Public Assistance) eligibility and benefit amounts for any affected months.
 
 Interest earnings are counted as unearned income to the applicant or recipient in proportion to the percentage of funds that are considered to be a resource to the applicant or recipient.
 
@@ -288,7 +288,7 @@ This policy does not affect the treatment of the funds in a joint account as a r
 
 ### 441-2 Q. RETROACTIVE PAYMENTS
 
-Except for retroactive SSISupplemental Security Income and SSASocial Security Administration Retirement, Survivors, and Disability Insurance (RSDI ) benefits, retroactive benefit payments are counted as income in the month of receipt. Examples of retroactive benefit payments that are considered countable income the month they are received include: Retroactive Unemployment Insurance benefits, retroactive VADepartment of Veterans Affairs benefits, etc. Refer to section [440-2](<http://dpaweb.hss.state.ak.us/manuals/440/440-2_when_income_is_counted.htm>) for the income counting policy on retroactive SSISupplemental Security Income and RSDIRetirement, Survivors, and Disability Insurance (Social Security) benefits.
+Except for retroactive SSI (Supplemental Security Income) and SSA (Social Security Administration) Retirement, Survivors, and Disability Insurance (RSDI) benefits, retroactive benefit payments are counted as income in the month of receipt. Examples of retroactive benefit payments that are considered countable income the month they are received include: Retroactive Unemployment Insurance benefits, retroactive VA (Department of Veterans Affairs) benefits, etc. Refer to section [440-2](<http://dpaweb.hss.state.ak.us/manuals/440/440-2_when_income_is_counted.htm>) for the income counting policy on retroactive SSI (Supplemental Security Income) and RSDI (Retirement, Survivors, and Disability Insurance (Social Security)) benefits.
 
 * * *
 

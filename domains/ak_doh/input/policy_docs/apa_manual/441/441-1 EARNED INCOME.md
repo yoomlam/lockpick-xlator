@@ -1,7 +1,7 @@
-*Source: http://dpaweb.hss.state.ak.us/manuals/apa/441*
+*Source: http://dpaweb.hss.state.ak.us/manuals/apa/441/441-1_earned_income.htm*
 
 
-Page title: [441-1 EARNED INCOME](http://dpaweb.hss.state.ak.us/manuals/apa/441)
+Page title: [441-1 EARNED INCOME](http://dpaweb.hss.state.ak.us/manuals/apa/441/441-1_earned_income.htm)
 
 
 ## 441-1 EARNED INCOME
@@ -84,7 +84,7 @@ Below are examples of actions taken using the standard expense deduction.
 
 **Example: Actual Expenses Total Less than the Standard Deduction** 
  
-Maria applies for assistance and states she wants to claim actual expenses because she believes they are greater than 50% of her gross income. After receiving verification of her expenses, the caseworker determines her actual expenses are less than the standard deduction. The standard 50% deduction is allowed because it results in a higher benefit to the household. A clear explanation of why the standard deduction was used must be included in the notice to the client and this action documented in the CANOCasenote.
+Maria applies for assistance and states she wants to claim actual expenses because she believes they are greater than 50% of her gross income. After receiving verification of her expenses, the caseworker determines her actual expenses are less than the standard deduction. The standard 50% deduction is allowed because it results in a higher benefit to the household. A clear explanation of why the standard deduction was used must be included in the notice to the client and this action documented in the CANO (Casenote).
 
 **Example: Requested Verification Not Provided** 
  

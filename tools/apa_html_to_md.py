@@ -115,31 +115,60 @@ def promote_bold_spans(soup: BeautifulSoup) -> None:
             span.replace_with(strong)
 
 
+def prefix_expanding_spans(soup: BeautifulSoup) -> None:
+    """Prefix <span class="expanding-content" data-targetname="glossary"> with a space."""
+    for span in soup.find_all("span", class_="expanding-content"):
+        if not span.get_text(strip=True):
+            span.decompose()
+            continue
+        span.insert_before(" (")
+        span.insert_after(")")
+
+
 def strip_footer(soup: BeautifulSoup) -> None:
     """Remove the last table if it contains Previous/Next Section nav links."""
-    trows = soup.find_all("tr")
-    for tr in reversed(trows):
-        text = tr.get_text()
-        if "Previous Section" in text or "Next Section" in text:
-            tr.decompose()
-        elif "MC" in text:
-            # Convert row into paragraph
+    for table in soup.find_all("table"):
+        # Operate on footer tables only
+        if "Previous Section" in table.get_text() or "Next Section" in table.get_text():
+            # First remove the nav rows and collect remaining text into a new paragraph
             p = soup.new_tag("p")
-            tr_contents = tr.contents[:]
-            for td in tr_contents:
-                # print("----", td.extract())
-                if isinstance(td, str):
-                    p.append(td)
-                elif td_text := td.get_text():
-                    for c in td.contents:
-                        if c.get_text(strip=True):
-                            # print("====", c)
-                            if "MC" in td_text:
-                                # append horizontal rule before MC section, and add label
-                                p.append(soup.new_tag("hr"))
-                                # p.append(f"TRANSMITTAL NUMBER: ")
-                            p.append(c)
-            tr.replace_with(p)
+            trows = table.find_all("tr")
+            for tr in reversed(trows):
+                text = tr.get_text(strip=True)
+                if not text:
+                    tr.decompose()
+                elif "Previous Section" in text or "Next Section" in text:
+                    tr.decompose()
+                elif "MC" in text:
+                    # Convert row into paragraph
+                    tr_contents = tr.contents[:]
+                    for td in tr_contents:
+                        if not td.get_text(strip=True):
+                            td.decompose()
+                            continue
+                        # print("----", td.extract())
+                        if isinstance(td, str):
+                            p.append(td)
+                        elif td_text := td.get_text():
+                            for c in td.contents:
+                                if c.get_text(strip=True):
+                                    if "MC" in td_text:
+                                        # print("====", c)
+                                        # append horizontal rule before MC section, and add label
+                                        p.append(soup.new_tag("hr"))
+                                        # p.append(f"TRANSMITTAL NUMBER: ")
+                                        p.append(c.extract())
+
+            if p.get_text(strip=True):
+                # Insert p after the table, then remove the table
+                print("++++", p)
+                table.insert_after(p)
+                table.decompose()
+
+        # Remove empty tables that may be left after stripping footer
+        if not table.get_text(strip=True):
+            table.decompose()
+            continue
 
 
 def extract_main(soup: BeautifulSoup) -> BeautifulSoup:
@@ -258,6 +287,7 @@ def process_html(html: str, base_url: str, output_root: str) -> None:
 def to_markdown(html: str, base_url: str, filename: str, source_url: str) -> str:
     soup = BeautifulSoup(html, "html.parser")
     strip_junk(soup)
+    prefix_expanding_spans(soup)
     promote_bold_spans(soup)
     strip_footer(soup)
     promote_section_titles(soup)

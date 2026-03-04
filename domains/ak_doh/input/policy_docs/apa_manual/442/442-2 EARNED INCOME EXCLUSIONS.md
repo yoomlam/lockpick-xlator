@@ -1,12 +1,12 @@
-*Source: http://dpaweb.hss.state.ak.us/manuals/apa/442*
+*Source: http://dpaweb.hss.state.ak.us/manuals/apa/442/442-2_earned_income_exclusions.htm*
 
 
-Page title: [442-2 EARNED INCOME EXCLUSIONS](http://dpaweb.hss.state.ak.us/manuals/apa/442)
+Page title: [442-2 EARNED INCOME EXCLUSIONS](http://dpaweb.hss.state.ak.us/manuals/apa/442/442-2_earned_income_exclusions.htm)
 
 
 ## 442-2 EARNED INCOME EXCLUSIONS
 
-Some earned income is excluded when determining income eligibility for the APAAdult Public Assistance program. Earned income exclusions never reduce earned income to less than zero. Unused earned income exclusions are never applied to unearned income.
+Some earned income is excluded when determining income eligibility for the APA (Adult Public Assistance) program. Earned income exclusions never reduce earned income to less than zero. Unused earned income exclusions are never applied to unearned income.
 
 Earned income exclusions are applied in the order in which they are listed in this section.
 
@@ -16,15 +16,15 @@ Income exclusions specifically authorized by federal laws are excluded from inco
 
 ### 442-2 B. EARNED INCOME TAX CREDIT AND CHILD TAX CREDIT PAYMENTS
 
-The Earned Income Tax Credit (EITC ) is a special tax credit which reduces the federal tax liability of certain low income working taxpayers. This tax credit sometimes results in a payment to the taxpayer. EITC payments can be received as a payroll advance from an employer or as an end-of-the-year income tax refund.
+The Earned Income Tax Credit (EITC) is a special tax credit which reduces the federal tax liability of certain low income working taxpayers. This tax credit sometimes results in a payment to the taxpayer. EITC payments can be received as a payroll advance from an employer or as an end-of-the-year income tax refund.
 
 The Child Tax Credit is a special refundable federal tax credit that is available to certain low income taxpayers with earned income. This Child Tax Credit may provide a refund to individuals even if they do not owe any tax. There is no advance payment with the Child Tax Credit.
 
-Any EITCEarned Income Tax Credits or Child Tax Credit payments received either as an advance or as a tax refund are excluded from income, regardless of the tax year involved.
+Any EITC (Earned Income Tax Credits) or Child Tax Credit payments received either as an advance or as a tax refund are excluded from income, regardless of the tax year involved.
 
 **Verification.**  
  
-An individual's paycheck stub or a copy of the individual's income tax return may be used to verify the amount of an EITCEarned Income Tax Credits or Child Tax Credit payment.
+An individual's paycheck stub or a copy of the individual's income tax return may be used to verify the amount of an EITC (Earned Income Tax Credits) or Child Tax Credit payment.
 
 ### 442-2 C. INFREQUENT/IRREGULAR EARNED INCOME
 
@@ -50,11 +50,11 @@ School attendance may be verified by viewing documents in the individual's posse
 
 ### 442-2 E. $20 PER MONTH GENERAL INCOME EXCLUSION
 
-Any portion of the $20 general income exclusion which has not been excluded from unearned income in the same month is excluded from earned income. The $20 per month general income exclusion is allowed only once to a couple, even when both members have earned income, because the couple's earned income is combined in determining APAAdult Public Assistance payments. (See section [442-1B](<http://dpaweb.hss.state.ak.us/manuals/apa/442-1_income_exclusions_which_apply_to_both_.htm#442_1_B__20_PER_MONTH_GENERAL_INCOME_EXCLUSION>) for the policy on the $20 per month general income exclusion.)
+Any portion of the $20 general income exclusion which has not been excluded from unearned income in the same month is excluded from earned income. The $20 per month general income exclusion is allowed only once to a couple, even when both members have earned income, because the couple's earned income is combined in determining APA (Adult Public Assistance) payments. (See section [442-1B](<http://dpaweb.hss.state.ak.us/manuals/apa/442-1_income_exclusions_which_apply_to_both_.htm#442_1_B__20_PER_MONTH_GENERAL_INCOME_EXCLUSION>) for the policy on the $20 per month general income exclusion.)
 
 ### 442-2 F. $65 EARNED INCOME EXCLUSION
 
-$65 per month of any earned income is excluded from the gross amount of any remaining earned income. The $65 earned income exclusion is allowed only once to a couple, even when both members have earned income, because the couple's earned income is combined in determining APAAdult Public Assistance payments.
+$65 per month of any earned income is excluded from the gross amount of any remaining earned income. The $65 earned income exclusion is allowed only once to a couple, even when both members have earned income, because the couple's earned income is combined in determining APA (Adult Public Assistance) payments.
 
 ### 442-2 G. IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED
 
@@ -62,7 +62,7 @@ Any earned income that a disabled individual uses to pay for impairment-related 
 
 **Note:** 
  
-An individual over 65 can qualify for an IRWEImpairment Related Work Expenses if they received SSISupplemental Security Income or APAAdult Public Assistance the month before turning 65.
+An individual over 65 can qualify for an IRWE (Impairment Related Work Expenses) if they received SSI (Supplemental Security Income) or APA (Adult Public Assistance) the month before turning 65.
 
 Items that may qualify for this exclusion include but are not limited to:
 
@@ -93,7 +93,7 @@ The blind work expense income exclusion is different from the impairment-related
 
 **Note:** 
  
-Any individual over 65 can qualify for a work expense for the blind if they received SSISupplemental Security Income or APAAdult Public Assistance the month before turning 65.
+Any individual over 65 can qualify for a work expense for the blind if they received SSI (Supplemental Security Income) or APA (Adult Public Assistance) the month before turning 65.
 
 Items that may qualify for this exclusion include but are not limited to:
 

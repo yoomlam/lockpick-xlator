@@ -1,7 +1,7 @@
-*Source: http://dpaweb.hss.state.ak.us/manuals/apa/442*
+*Source: http://dpaweb.hss.state.ak.us/manuals/apa/442/442-3_unearned_income_exclusions.htm*
 
 
-Page title: [442-3 UNEARNED INCOME EXCLUSIONS](http://dpaweb.hss.state.ak.us/manuals/apa/442)
+Page title: [442-3 UNEARNED INCOME EXCLUSIONS](http://dpaweb.hss.state.ak.us/manuals/apa/442/442-3_unearned_income_exclusions.htm)
 
 
 ## 442-3 UNEARNED INCOME EXCLUSIONS
@@ -22,7 +22,7 @@ Volunteer status and participation in an exempt program must be verified.
 
 #### 2\. Remuneration for out-of-Pocket expenses
 
-Remuneration for out-of-pocket expenses to people who are volunteers in the Corps of Retired Executives (CORE ), or in the Active Corps of Executives (ACE ), is excluded from income.
+Remuneration for out-of-pocket expenses to people who are volunteers in the Corps of Retired Executives (CORE), or in the Active Corps of Executives (ACE), is excluded from income.
 
 #### 3\. Certain assistance provided under the Older Americans Act
 
@@ -34,9 +34,9 @@ Wages or salaries paid under Title V of the Older Americans Act are counted as e
 
 The value of any assistance paid with respect to a dwelling unit is excluded from income and resources if paid under the United States Housing Act of 1937, the National Housing Act, Section 101 of the Housing and Urban Development Act of 1965, or Title V of the Housing Act of 1949.
 
-The federal government, through the Office of Housing and Urban Development (HUD ) and the Farmers Home Administration (FmHA ) provides many forms of housing assistance. This assistance may include subsidized housing, loans for renovations, mortgage and investment insurance, guaranteed loans and mortgages, and loans for construction, improvement, or replacement of farm homes and other buildings. This assistance may be provided directly by the federal government or through other entities such as local housing authorities and non-profit organizations.
+The federal government, through the Office of Housing and Urban Development (HUD) and the Farmers Home Administration (FmHA) provides many forms of housing assistance. This assistance may include subsidized housing, loans for renovations, mortgage and investment insurance, guaranteed loans and mortgages, and loans for construction, improvement, or replacement of farm homes and other buildings. This assistance may be provided directly by the federal government or through other entities such as local housing authorities and non-profit organizations.
 
-Any housing assistance in which HUDOffice of Housing and Urban Development or FMHAFarmers Home Administration is involved is subject to this exclusion. In Alaska, housing assistance which qualifies for this exclusion include: housing assistance provided by the Alaska State Housing Authority (ASHA), Section 8 housing assistance, and housing assistance in rural areas provided by various Native housing authorities.
+Any housing assistance in which HUD (Office of Housing and Urban Development) or FMHA (Farmers Home Administration) is involved is subject to this exclusion. In Alaska, housing assistance which qualifies for this exclusion include: housing assistance provided by the Alaska State Housing Authority (ASHA), Section 8 housing assistance, and housing assistance in rural areas provided by various Native housing authorities.
 
 #### 5\. Federal relocation assistance payments
 
@@ -91,7 +91,7 @@ Payments that fit this category include:
   * Work-Study Programs
 
 
-Verify that the source of the education assistance is Title IV or BIABureau of Indian Affairs by viewing the individual’s award letter. Contact the awarding institution if the award letter is not available or is unclear.
+Verify that the source of the education assistance is Title IV or BIA (Bureau of Indian Affairs) by viewing the individual’s award letter. Contact the awarding institution if the award letter is not available or is unclear.
 
 #### (b) Other Education Assistance
 
@@ -116,9 +116,9 @@ Any portion of education assistance that will not be used or set aside for payin
   7. Any amount of money retained after the month of receipt is evaluated as a resource under manual section [432-4K(2)](<http://dpaweb.hss.state.ak.us/manuals/432/432-4_retained_cash_payments_and_in-kind_payments.htm#432_4_K_2__Limited_Exclusion>).
 
 
-#### 8\. Alaska Native Claims Settlement Act (ANCSA ) payments
+#### 8\. Alaska Native Claims Settlement Act (ANCSA) payments
 
-The Alaska Native Claims Settlement Act (ANCSA ) excludes the following items from the income of an Alaska Native, or from the income of a descendant of an Alaska Native:
+The Alaska Native Claims Settlement Act (ANCSA) excludes the following items from the income of an Alaska Native, or from the income of a descendant of an Alaska Native:
 
 ##### (a) Alaska Native Fund distributions.
 
@@ -126,19 +126,19 @@ Distributions from the original Alaska Native Fund are excluded from income rega
 
 ##### (b) Stock.
 
-Any stock issued or distributed by an ANCSAAlaska Native Claims Settlement Act corporation (including stock issued as a dividend or distribution on stock) is excluded from income.
+Any stock issued or distributed by an ANCSA (Alaska Native Claims Settlement Act) corporation (including stock issued as a dividend or distribution on stock) is excluded from income.
 
 ##### (c) Partnership Interests.
 
-A partnership interest received from an ANCSAAlaska Native Claims Settlement Act corporation is excluded from income. However, income received as a result of a partnership interest is treated as a cash distribution. (See (f) below.)
+A partnership interest received from an ANCSA (Alaska Native Claims Settlement Act) corporation is excluded from income. However, income received as a result of a partnership interest is treated as a cash distribution. (See (f) below.)
 
 ##### (d) Land.
 
-Any land or any interest in land received from an ANCSAAlaska Native Claims Settlement Act corporation (including land received as a dividend or distribution on stock) is excluded from income. This includes land or any interest in land inherited by a descendant.
+Any land or any interest in land received from an ANCSA (Alaska Native Claims Settlement Act) corporation (including land received as a dividend or distribution on stock) is excluded from income. This includes land or any interest in land inherited by a descendant.
 
 ##### (e) Payments from a settlement trust.
 
-Any interest in a settlement trust received from an ANCSAAlaska Native Claims Settlement Act corporation is excluded from resources. Payments from a settlement trust are treated as countable income. If the payment is made as part of a cash distribution, the first $2,000 per individual per calendar year may be excluded under (f) below. 
+Any interest in a settlement trust received from an ANCSA (Alaska Native Claims Settlement Act) corporation is excluded from resources. Payments from a settlement trust are treated as countable income. If the payment is made as part of a cash distribution, the first $2,000 per individual per calendar year may be excluded under (f) below. 
 
 
 Note: 
@@ -149,18 +149,18 @@ The 2017 Tax Cuts Jobs Act allowed Alaska Native Corporations to place assets in
 
 For the purpose of this exclusion, cash distributions are distributions that are made to a class of individuals, such as all shareholders, or all elders. Cash distributions do not include cash payments that are made to individuals or households for a specific purpose such as wages, a door prize, or a general assistance payment from the corporation.
 
-Cash distributions (including cash dividends on stock) are excluded from income to the extent that the distributions do not exceed $2,000 per individual per calendar year. When an individual receives more than $2,000 from all ANCSAAlaska Native Claims Settlement Act corporations in a single calendar year, any amounts exceeding $2,000 are considered countable income in the month of receipt.
+Cash distributions (including cash dividends on stock) are excluded from income to the extent that the distributions do not exceed $2,000 per individual per calendar year. When an individual receives more than $2,000 from all ANCSA (Alaska Native Claims Settlement Act) corporations in a single calendar year, any amounts exceeding $2,000 are considered countable income in the month of receipt.
 
-Income received by an individual applicant or recipient asAlaska Statute a result of his or her own investment or deposit of ANCSAAlaska Native Claims Settlement Act payments is not excluded from income.
+Income received by an individual applicant or recipient as (Alaska Statute) a result of his or her own investment or deposit of ANCSA (Alaska Native Claims Settlement Act) payments is not excluded from income.
 
  
 Note: 
  
-The Alaska Native Settlement Trust Eligibility Act (HR 42) excludes certain payments from a settlement trust to an aged, blind, or disabled Alaskan Native or descendant of an Alaskan Native from being used to determine the individual's eligibility for need-based federal programs. This exclusion applies for a five year period beginning on the date the law was enacted July 7, 2025, through July 6, 2030. ANCSAAlaska Native Claims Settlement Act payments are excluded from income the month of receipt and as a resource if retained the following month.
+The Alaska Native Settlement Trust Eligibility Act (HR 42) excludes certain payments from a settlement trust to an aged, blind, or disabled Alaskan Native or descendant of an Alaskan Native from being used to determine the individual's eligibility for need-based federal programs. This exclusion applies for a five year period beginning on the date the law was enacted July 7, 2025, through July 6, 2030. ANCSA (Alaska Native Claims Settlement Act) payments are excluded from income the month of receipt and as a resource if retained the following month.
 
 #### 9\. Other exclusions of payments to Indians
 
-For APAAdult Public Assistance and SSISupplemental Security Income purposes, various federal statutes provide for the exclusion of certain payments made to members of Indian tribes and groups. Some statutes pertain to specific tribes or Indian groups while others apply to certain types of funds. The following types of payments made to Indian tribes and groups are excluded from both income and resources:
+For APA (Adult Public Assistance) and SSI (Supplemental Security Income) purposes, various federal statutes provide for the exclusion of certain payments made to members of Indian tribes and groups. Some statutes pertain to specific tribes or Indian groups while others apply to certain types of funds. The following types of payments made to Indian tribes and groups are excluded from both income and resources:
 
   1. Per capita distribution payments by the Blackfeet and Gros Ventre tribal governments to members, which resulted from judgment funds to tribes, are excluded under Public Law 92-254. 
 
@@ -168,7 +168,7 @@ For APAAdult Public Assistance and SSISupplemental Security Income purposes, var
 
   3. Receipts derived from certain trust lands and distributed to members of designated Indian tribes are excluded under Public Law 94-114. These lands, mineral rights, and receipts are excluded from income and resources, unless they were subject to the Mineral Leasing Act of 1920 and distributed before October 17, 1975. 
  
-These Indian trust lands are all located in the lower 48 states in the states of Idaho, Michigan, Montana, New Mexico, Oklahoma, North Dakota, South Dakota, and Wisconsin. A list of lands conveyed to Indian tribes under Public Law 94-114 is maintained at DPA Division of Public AssistanceCentral Office. If a case worker becomes aware of funds that may be derived from this source, he or she must contact the APAAdult Public Assistance Policy Specialist for specific directions on the treatment of these funds.
+These Indian trust lands are all located in the lower 48 states in the states of Idaho, Michigan, Montana, New Mexico, Oklahoma, North Dakota, South Dakota, and Wisconsin. A list of lands conveyed to Indian tribes under Public Law 94-114 is maintained at DPA  (Division of Public Assistance)Central Office. If a case worker becomes aware of funds that may be derived from this source, he or she must contact the APA (Adult Public Assistance) Policy Specialist for specific directions on the treatment of these funds.
 
 
   1. Per capita payments made to, or held in trust for, members of the Grand River Band of Ottowa Indians are excluded under Public Law 94-540. 
@@ -192,7 +192,7 @@ However, any payments subsequently received from a trust established by the Secr
 
 **Verification.**  
  
-DPA Central Office maintains a list of individuals who have received Aleut restitution payments. The case worker may contact the APAAdult Public Assistance Policy Specialist to verify an individual's receipt of Aleut restitution payments. Documents in the client's possession may be used to verify Japanese-American or Japanese-Canadian payments.
+DPA Central Office maintains a list of individuals who have received Aleut restitution payments. The case worker may contact the APA (Adult Public Assistance) Policy Specialist to verify an individual's receipt of Aleut restitution payments. Documents in the client's possession may be used to verify Japanese-American or Japanese-Canadian payments.
 
 #### 11\. Agent Orange settlement payments
 
@@ -236,15 +236,15 @@ Public Law 101-426 created the Radiation Exposure Compensation Trust Fund and au
 
 Payments from the Radiation Exposure Compensation Fund are excluded from income. Interest earned on unspent Radiation Exposure Compensation Fund payments are also excluded from income.
 
-#### 17\. Individual Development Account (IDA )
+#### 17\. Individual Development Account (IDA)
 
-An Individual Development Account (IDA ) is a special bank account that helps an individual save for his or her education, the purchase of a first home, or to start a business. An individual contributes money from his or her earnings to an IDAIndividual Development Account. These contributions are then matched with money from another source. The matching money helps the individual reach his or her goal sooner.
+An Individual Development Account (IDA) is a special bank account that helps an individual save for his or her education, the purchase of a first home, or to start a business. An individual contributes money from his or her earnings to an IDA (Individual Development Account). These contributions are then matched with money from another source. The matching money helps the individual reach his or her goal sooner.
 
-Any earnings that an individual contributes to a TANFTemporary Assistance to Needy Families (Federal) -funded IDAIndividual Development Account or Demonstration Project IDAIndividual Development Account are deducted from his or her wages in determining countable earned income. In addition, the individual’s contributions, as well as any matching funds, that are deposited into a TANFTemporary Assistance to Needy Families (Federal) -funded IDAIndividual Development Account or Demonstration Project IDAIndividual Development Account are excluded from income. Any interest earned on these funds is also excluded from income.
+Any earnings that an individual contributes to a TANF (Temporary Assistance to Needy Families (Federal)) -funded IDA (Individual Development Account) or Demonstration Project IDA (Individual Development Account) are deducted from his or her wages in determining countable earned income. In addition, the individual’s contributions, as well as any matching funds, that are deposited into a TANF (Temporary Assistance to Needy Families (Federal)) -funded IDA (Individual Development Account) or Demonstration Project IDA (Individual Development Account) are excluded from income. Any interest earned on these funds is also excluded from income.
 
-TANFTemporary Assistance to Needy Families (Federal) -funded IDAIndividual Development Account. The Personal Responsibility and Work Opportunity Reconciliation Act of 1996 authorized states to use money from their TANFTemporary Assistance to Needy Families (Federal) grant to carry out a program to fund IDAs .
+TANF (Temporary Assistance to Needy Families (Federal)) -funded IDA (Individual Development Account). The Personal Responsibility and Work Opportunity Reconciliation Act of 1996 authorized states to use money from their TANF (Temporary Assistance to Needy Families (Federal)) grant to carry out a program to fund IDAs.
 
-Demonstration Project IDAIndividual Development Account. The Assets for Independence Act (enacted on January 27, 1998) created a Federal Demonstration Project to test the effectiveness of IDAs in improving the lives of participating low-income persons. This Act provides for Demonstration Project monies to carry out a program to fund IDAs .
+Demonstration Project IDA (Individual Development Account). The Assets for Independence Act (enacted on January 27, 1998) created a Federal Demonstration Project to test the effectiveness of IDAs in improving the lives of participating low-income persons. This Act provides for Demonstration Project monies to carry out a program to fund IDAs.
 
 #### 18\. Payments to Persons Captured and Interned by North Vietnam
 
@@ -254,9 +254,9 @@ The Department of Defense provides payments to certain persons who were captured
 
 The Ricky Ray Hemophilia Relief Fund Act of 1998, Public Law 105-369, provides for a single payment of $100,000 to:
 
-  * Individuals with a blood-clotting disorder who may have contracted an HIVHuman Immunodeficiency Virus infection from a blood transfusion; 
-  * Current and former spouses of these individuals who also contracted an HIVHuman Immunodeficiency Virus infection; 
-  * Children of these individuals who also contracted an HIVHuman Immunodeficiency Virus infection; and 
+  * Individuals with a blood-clotting disorder who may have contracted an HIV (Human Immunodeficiency Virus) infection from a blood transfusion; 
+  * Current and former spouses of these individuals who also contracted an HIV (Human Immunodeficiency Virus) infection; 
+  * Children of these individuals who also contracted an HIV (Human Immunodeficiency Virus) infection; and 
   * Surviving spouses, children, and parents of the above.
 
 
@@ -266,7 +266,7 @@ Payments from the Ricky Ray Hemophilia Relief Fund are excluded from income. Int
 
 A 1996 study by the National Academy of Sciences found evidence associating parental exposure to herbicides in Vietnam with increased risk of spina bifida in their children. Spina bifida is a congenital birth defect characterized by defective closure of the bones surrounding the spinal cord.
 
-Public law 104-204 authorizes the Department of Veterans Affairs (VADepartment of Veterans Affairs) to provide benefits, including a monthly monetary allowance, to certain Vietnam veterans’ children who suffer from spina bifida. VADepartment of Veterans Affairs payments made to or on behalf of such children are excluded from income. Interest earned on unspent payments is also excluded from income.
+Public law 104-204 authorizes the Department of Veterans Affairs (VA (Department of Veterans Affairs)) to provide benefits, including a monthly monetary allowance, to certain Vietnam veterans’ children who suffer from spina bifida. VA (Department of Veterans Affairs) payments made to or on behalf of such children are excluded from income. Interest earned on unspent payments is also excluded from income.
 
 ### 442-3 B. CERTAIN ASSISTANCE BASED ON NEED
 
@@ -276,7 +276,7 @@ Public law 104-204 authorizes the Department of Veterans Affairs (VADepartment o
   * Provided under a program that uses income as a factor in determining eligibility.
 
 
-In Alaska, examples of programs that provide needs-based assistance are General Relief Assistance (GRAGeneral Relief Assistance) and the Alaska Senior Benefits Program.
+In Alaska, examples of programs that provide needs-based assistance are General Relief Assistance (GRA (General Relief Assistance)) and the Alaska Senior Benefits Program.
 
 **Needs-based assistance** is **not** the same as **needs-based income**. Refer to section [441-2D](<http://dpaweb.hss.state.ak.us/manuals/441/441-2_unearned_income.htm#441_2_D_INCOME_BASED_ON_NEED>) for the policy on needs-based income.
 
@@ -328,7 +328,7 @@ Verification. In Alaska, the Heating Assistance program administered by the Stat
 
 ### 442-3 I. CHILD SUPPORT PAYMENTS FROM AN ABSENT PARENT
 
-Child support payments may be made voluntarily or under a court or administrative order. One-third of any child support payment received from an absent (noncustodial) parent or stepparent by or on behalf of a child who is eligible for SSISupplemental Security Income or APAAdult Public Assistance is excluded from the income of the child. The remaining two-thirds of the child support payment is income to the child, not to the individual who may receive the payment for the child. This exclusion is not allowed to children who are not eligible for SSISupplemental Security Income or APAAdult Public Assistance.
+Child support payments may be made voluntarily or under a court or administrative order. One-third of any child support payment received from an absent (noncustodial) parent or stepparent by or on behalf of a child who is eligible for SSI (Supplemental Security Income) or APA (Adult Public Assistance) is excluded from the income of the child. The remaining two-thirds of the child support payment is income to the child, not to the individual who may receive the payment for the child. This exclusion is not allowed to children who are not eligible for SSI (Supplemental Security Income) or APA (Adult Public Assistance).
 
 For purposes of this section, a child is an individual who is neither married nor the head of a household, is under the age of 22, and is a student regularly attending school or college or training that is designed to prepare him or her for a paying job. (Refer to section [442-2D](<http://dpaweb.hss.state.ak.us/manuals/apa/442-2_earned_income_exclusions.htm#442_2_D_STUDENT_EARNED_INCOME_EXCLUSION>) for the policy on regular school attendance.)
 

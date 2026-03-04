@@ -1,7 +1,7 @@
-*Source: http://dpaweb.hss.state.ak.us/manuals/apa/442*
+*Source: http://dpaweb.hss.state.ak.us/manuals/apa/442/442-1_income_exclusions_which_apply_to_both.htm*
 
 
-Page title: [442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH](http://dpaweb.hss.state.ak.us/manuals/apa/442)
+Page title: [442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH](http://dpaweb.hss.state.ak.us/manuals/apa/442/442-1_income_exclusions_which_apply_to_both.htm)
 
 
 ## 442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH
@@ -29,7 +29,7 @@ The first $20 per month of any unearned income that an individual or couple rece
 
 The $20 general income exclusion is applied first to unearned income and then to earned income. If an individual or couple has less than $20 of non needs-based unearned income and has earned income, any part of the $20 exclusion not applied against unearned income is applied to the earned income. If the individual or couple has only earned income, or a combination of earned income and needs-based unearned income, the entire $20 exclusion is applied to the earned income.
 
-The $20 general income exclusion is applied only once to a couple, even when both members have income, because the couple's income is combined in determining APAAdult Public Assistance eligibility and payment.
+The $20 general income exclusion is applied only once to a couple, even when both members have income, because the couple's income is combined in determining APA (Adult Public Assistance) eligibility and payment.
 
 **Note:**  
  
