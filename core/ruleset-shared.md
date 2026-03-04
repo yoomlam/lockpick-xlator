@@ -169,7 +169,67 @@ Warning: computation graph could not be refreshed. The draft graph at domains/<d
 ```
 Continue — the CIVIL file and manifests are already written. Do NOT stop the extraction.
 
-### Sub-C: Extraction Complete Footer
+### Sub-C: Guidance Capture
+
+After the Human Review Gate is approved, synthesize candidate guidance items from the review session to improve future extractions.
+
+**Step 1 — Collect signals.**
+
+Gather everything that occurred during the Human Review Gate:
+- Items that were rejected and re-extracted (original vs. accepted: what changed, and why?)
+- Items in the Uncertain bucket (fidelity ≤2 or source_clarity ≤2) — even if ultimately accepted
+- Items in the Complex bucket that had `notes:` fields
+- Any corrections the user provided to CIVIL expressions, values, or notes
+
+If none of these signals are present (all items verified, no corrections, no notes), proceed silently to Sub-D — no synthesis needed.
+
+**Step 2 — Synthesize candidates.**
+
+From the collected signals, draft up to 5 candidate guidance items total across all sections. For each item:
+- Assign it to the most appropriate section (`constraints`, `standards`, `guidance`, or `edge_cases`)
+- Write it as a concise, actionable statement (1–2 sentences)
+- Check the corresponding section in `domains/<domain>/specs/ai-guidance.yaml` — if a semantically equivalent item already exists, skip this candidate
+
+If zero candidates remain after deduplication, proceed silently to Sub-D.
+
+**Step 3 — Offer to user.**
+
+Print:
+```
+Based on your review, I have X suggestion(s) to add as AI guidance to improve future extractions.
+Review them? [y/n]
+```
+
+- **n** → proceed to Sub-D.
+- **Unrecognized input** → re-display and re-prompt.
+- **y** → for each candidate in sequence, print:
+  ```
+  [<section>] "<candidate text>"
+  Add this item? [y / n / edit]
+  ```
+  - **y** → record item for appending.
+  - **n** → skip.
+  - **edit** → print `Enter revised text (current: "<candidate text>"):` — accept the user's replacement text, then record it for appending.
+  - **Unrecognized input** → re-display the per-item prompt and re-prompt.
+
+**Step 4 — Write to file.**
+
+After all candidates have been reviewed:
+- Append each accepted item to its assigned section in `domains/<domain>/specs/ai-guidance.yaml`
+- Update `generated_at` to today's date (write once after all appends, not after each individual item)
+- Preserve `source_template` and all other sections verbatim
+
+If 1 or more items were added, print (use "item" for N=1, "items" for N>1):
+```
+Updated ai-guidance.yaml (+1 item)
+Updated ai-guidance.yaml (+3 items)
+```
+
+Then proceed to Sub-D.
+
+> **Note:** Items added by Sub-C are indistinguishable from items created by `/refine-guidance`. A subsequent run of `/refine-guidance <domain>` (UPDATE mode) will present them as existing content, allow refinement, and preserve them if not changed.
+
+### Sub-D: Extraction Complete Footer
 
 **Extraction complete.**
 

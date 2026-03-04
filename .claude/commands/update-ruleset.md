@@ -249,7 +249,9 @@ stale_cases: []
 
 Run **Sub-B: Generate Computation Graph**.
 
-Run **Sub-C: Extraction Complete Footer**.
+Run **Sub-C: Guidance Capture**.
+
+Run **Sub-D: Extraction Complete Footer**.
 
 ---
 
@@ -266,6 +268,6 @@ Files created or modified by this command:
 | `domains/<domain>/specs/<program>.graph.md` | Generated (Step 8b) / Refreshed (Step 9d) |
 | `domains/<domain>/specs/.stale-cases.yaml` | Created (after Step 9c; consumed by `/create-tests`) |
 | `domains/<domain>/specs/input-index.yaml` | Read-only (if present) |
-| `domains/<domain>/specs/ai-guidance.yaml` | Read-only (required — run `/refine-guidance <domain>` first) |
+| `domains/<domain>/specs/ai-guidance.yaml` | Read (required — run `/refine-guidance <domain>` first) / Updated by Sub-C if guidance items accepted |
 
 Tests, transpilation, and Rego output are handled by `/create-tests` and `/transpile-and-test`.
