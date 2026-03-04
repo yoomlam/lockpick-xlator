@@ -389,24 +389,50 @@ If a file is untracked (not yet committed), use `"untracked"` as the SHA.
 
 ### Step 6: Validate
 
+Run **Sub-A: Validate**.
+
+### Step 6b: Generate Computation Graph (Preview)
+
 ```bash
-python tools/validate_civil.py domains/<domain>/specs/<program>.civil.yaml
+python tools/computation_graph.py domains/<domain>/specs/<program>.civil.yaml
 ```
 
-**On failure — retry loop (max 3 attempts):**
-- Read the specific error message
-- Identify the offending CIVIL section
-- Re-extract or fix that section
-- Re-validate
+Always run unconditionally — regenerates even if graph files already exist from a prior run.
+Capture stdout. Do not echo verbatim.
 
-After 3 failed attempts, stop and print:
-```
-Validation failed after 3 attempts. Errors:
-  <error list>
-Fix manually, then re-run: python tools/validate_civil.py domains/<domain>/specs/<program>.civil.yaml
-```
+**On success (exit 0):**
+Read `domains/<domain>/specs/<program>.graph.yaml`. Extract all nodes where `kind == "computed"`.
+
+**On failure (exit 1):**
+Print `Warning: computation graph preview could not be generated — continuing to review.`
+Proceed to Step 7 without showing graph content.
 
 ### Step 7: Human Review Gate
+
+**If Step 6b succeeded**, show the following block before the `Review summary:` header:
+
+```
+✓ Draft graph: domains/<domain>/specs/<program>.graph.md
+
+Dependency graph (computed fields):
+  <field_1>    ← <dep_1>, <dep_2>    → <used_by_1>
+  <field_2>    ← <dep_1>             → [rule: <rule_id>]
+  ...
+```
+
+Format each line as: `<node_key>  ← <depends_on list>  → <used_by list>`
+- `depends_on`: join with `, ` — raw field names; no decoration
+- `used_by`: prefix rule nodes with `[rule: ]`; plain names for computed refs
+- Empty `depends_on`: show `← [no deps]`; empty `used_by`: show `→ [unused]` (potential dead-code)
+- Zero computed fields: replace the table with `(No computed fields in this module.)` but still show the Mermaid block
+
+Then embed the fenced `mermaid` block from `<program>.graph.md` exactly as written (do not re-generate):
+
+````mermaid
+[contents of <program>.graph.md — the flowchart LR block]
+````
+
+---
 
 Partition all `rules:` entries and `computed:` fields into three buckets based on their `review:` scores:
 
@@ -490,32 +516,13 @@ computed:
 
 This file is user-editable. Do **not** add an "auto-generated" comment.
 
-### Step 7c: Generate Computation Graph
+### Step 7c: Refresh Computation Graph
 
-```bash
-python tools/computation_graph.py domains/<domain>/specs/<program>.civil.yaml
-```
-
-On success the tool prints both output file paths. On failure, print the error as a warning
-and continue — the CIVIL file and manifests are already written. Do NOT stop the extraction.
+Run **Sub-B: Generate Computation Graph**.
 
 ---
 
-**Extraction complete.**
-
-If `<filename>` was given and other `.md` files exist in `domains/<domain>/input/policy_docs/` that were not processed, print:
-```
-Note: this domain has other policy docs not included in this run:
-  - <other_file>.md
-  ...
-To extract from all files as a unified corpus, run without specifying a filename.
-```
-
-```
-Next steps:
-  1. /create-tests <domain>
-  2. /transpile-and-test <domain>
-```
+Run **Sub-C: Extraction Complete Footer**.
 
 ---
 
@@ -645,13 +652,50 @@ Update `domains/<domain>/specs/extraction-manifest.yaml`:
 
 ### Step 8: Validate
 
-Same retry loop as CREATE Step 6:
+Run **Sub-A: Validate**.
+
+### Step 8b: Generate Computation Graph (Preview)
+
 ```bash
-python tools/validate_civil.py domains/<domain>/specs/<program>.civil.yaml
+python tools/computation_graph.py domains/<domain>/specs/<program>.civil.yaml
 ```
-Up to 3 auto-fix attempts, then halt with error list.
+
+Always run unconditionally — regenerates even if graph files already exist from a prior run.
+Capture stdout. Do not echo verbatim.
+
+**On success (exit 0):**
+Read `domains/<domain>/specs/<program>.graph.yaml`. Extract all nodes where `kind == "computed"`.
+
+**On failure (exit 1):**
+Print `Warning: computation graph preview could not be generated — continuing to review.`
+Proceed to Step 9 without showing graph content.
 
 ### Step 9: Human Review Gate (UPDATE)
+
+**If Step 8b succeeded**, show the following block before the `Changed input docs:` block:
+
+```
+✓ Draft graph: domains/<domain>/specs/<program>.graph.md
+
+Dependency graph (computed fields):
+  <field_1>    ← <dep_1>, <dep_2>    → <used_by_1>
+  <field_2>    ← <dep_1>             → [rule: <rule_id>]
+  ...
+```
+
+Format each line as: `<node_key>  ← <depends_on list>  → <used_by list>`
+- `depends_on`: join with `, ` — raw field names; no decoration
+- `used_by`: prefix rule nodes with `[rule: ]`; plain names for computed refs
+- Empty `depends_on`: show `← [no deps]`; empty `used_by`: show `→ [unused]` (potential dead-code)
+- Zero computed fields: replace the table with `(No computed fields in this module.)` but still show the Mermaid block
+
+Then embed the fenced `mermaid` block from `<program>.graph.md` exactly as written (do not re-generate):
+
+````mermaid
+[contents of <program>.graph.md — the flowchart LR block]
+````
+
+---
 
 Present a **diff-style summary** (not the full ruleset):
 
@@ -707,14 +751,50 @@ Include any test case whose `inputs` contain a value that was a table boundary o
 stale_cases: []
 ```
 
-### Step 9d: Generate Computation Graph
+### Step 9d: Refresh Computation Graph
+
+Run **Sub-B: Generate Computation Graph**.
+
+Run **Sub-C: Extraction Complete Footer**.
+
+---
+
+## Shared Procedures
+
+The following subroutines are referenced from both CREATE and UPDATE mode steps. When a step says "Run **Sub-X: ...**", execute the full procedure below.
+
+### Sub-A: Validate
+
+```bash
+python tools/validate_civil.py domains/<domain>/specs/<program>.civil.yaml
+```
+
+**On failure — retry loop (max 3 attempts):**
+- Read the specific error message
+- Identify the offending CIVIL section
+- Re-extract or fix that section
+- Re-validate
+
+After 3 failed attempts, stop and print:
+```
+Validation failed after 3 attempts. Errors:
+  <error list>
+Fix manually, then re-run: python tools/validate_civil.py domains/<domain>/specs/<program>.civil.yaml
+```
+
+### Sub-B: Generate Computation Graph
 
 ```bash
 python tools/computation_graph.py domains/<domain>/specs/<program>.civil.yaml
 ```
 
-On success the tool prints both output file paths. On failure, print the error as a warning
-and continue — the CIVIL file and manifests are already written. Do NOT stop the extraction.
+On success the tool prints both output file paths. On failure, print:
+```
+Warning: computation graph could not be refreshed. The draft graph at domains/<domain>/specs/<program>.graph.md may reflect pre-approval state.
+```
+Continue — the CIVIL file and manifests are already written. Do NOT stop the extraction.
+
+### Sub-C: Extraction Complete Footer
 
 **Extraction complete.**
 
@@ -743,8 +823,8 @@ Files created or modified by this command:
 | `domains/<domain>/specs/<program>.civil.yaml` | Created | Updated (affected sections only) |
 | `domains/<domain>/specs/extraction-manifest.yaml` | Created | Updated |
 | `domains/<domain>/specs/naming-manifest.yaml` | Created (after Step 7b) | Updated (new fields appended) |
-| `domains/<domain>/specs/<program>.graph.yaml` | Generated (Step 7c) | Regenerated (Step 9d) |
-| `domains/<domain>/specs/<program>.graph.md` | Generated (Step 7c) | Regenerated (Step 9d) |
+| `domains/<domain>/specs/<program>.graph.yaml` | Generated (Step 6b) / Refreshed (Step 7c) | Generated (Step 8b) / Refreshed (Step 9d) |
+| `domains/<domain>/specs/<program>.graph.md` | Generated (Step 6b) / Refreshed (Step 7c) | Generated (Step 8b) / Refreshed (Step 9d) |
 | `domains/<domain>/specs/.stale-cases.yaml` | — | Created (after Step 9c; consumed by `/create-tests`) |
 | `domains/<domain>/specs/input-index.yaml` | Read-only (if present) | Read-only (if present) |
 | `domains/<domain>/specs/ai-guidance.yaml` | Read-only (required — run `/refine-guidance <domain>` first) | Read-only (required) |
