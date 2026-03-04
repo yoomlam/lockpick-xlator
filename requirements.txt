@@ -1,3 +1,4 @@
 # Core pipeline tools — validate_civil.py, transpile_to_opa.py, run_tests.py
 pyyaml>=6.0
 pydantic>=2.0
+rich>=10.0

@@ -115,7 +115,8 @@ tools/
   validate_civil.py                  ← CIVIL validator
   transpile_to_opa.py                ← CIVIL → OPA/Rego transpiler
   run_tests.py                       ← test runner
-Makefile                             ← per-domain pipeline targets
+x.py                                 ← CLI entry point (all pipeline actions)
+x                                    ← shell shim: exec python x.py "$@"
 ```
 
 ### 1. Input Collection
@@ -132,19 +133,28 @@ Makefile                             ← per-domain pipeline targets
 - Review and verify test scenarios; add edge cases and boundary conditions
 
 ### 4. Output Generation
-- `make <domain>-transpile` generates `domains/<name>/output/<module>.rego`
+- `./x transpile <domain> <module>` generates `domains/<name>/output/<module>.rego`
 
 ### 5. Validation & Iteration
-- `make <domain>-test` runs tests against a live OPA server
-- `make <domain>-demo` starts the demo (OPA + FastAPI)
+- `./x test <domain> <module>` starts OPA automatically, runs tests, and stops OPA
+- `./x demo <domain> <module>` starts the demo (OPA + FastAPI)
 - Iterate on specs as needed
 
 ### Example (SNAP)
 
 ```bash
-make snap             # validate + transpile + test
-make snap-demo        # start OPA + FastAPI demo at http://localhost:8000
+./x pipeline snap eligibility        # validate + transpile + test (OPA managed automatically)
+./x demo snap eligibility            # start OPA + FastAPI demo at http://localhost:8000
+./x list                             # show all available domain/module pairs
 ```
+
+### First-time setup
+
+```bash
+python x.py setup    # install uv, create .venv, install deps, install OPA
+```
+
+After setup, use `./x` directly (the shell shim activates the right Python).
 
 ## Vision diagram
 
