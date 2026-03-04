@@ -1,6 +1,6 @@
-# Extract or Update Ruleset from Policy Documents
+# Extract Ruleset from Policy Documents
 
-Create or incrementally update a CIVIL DSL ruleset for a domain, based on documents in its `input/policy_docs/` subfolder. Handles both first-time extraction (CREATE) and updating an existing ruleset when input documents have changed (UPDATE).
+Create a CIVIL DSL ruleset for a domain from documents in its `input/policy_docs/` subfolder.
 
 ## Input
 
@@ -14,163 +14,53 @@ Create or incrementally update a CIVIL DSL ruleset for a domain, based on docume
 
 If `<domain>` is not provided, list all `domains/*/input/policy_docs/` directories and prompt the user to choose.
 
+---
+
+Read `core/ruleset-shared.md` now. It contains shared pre-flight logic (checks 3–6),
+the scoring rubric, CIVIL reference, shared procedures (Sub-A/B/C), and common mistakes.
+
+---
+
 ## Pre-flight
 
 Run these checks before doing anything else:
 
 1. **Domain folder exists?**
-   - NO → Print:
+   - NO → Print: domain not found at `domains/<domain>/`, suggest running `/new-domain <domain>`. Stop.
+
+2. **CIVIL file already exists?**
+   - **If `<program>` was given:** check if `domains/<domain>/specs/<program>.civil.yaml` exists → if yes, redirect:
      ```
-     Domain not found: domains/<domain>/
-     Run: /new-domain <domain>
-     Then add .md policy documents to domains/<domain>/input/policy_docs/ and re-run.
+     A ruleset already exists for <program>. To update it, run:
+       /update-ruleset <domain> <program>
      ```
-     Then stop.
+     Then stop. Continue if not found.
+   - **If `<program>` was not given:** check `domains/<domain>/specs/*.civil.yaml`:
+     - 0 files → continue (no existing ruleset)
+     - 1 file → redirect:
+       ```
+       A ruleset already exists for this domain. To update it, run:
+         /update-ruleset <domain>
+       ```
+       Then stop.
+     - 2+ files → list them and prompt:
+       ```
+       Existing rulesets found:
+         - <program1>
+         - <program2>
+         ...
+       To update one of these, use /update-ruleset <domain> <program>.
+       To create a new program, provide a name: /extract-ruleset <domain> <new_program>
+       ```
+       Then stop.
 
-2. **Input docs present?**
-   - `domains/<domain>/input/policy_docs/` missing or empty → Print: "No input documents found. Add `.md` files to `domains/<domain>/input/policy_docs/` and re-run." Then stop.
-
-3. **`<filename>` valid (if given)?**
-   - If `<filename>` has no `.md` extension, append it automatically (e.g., `APA` → `APA.md`)
-   - Verify `domains/<domain>/input/policy_docs/<filename>` exists on disk
-   - If not found: print `"File not found: domains/<domain>/input/policy_docs/<filename>"`, list available `.md` files, then stop.
-
-4. **Load `ai-guidance.yaml`**
-
-   Check for `domains/<domain>/specs/ai-guidance.yaml`:
-
-   **If it exists:**
-   - Read the file
-   - Print: `Using goal: <display_name> (source: <source_template>)`
-   - Store its content for injection in Step 1 (CREATE) or Step 5 (UPDATE)
-
-   **If it does not exist:**
-   - Print:
-     ```
-     No AI guidance found for this domain.
-     Run: /refine-guidance <domain>
-     Then re-run /extract-ruleset.
-     ```
-   - Stop.
-
-5. **Multiple input docs + no `<filename>`?**
-   - If `domains/<domain>/input/policy_docs/` contains 2+ `.md` files and `<filename>` was **not** given:
-
-   **If `domains/<domain>/specs/input-index.yaml` exists**, read it and display a context-rich selection prompt:
-     ```
-     Multiple policy documents found. Consulting specs/input-index.yaml for context...
-
-       1. input/policy_docs/<file1>.md
-          Tags: [tag1, tag2, tag3]
-          <section heading> — <summary>
-          <section heading> — <summary>
-
-       2. input/policy_docs/<file2>.md
-          Tags: [tag1, tag2]
-          <section heading> — <summary>
-          ...
-
-       a. All files (unified corpus)
-
-     Process which file(s)? Enter a number, comma-separated numbers, or 'a' for all:
-     ```
-   Show only the file's top-level H1 sections from the index (level `#` entries) to keep the prompt scannable. Omit H2/H3 entries.
-   Selecting comma-separated numbers (e.g., `1,3`) reads those files as a unified corpus for the rest of the run.
-
-   **If `input-index.yaml` does not exist**, ask the user whether to generate it first:
-     ```
-     specs/input-index.yaml not found. An index enables faster and richer file selection with summaries and tags.
-     Run /index-inputs <domain> now? [y (recommended) / n — continue without index]:
-     ```
-   - **y (or Enter):** Run `/index-inputs <domain>` now (creating `specs/input-index.yaml`), then re-display the selection prompt using the rich indexed format (same as the "exists" path above).
-   - **n:** Fall back to the plain filename list:
-     ```
-     Multiple policy documents found in domains/<domain>/input/policy_docs/:
-       1. <file1>.md
-       2. <file2>.md
-       ...
-       a. All files (unified corpus)
-
-     Process which file? [1/2/.../a]:
-     ```
-     - Selecting `a` proceeds with all files as a unified corpus (unchanged behavior).
-     - Selecting a number sets `<filename>` to that file for the rest of the run.
-
-## Mode Detection
-
-```bash
-ls domains/<domain>/specs/*.civil.yaml 2>/dev/null
-```
-
-| Count | Action |
-|-------|--------|
-| 0 files | **CREATE mode** — extract from scratch |
-| 1 file | **UPDATE mode** — update that file |
-| 2+ files and no `<program>` arg | List them, prompt: "Which program to update? (or specify as second argument)" |
-| 2+ files and `<program>` arg given | **UPDATE mode** on `<program>.civil.yaml` |
+Run shared pre-flight checks 3–6 from `core/ruleset-shared.md`.
 
 ---
 
-## Scoring Rubric
+## Process
 
-When writing `review:` blocks, score each rule and computed field on four dimensions using this table. Apply scores independently — a rule can have high fidelity and high complexity simultaneously.
-
-| Score | extraction_fidelity | source_clarity | logic_complexity | policy_complexity |
-|-------|---------------------|----------------|------------------|-------------------|
-| 1 | Guessed; source is silent on this | Contradictory or absent from source | Single boolean or comparison | Plain everyday English |
-| 2 | Inferred with low confidence | Vague; multiple reasonable interpretations | 2–3 conditions, no table lookups | Some jargon or implicit cross-refs |
-| 3 | Reasonable translation with minor gaps | Reasonably clear with minor ambiguity | 4–6 conditions or 1 table lookup | Moderate legalese or defined terms |
-| 4 | Strong match to source text | Clear but uses statutory defined terms | 7–9 conditions or 2+ table lookups | Dense statutory language or CFR references |
-| 5 | Direct quote or explicit formula | Exact thresholds/formulas stated verbatim | 10+ conditions, nested booleans, multiple tables | Exceptions-to-exceptions, multi-CFR cross-refs |
-
-**Special cases:**
-- Structural allow rules (`when: "true"`) always score `logic_complexity: 1`. Score `extraction_fidelity` and `source_clarity` based on whether the policy explicitly states the default-allow logic or leaves it implicit.
-- `notes:` is required for any item where any score is ≤ 2 or ≥ 4. For all-3 items, `notes:` may be omitted.
-
----
-
-## CIVIL Reference
-
-> **Do NOT read `tools/civil_schema.py`, `tools/transpile_to_opa.py`, or any other
-> file in `tools/` before authoring any CIVIL YAML (Step 4 in CREATE, Step 5 in UPDATE).**
-> All syntax and type constraints needed for authoring are in this section and in
-> [`core/civil-quickref.md`](../core/civil-quickref.md).
-
-### Expression Language
-
-For `when:` conditions and `computed:` expressions:
-
-- Field access: `Household.household_size`, `Applicant.age`
-- Constants: `MIN_AGE`, `INCOME_MULTIPLIER`
-- Table lookup: `table('gross_income_limits', Household.household_size).max_gross_monthly`
-- Boolean: `&&`, `||`, `!`
-- Comparison: `==`, `!=`, `<`, `<=`, `>`, `>=`
-- Arithmetic: `+`, `-`, `*`, `/`
-- Functions: `exists(field)`, `is_null(field)`, `between(value, min, max)`, `in(value, [a, b, c])`
-- `computed:` only: `max(a, b)`, `min(a, b)` — computed field names as bare identifiers
-
-**Multi-step formulas (CIVIL v2):** Use a `computed:` section for chains where each step depends on the prior (e.g., a deduction chain). The `when:` clause references the final computed field name directly.
-
-### Schema Constraints
-
-Non-obvious type and structural rules:
-
-- **`FactField` has no `default:` attribute** — use `optional: true` instead; defaults are input-level concerns
-- **String type is `string`**, not `str` — valid types: `int`, `float`, `bool`, `string`, `date`, `money`, `list`, `set`, `enum`
-- **`ComputedField.type` is limited** to `money`, `bool`, `float`, `int` — no `string` in computed fields
-- **`Jurisdiction` requires `country:`** — e.g., `country: US` — it is not optional
-- **`Rule.then` must be non-empty** — every rule (allow and deny) needs at least one action
-- **`Conditional` requires all three branches** — `if`, `then`, and `else` are all required; no optional else
-- **Transpiler ignores allow rules** — only `deny` rules generate Rego; `then:` actions on allow rules are documentary only
-- **`source:` vs `citations:` are distinct** — `source:` on a field/table/rule identifies *where in the policy doc the element was defined* (developer traceability); `citations:` inside an `add_reason` action is the *legal authority shown to applicants in a denial explanation*. A deny rule may have the same CFR section in both — that is expected and not redundant.
-
-For full attribute tables (required vs optional fields for each model), see [`core/civil-quickref.md`](../core/civil-quickref.md).
-
----
-
-## Process — CREATE Mode
-
-### AI Guidance Directive
+### Step 1: Read Policy Documents
 
 **If `ai-guidance.yaml` was loaded in pre-flight**, internalize the following before reading any policy documents:
 
@@ -185,8 +75,6 @@ Use this goal to scope your reading:
 - Target a <output_variables.primary.type> primary output (mapped to CIVIL decisions[0]).
 - Apply all constraints and standards listed above throughout Steps 1–7.
 ```
-
-### Step 1: Read Policy Documents
 
 If `<filename>` is given, read only `domains/<domain>/input/policy_docs/<filename>`.
 Otherwise, read the files selected via the pre-flight prompt (all files if `a` was chosen, or the specific file(s) selected by number).
@@ -361,9 +249,9 @@ rules:
       notes: "<explain any score ≤2 or ≥4>"  # omit if all scores are 3
 ```
 
-**Scoring:** Assign `review:` blocks to every entry in `rules:` and `computed:` as you draft them. Use the Scoring Rubric above. Write scores while the source policy text is in context — do not defer to a separate pass.
+**Scoring:** Assign `review:` blocks to every entry in `rules:` and `computed:` as you draft them. Use the Scoring Rubric from `core/ruleset-shared.md`. Write scores while the source policy text is in context — do not defer to a separate pass.
 
-**Reference:** See `domains/snap/specs/eligibility.civil.yaml` for a complete working example. See the **CIVIL Reference** section above for expression language syntax and multi-step formula guidance.
+**Reference:** See the **CIVIL Reference** section in `core/ruleset-shared.md` for expression language syntax and multi-step formula guidance.
 
 ### Step 5: Write Extraction Manifest
 
@@ -526,317 +414,18 @@ Run **Sub-C: Extraction Complete Footer**.
 
 ---
 
-## Process — UPDATE Mode
-
-### Step 0: Load Naming Manifest and Check for Divergence
-
-**If `domains/<domain>/specs/naming-manifest.yaml` exists:**
-
-1. Read all field names from the manifest (`entities.<EntityName>.<field>` keys and `computed.<field>` keys)
-2. Read all fact and computed field names from `domains/<domain>/specs/<program>.civil.yaml`
-3. Compare the two sets. If any field name exists in the CIVIL file but not the manifest, or exists in both but with a different spelling, **halt** and list every mismatch:
-
-   > ⚠️ Naming manifest divergence detected:
-   > - CIVIL has `income` under `Household`, but manifest expects `gross_monthly_income`
-   >
-   > Resolve by either:
-   > a) Editing the CIVIL file to restore the manifest name, or
-   > b) Editing `naming-manifest.yaml` to acknowledge the rename
-   >
-   > Then re-run `/extract-ruleset <domain>`.
-
-   Do not continue until there are no mismatches.
-
-**If the manifest does not exist** (domain was extracted before this feature was added):
-
-> ⚠️ No naming manifest found. Field names will not be enforced this run. A manifest will be created after this UPDATE completes.
-
-Proceed to Step 1.
-
-### Step 1: Load Baseline
-
-Read `domains/<domain>/specs/extraction-manifest.yaml` to get the git SHA for each source doc.
-
-**Fallback chain (if manifest absent):**
-1. Get the CIVIL file's last commit SHA: `git log -1 --format="%H" -- domains/<domain>/specs/<program>.civil.yaml`
-2. If no git history at all → treat as CREATE mode (full re-extraction)
-
-### Step 1b: Reconcile Manifest
-
-Before change detection, remove stale entries from `extraction-manifest.yaml` for files that no longer exist on disk:
-
-```bash
-# For each path listed in source_docs:
-ls domains/<domain>/input/policy_docs/<path_basename> 2>/dev/null
-# If the file is absent: remove that entry from source_docs and print:
-#   Removed stale manifest entry: <path>
-```
-
-This runs on every UPDATE invocation, regardless of whether `<filename>` was given. It ensures deleted or renamed input files don't cause change detection failures.
-
-### Step 2: Detect Changes
-
-If `<filename>` is given, scope change detection to that file only:
-
-```bash
-# Scoped (when <filename> is given):
-git diff <baseline-sha>..HEAD -- domains/<domain>/input/policy_docs/<filename>
-git status domains/<domain>/input/policy_docs/<filename>
-
-# Full (when <filename> is not given):
-git diff <baseline-sha>..HEAD -- domains/<domain>/input/policy_docs/
-git status domains/<domain>/input/policy_docs/
-```
-
-Collect the list of changed/added/deleted input docs.
-
-### Step 3: No Changes — Exit Early
-
-If no changes detected:
-```
-All input docs are up to date. Nothing to extract.
-To re-extract anyway, delete or rename domains/<domain>/specs/extraction-manifest.yaml and re-run.
-```
-Stop. Do not modify any files.
-
-### Step 4: Identify Affected CIVIL Sections
-
-For each changed doc, read the diff and determine which CIVIL sections need updating:
-
-| Type of Change in Input Doc | Affected CIVIL Sections |
-|---|---|
-| Dollar thresholds by household size | `tables:`, possibly `computed:` (size 9+ formulas) |
-| Fixed rates or percentages | `constants:` |
-| New applicant fields added | `facts:`, possibly `rules:` |
-| New eligibility test or condition | `rules:`, possibly `computed:` |
-| Effective date change | `effective:` |
-| Jurisdiction change | `jurisdiction:` |
-| Deduction formula change | `computed:`, `constants:`, `rules:` |
-
-### Step 5: Re-extract Affected Sections
-
-**If `ai-guidance.yaml` was loaded in pre-flight**, recall the extraction goal before re-reading any policy sections:
-
-```
----
-[ai-guidance.yaml content — paste verbatim as loaded]
----
-
-Apply these constraints and standards when re-extracting the affected CIVIL sections.
-```
-
-For each affected section, re-read the relevant parts of the changed policy doc and re-extract only that section. Do not touch sections not identified in Step 4.
-
-When re-extracting any section that contains `facts:` or `computed:` fields, inject the frozen names from `naming-manifest.yaml` into your extraction reasoning: "These fields must keep their exact current names: [list all names from manifest]. Only introduce new field names for policy concepts not in this list, using the 4-step algorithm: (1) exact noun phrase, (2) strip entity-name words, (3) snake_case, (4) disambiguate if needed." **Never rename an existing field.**
-
-### Step 6: Merge into Existing CIVIL File
-
-Update the existing `domains/<domain>/specs/<program>.civil.yaml` at section granularity:
-- Replace only the affected top-level sections (`tables:`, `constants:`, `rules:`, etc.)
-- Preserve all unchanged sections verbatim (including comments and formatting)
-- Preserve any hand-edits in unchanged sections
-
-### Step 7: Update Manifest
-
-Update `domains/<domain>/specs/extraction-manifest.yaml`:
-
-**If `<filename>` was given (partial update):**
-- Update `extracted_at` to today's date
-- In `source_docs:`, find the entry for `<filename>` and update its `git_sha` and `last_extracted`
-- If no entry exists yet for `<filename>`, add one
-- Preserve all other `source_docs:` entries verbatim (files not processed this run keep their existing SHA)
-
-**If `<filename>` was not given (full update):**
-- Update `git_sha` for each changed source doc
-- Update `extracted_at` to today's date
-
-### Step 8: Validate
-
-Run **Sub-A: Validate**.
-
-### Step 8b: Generate Computation Graph (Preview)
-
-```bash
-python tools/computation_graph.py domains/<domain>/specs/<program>.civil.yaml
-```
-
-Always run unconditionally — regenerates even if graph files already exist from a prior run.
-Capture stdout. Do not echo verbatim.
-
-**On success (exit 0):**
-Read `domains/<domain>/specs/<program>.graph.yaml`. Extract all nodes where `kind == "computed"`.
-
-**On failure (exit 1):**
-Print `Warning: computation graph preview could not be generated — continuing to review.`
-Proceed to Step 9 without showing graph content.
-
-### Step 9: Human Review Gate (UPDATE)
-
-**If Step 8b succeeded**, show the following block before the `Changed input docs:` block:
-
-```
-✓ Draft graph: domains/<domain>/specs/<program>.graph.md
-
-Dependency graph (computed fields):
-  <field_1>    ← <dep_1>, <dep_2>    → <used_by_1>
-  <field_2>    ← <dep_1>             → [rule: <rule_id>]
-  ...
-```
-
-Format each line as: `<node_key>  ← <depends_on list>  → <used_by list>`
-- `depends_on`: join with `, ` — raw field names; no decoration
-- `used_by`: prefix rule nodes with `[rule: ]`; plain names for computed refs
-- Empty `depends_on`: show `← [no deps]`; empty `used_by`: show `→ [unused]` (potential dead-code)
-- Zero computed fields: replace the table with `(No computed fields in this module.)` but still show the Mermaid block
-
-Then embed the fenced `mermaid` block from `<program>.graph.md` exactly as written (do not re-generate):
-
-````mermaid
-[contents of <program>.graph.md — the flowchart LR block]
-````
-
----
-
-Present a **diff-style summary** (not the full ruleset):
-
-```
-Changed input docs:
-  - input/policy_docs/<filename>.md
-
-Updated CIVIL sections:
-  tables.gross_income_limits:
-    OLD: household_size=3 → max_gross_monthly: $2,888
-    NEW: household_size=3 → max_gross_monthly: $2,945
-    Source: "<quote from policy doc>"
-
-  rules.FED-SNAP-DENY-003:
-    OLD when: <expression>   OLD scores: fidelity:3 clarity:3 logic:2 policy:3
-    NEW when: <expression>   NEW scores: fidelity:2 clarity:2 logic:3 policy:4
-    NEW Notes: "'unless' clause may need a separate allow rule for exemption paths"
-
-  (repeat for each changed row/constant/rule/computed field)
-```
-
-**Score reset:** When a rule or computed field is re-extracted, its `review:` block is replaced entirely with fresh scores. Unchanged items retain their existing scores. Score reset applies at section granularity — if a `computed:` section is re-extracted, all fields in that section get new scores.
-
-Ask: "Does this update look correct? Any changes missing or incorrect?"
-
-**On rejection:** Re-extract the specific disputed section, re-merge, re-validate, re-present. Do not proceed until confirmed.
-
-### Step 9b: Update Naming Manifest
-
-If any new fact or computed fields were added during this UPDATE:
-
-1. Apply the 4-step naming algorithm (from CREATE Step 3b) to derive the canonical name for each new concept
-2. Append the new entries to `domains/<domain>/specs/naming-manifest.yaml` under the appropriate entity or `computed:` section
-3. Preserve all existing manifest entries unchanged
-
-If no naming manifest exists yet (domain was extracted before this feature was added), create it now using all current fact and computed field names from the CIVIL file.
-
-No additional user confirmation needed; this happens automatically after the review gate passes.
-
-### Step 9c: Write Stale-Cases Hint
-
-After the review gate passes, write `domains/<domain>/specs/.stale-cases.yaml` for use by `/create-tests`:
-
-```yaml
-# Written by /extract-ruleset UPDATE mode. Consumed and deleted by /create-tests.
-stale_cases:
-  - case_id: "<case_id>"
-    reason: "<what changed — e.g., 'gross_limit for household_size 3 changed from 2888 to 2945'>"
-```
-
-Include any test case whose `inputs` contain a value that was a table boundary or constant value in the old CIVIL file but has changed in the updated version. If no cases are stale, write an empty list:
-```yaml
-stale_cases: []
-```
-
-### Step 9d: Refresh Computation Graph
-
-Run **Sub-B: Generate Computation Graph**.
-
-Run **Sub-C: Extraction Complete Footer**.
-
----
-
-## Shared Procedures
-
-The following subroutines are referenced from both CREATE and UPDATE mode steps. When a step says "Run **Sub-X: ...**", execute the full procedure below.
-
-### Sub-A: Validate
-
-```bash
-python tools/validate_civil.py domains/<domain>/specs/<program>.civil.yaml
-```
-
-**On failure — retry loop (max 3 attempts):**
-- Read the specific error message
-- Identify the offending CIVIL section
-- Re-extract or fix that section
-- Re-validate
-
-After 3 failed attempts, stop and print:
-```
-Validation failed after 3 attempts. Errors:
-  <error list>
-Fix manually, then re-run: python tools/validate_civil.py domains/<domain>/specs/<program>.civil.yaml
-```
-
-### Sub-B: Generate Computation Graph
-
-```bash
-python tools/computation_graph.py domains/<domain>/specs/<program>.civil.yaml
-```
-
-On success the tool prints both output file paths. On failure, print:
-```
-Warning: computation graph could not be refreshed. The draft graph at domains/<domain>/specs/<program>.graph.md may reflect pre-approval state.
-```
-Continue — the CIVIL file and manifests are already written. Do NOT stop the extraction.
-
-### Sub-C: Extraction Complete Footer
-
-**Extraction complete.**
-
-If `<filename>` was given and other `.md` files exist in `domains/<domain>/input/policy_docs/` that were not processed, print:
-```
-Note: this domain has other policy docs not included in this run:
-  - <other_file>.md
-  ...
-To extract from all files as a unified corpus, run without specifying a filename.
-```
-
-```
-Next steps:
-  1. /create-tests <domain>
-  2. /transpile-and-test <domain>
-```
-
----
-
 ## Output
 
 Files created or modified by this command:
 
-| File | CREATE | UPDATE |
-|------|--------|--------|
-| `domains/<domain>/specs/<program>.civil.yaml` | Created | Updated (affected sections only) |
-| `domains/<domain>/specs/extraction-manifest.yaml` | Created | Updated |
-| `domains/<domain>/specs/naming-manifest.yaml` | Created (after Step 7b) | Updated (new fields appended) |
-| `domains/<domain>/specs/<program>.graph.yaml` | Generated (Step 6b) / Refreshed (Step 7c) | Generated (Step 8b) / Refreshed (Step 9d) |
-| `domains/<domain>/specs/<program>.graph.md` | Generated (Step 6b) / Refreshed (Step 7c) | Generated (Step 8b) / Refreshed (Step 9d) |
-| `domains/<domain>/specs/.stale-cases.yaml` | — | Created (after Step 9c; consumed by `/create-tests`) |
-| `domains/<domain>/specs/input-index.yaml` | Read-only (if present) | Read-only (if present) |
-| `domains/<domain>/specs/ai-guidance.yaml` | Read-only (required — run `/refine-guidance <domain>` first) | Read-only (required) |
+| File | Action |
+|------|--------|
+| `domains/<domain>/specs/<program>.civil.yaml` | Created |
+| `domains/<domain>/specs/extraction-manifest.yaml` | Created |
+| `domains/<domain>/specs/naming-manifest.yaml` | Created (after Step 7b) |
+| `domains/<domain>/specs/<program>.graph.yaml` | Generated (Step 6b) / Refreshed (Step 7c) |
+| `domains/<domain>/specs/<program>.graph.md` | Generated (Step 6b) / Refreshed (Step 7c) |
+| `domains/<domain>/specs/input-index.yaml` | Read-only (if present) |
+| `domains/<domain>/specs/ai-guidance.yaml` | Read-only (required — run `/refine-guidance <domain>` first) |
 
 Tests, transpilation, and Rego output are handled by `/create-tests` and `/transpile-and-test`.
-
-## Common Mistakes to Avoid
-
-- **Don't forget `default eligible := false`** — OPA boolean rules are undefined (not false) when conditions don't match; the transpiler handles this automatically for all `bool` fields in `decisions:` and `computed:`
-- **Cite the actual CFR/USC section** for each rule, not just "Program Policy Manual"
-- **Use `optional: true`** for fact fields that may not always be provided (e.g., `earned_income`, `shelter_costs`)
-- **Distinguish earned vs. unearned income** if any deduction applies only to earned income
-- **Use `computed:` for multi-step formulas** — don't reference undefined identifiers in `when:` clauses; if a value needs multiple steps to compute, define it in `computed:` and reference it by name
-- **Don't use `git diff` alone for change detection** — also run `git status` to catch untracked new files not yet committed
-- **Always update the manifest after extraction** — stale git SHAs in `extraction-manifest.yaml` will cause UPDATE mode to miss real changes on the next run
