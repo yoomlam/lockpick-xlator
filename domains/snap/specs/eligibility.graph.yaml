@@ -1,0 +1,280 @@
+domain: snap
+program: eligibility
+generated: '2026-03-03'
+nodes:
+  Household.household_size:
+    kind: input
+    type: int
+    location: facts.Household.household_size
+    depends_on: []
+    used_by:
+    - standard_deduction
+    - gross_limit
+    - net_limit
+  Household.has_elderly_member:
+    kind: input
+    type: bool
+    location: facts.Household.has_elderly_member
+    depends_on: []
+    used_by:
+    - is_exempt_household
+    - FED-SNAP-DENY-001
+  Household.has_disabled_member:
+    kind: input
+    type: bool
+    location: facts.Household.has_disabled_member
+    depends_on: []
+    used_by:
+    - is_exempt_household
+    - FED-SNAP-DENY-001
+  Household.gross_monthly_income:
+    kind: input
+    type: money
+    location: facts.Household.gross_monthly_income
+    depends_on: []
+    used_by:
+    - income_after_prior_deductions
+    - passes_gross_test
+    - FED-SNAP-DENY-001
+  Household.earned_income:
+    kind: input
+    type: money
+    location: facts.Household.earned_income
+    depends_on: []
+    used_by:
+    - earned_income_deduction
+  Household.unearned_income:
+    kind: input
+    type: money
+    location: facts.Household.unearned_income
+    depends_on: []
+    used_by: []
+  Household.shelter_costs_monthly:
+    kind: input
+    type: money
+    location: facts.Household.shelter_costs_monthly
+    depends_on: []
+    used_by:
+    - shelter_excess
+  Household.dependent_care_costs:
+    kind: input
+    type: money
+    location: facts.Household.dependent_care_costs
+    depends_on: []
+    used_by:
+    - dependent_care_deduction
+  SHELTER_DEDUCTION_CAP:
+    kind: input
+    type: int
+    location: constants.SHELTER_DEDUCTION_CAP
+    depends_on: []
+    used_by:
+    - shelter_deduction
+  EARNED_INCOME_DEDUCTION_RATE:
+    kind: input
+    type: float
+    location: constants.EARNED_INCOME_DEDUCTION_RATE
+    depends_on: []
+    used_by:
+    - earned_income_deduction
+  SHELTER_EXCESS_THRESHOLD_RATE:
+    kind: input
+    type: float
+    location: constants.SHELTER_EXCESS_THRESHOLD_RATE
+    depends_on: []
+    used_by:
+    - shelter_excess
+  GROSS_INCOME_INCREMENT_9PLUS:
+    kind: input
+    type: int
+    location: constants.GROSS_INCOME_INCREMENT_9PLUS
+    depends_on: []
+    used_by:
+    - gross_limit
+  NET_INCOME_INCREMENT_9PLUS:
+    kind: input
+    type: int
+    location: constants.NET_INCOME_INCREMENT_9PLUS
+    depends_on: []
+    used_by:
+    - net_limit
+  gross_income_limits:
+    kind: input
+    type: table
+    location: tables.gross_income_limits
+    depends_on: []
+    used_by:
+    - gross_limit
+  net_income_limits:
+    kind: input
+    type: table
+    location: tables.net_income_limits
+    depends_on: []
+    used_by:
+    - net_limit
+  standard_deductions:
+    kind: input
+    type: table
+    location: tables.standard_deductions
+    depends_on: []
+    used_by:
+    - standard_deduction
+  earned_income_deduction:
+    kind: computed
+    type: money
+    location: computed.earned_income_deduction
+    depends_on:
+    - Household.earned_income
+    - EARNED_INCOME_DEDUCTION_RATE
+    used_by:
+    - income_after_prior_deductions
+    description: 20% earned income deduction (7 CFR § 273.9(b))
+  standard_deduction:
+    kind: computed
+    type: money
+    location: computed.standard_deduction
+    depends_on:
+    - Household.household_size
+    - standard_deductions
+    used_by:
+    - income_after_prior_deductions
+    description: Standard deduction by household size (7 CFR § 273.9(c)) — size 7+
+      same as size 6
+  dependent_care_deduction:
+    kind: computed
+    type: money
+    location: computed.dependent_care_deduction
+    depends_on:
+    - Household.dependent_care_costs
+    used_by:
+    - income_after_prior_deductions
+    description: Dependent care costs deduction (7 CFR § 273.9(d)(4))
+  income_after_prior_deductions:
+    kind: computed
+    type: money
+    location: computed.income_after_prior_deductions
+    depends_on:
+    - Household.gross_monthly_income
+    - dependent_care_deduction
+    - standard_deduction
+    - earned_income_deduction
+    used_by:
+    - shelter_excess
+    - net_income
+    description: Gross income after earned, standard, and dependent care deductions
+  shelter_excess:
+    kind: computed
+    type: money
+    location: computed.shelter_excess
+    depends_on:
+    - Household.shelter_costs_monthly
+    - income_after_prior_deductions
+    - SHELTER_EXCESS_THRESHOLD_RATE
+    used_by:
+    - shelter_deduction
+    description: Shelter costs exceeding 50% of remaining income (7 CFR § 273.9(d)(6))
+  is_exempt_household:
+    kind: computed
+    type: bool
+    location: computed.is_exempt_household
+    depends_on:
+    - Household.has_elderly_member
+    - Household.has_disabled_member
+    used_by:
+    - shelter_deduction
+    - passes_gross_test
+    description: Elderly or disabled household — exempt from gross test and shelter
+      cap
+  shelter_deduction:
+    kind: computed
+    type: money
+    location: computed.shelter_deduction
+    depends_on:
+    - is_exempt_household
+    - shelter_excess
+    - SHELTER_DEDUCTION_CAP
+    used_by:
+    - net_income
+    description: Shelter deduction — capped at $744 unless elderly/disabled (7 CFR
+      § 273.9(d)(6))
+  net_income:
+    kind: computed
+    type: money
+    location: computed.net_income
+    depends_on:
+    - income_after_prior_deductions
+    - shelter_deduction
+    used_by:
+    - passes_net_test
+    - FED-SNAP-DENY-002
+    description: Net monthly income after all allowable deductions (7 CFR § 273.9)
+  gross_limit:
+    kind: computed
+    type: money
+    location: computed.gross_limit
+    depends_on:
+    - Household.household_size
+    - GROSS_INCOME_INCREMENT_9PLUS
+    - gross_income_limits
+    used_by:
+    - passes_gross_test
+    - FED-SNAP-DENY-001
+    description: Gross income limit for this household size (with size 9+ formula
+      per 7 CFR § 273.9(a)(1))
+  net_limit:
+    kind: computed
+    type: money
+    location: computed.net_limit
+    depends_on:
+    - Household.household_size
+    - NET_INCOME_INCREMENT_9PLUS
+    - net_income_limits
+    used_by:
+    - passes_net_test
+    - FED-SNAP-DENY-002
+    description: Net income limit for this household size (with size 9+ formula per
+      7 CFR § 273.9(a)(2))
+  passes_gross_test:
+    kind: computed
+    type: bool
+    location: computed.passes_gross_test
+    depends_on:
+    - Household.gross_monthly_income
+    - is_exempt_household
+    - gross_limit
+    used_by: []
+    description: Whether household passes the gross income test (exempt households
+      always pass)
+  passes_net_test:
+    kind: computed
+    type: bool
+    location: computed.passes_net_test
+    depends_on:
+    - net_income
+    - net_limit
+    used_by: []
+    description: Whether household passes the net income test
+  FED-SNAP-DENY-001:
+    kind: rule
+    rule_kind: deny
+    location: rules[FED-SNAP-DENY-001]
+    depends_on:
+    - Household.has_elderly_member
+    - Household.has_disabled_member
+    - Household.gross_monthly_income
+    - gross_limit
+    used_by: []
+  FED-SNAP-DENY-002:
+    kind: rule
+    rule_kind: deny
+    location: rules[FED-SNAP-DENY-002]
+    depends_on:
+    - net_income
+    - net_limit
+    used_by: []
+  FED-SNAP-ALLOW-001:
+    kind: rule
+    rule_kind: allow
+    location: rules[FED-SNAP-ALLOW-001]
+    depends_on: []
+    used_by: []

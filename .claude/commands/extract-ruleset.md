@@ -490,6 +490,15 @@ computed:
 
 This file is user-editable. Do **not** add an "auto-generated" comment.
 
+### Step 7c: Generate Computation Graph
+
+```bash
+python tools/computation_graph.py domains/<domain>/specs/<program>.civil.yaml
+```
+
+On success the tool prints both output file paths. On failure, print the error as a warning
+and continue — the CIVIL file and manifests are already written. Do NOT stop the extraction.
+
 ---
 
 **Extraction complete.**
@@ -698,6 +707,15 @@ Include any test case whose `inputs` contain a value that was a table boundary o
 stale_cases: []
 ```
 
+### Step 9d: Generate Computation Graph
+
+```bash
+python tools/computation_graph.py domains/<domain>/specs/<program>.civil.yaml
+```
+
+On success the tool prints both output file paths. On failure, print the error as a warning
+and continue — the CIVIL file and manifests are already written. Do NOT stop the extraction.
+
 **Extraction complete.**
 
 If `<filename>` was given and other `.md` files exist in `domains/<domain>/input/policy_docs/` that were not processed, print:
@@ -725,6 +743,8 @@ Files created or modified by this command:
 | `domains/<domain>/specs/<program>.civil.yaml` | Created | Updated (affected sections only) |
 | `domains/<domain>/specs/extraction-manifest.yaml` | Created | Updated |
 | `domains/<domain>/specs/naming-manifest.yaml` | Created (after Step 7b) | Updated (new fields appended) |
+| `domains/<domain>/specs/<program>.graph.yaml` | Generated (Step 7c) | Regenerated (Step 9d) |
+| `domains/<domain>/specs/<program>.graph.md` | Generated (Step 7c) | Regenerated (Step 9d) |
 | `domains/<domain>/specs/.stale-cases.yaml` | — | Created (after Step 9c; consumed by `/create-tests`) |
 | `domains/<domain>/specs/input-index.yaml` | Read-only (if present) | Read-only (if present) |
 | `domains/<domain>/specs/ai-guidance.yaml` | Read-only (required — run `/refine-guidance <domain>` first) | Read-only (required) |

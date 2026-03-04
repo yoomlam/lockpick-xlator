@@ -1,0 +1,281 @@
+domain: ak_doh
+program: apa_adltc
+generated: '2026-03-03'
+nodes:
+  Applicant.household_type:
+    kind: input
+    type: enum
+    location: facts.Applicant.household_type
+    depends_on: []
+    used_by:
+    - refused_cash_income_limit
+  Applicant.is_blind:
+    kind: input
+    type: bool
+    location: facts.Applicant.is_blind
+    depends_on: []
+    used_by:
+    - disability_work_exclusion
+  Applicant.is_disabled:
+    kind: input
+    type: bool
+    location: facts.Applicant.is_disabled
+    depends_on: []
+    used_by: []
+  Applicant.is_student:
+    kind: input
+    type: bool
+    location: facts.Applicant.is_student
+    depends_on: []
+    used_by: []
+  Applicant.gross_earned_income:
+    kind: input
+    type: money
+    location: facts.Applicant.gross_earned_income
+    depends_on: []
+    used_by:
+    - income_after_pre_chain_exclusions
+  Applicant.general_exclusion_used_on_unearned:
+    kind: input
+    type: money
+    location: facts.Applicant.general_exclusion_used_on_unearned
+    depends_on: []
+    used_by:
+    - general_exclusion_remaining
+  Applicant.infrequent_irregular_excluded:
+    kind: input
+    type: money
+    location: facts.Applicant.infrequent_irregular_excluded
+    depends_on: []
+    used_by:
+    - income_after_pre_chain_exclusions
+  Applicant.student_earned_excluded:
+    kind: input
+    type: money
+    location: facts.Applicant.student_earned_excluded
+    depends_on: []
+    used_by:
+    - income_after_pre_chain_exclusions
+  Applicant.irwe_amount:
+    kind: input
+    type: money
+    location: facts.Applicant.irwe_amount
+    depends_on: []
+    used_by:
+    - disability_work_exclusion
+  Applicant.blind_work_expenses:
+    kind: input
+    type: money
+    location: facts.Applicant.blind_work_expenses
+    depends_on: []
+    used_by:
+    - disability_work_exclusion
+  Applicant.pass_exclusion:
+    kind: input
+    type: money
+    location: facts.Applicant.pass_exclusion
+    depends_on: []
+    used_by:
+    - income_after_pre_chain_exclusions
+  Applicant.dol_monthly_income_avg:
+    kind: input
+    type: money
+    location: facts.Applicant.dol_monthly_income_avg
+    depends_on: []
+    used_by:
+    - dol_countable_income
+    - AK-APA-DENY-002
+  GENERAL_INCOME_EXCLUSION:
+    kind: input
+    type: int
+    location: constants.GENERAL_INCOME_EXCLUSION
+    depends_on: []
+    used_by:
+    - general_exclusion_remaining
+    - dol_countable_income
+  EARNED_INCOME_EXCLUSION:
+    kind: input
+    type: int
+    location: constants.EARNED_INCOME_EXCLUSION
+    depends_on: []
+    used_by:
+    - income_after_earned_exclusion
+    - dol_countable_income
+  EARNED_INCOME_HALF_RATE:
+    kind: input
+    type: float
+    location: constants.EARNED_INCOME_HALF_RATE
+    depends_on: []
+    used_by:
+    - countable_earned_income
+    - dol_countable_income
+  INFREQUENT_QUARTERLY_MAX:
+    kind: input
+    type: int
+    location: constants.INFREQUENT_QUARTERLY_MAX
+    depends_on: []
+    used_by: []
+  SELF_EMPLOYMENT_DEDUCTION_RATE:
+    kind: input
+    type: float
+    location: constants.SELF_EMPLOYMENT_DEDUCTION_RATE
+    depends_on: []
+    used_by: []
+  REASONABLE_COMPATIBILITY_TOLERANCE:
+    kind: input
+    type: float
+    location: constants.REASONABLE_COMPATIBILITY_TOLERANCE
+    depends_on: []
+    used_by:
+    - is_dol_reasonably_compatible
+  refused_cash_income_limits:
+    kind: input
+    type: table
+    location: tables.refused_cash_income_limits
+    depends_on: []
+    used_by:
+    - refused_cash_income_limit
+  refused_cash_income_limit:
+    kind: computed
+    type: money
+    location: computed.refused_cash_income_limit
+    depends_on:
+    - Applicant.household_type
+    - refused_cash_income_limits
+    used_by:
+    - AK-APA-DENY-001
+    - AK-APA-DENY-002
+    description: Maximum allowable monthly countable income for this household type
+      (ADLTC Addendum 1 table, 01/01/2026 column)
+  general_exclusion_remaining:
+    kind: computed
+    type: money
+    location: computed.general_exclusion_remaining
+    depends_on:
+    - Applicant.general_exclusion_used_on_unearned
+    - GENERAL_INCOME_EXCLUSION
+    used_by:
+    - income_after_general_exclusion
+    description: Portion of the $20 general income exclusion not yet applied against
+      unearned income — available to offset earned income this month (§442-2E)
+  income_after_pre_chain_exclusions:
+    kind: computed
+    type: money
+    location: computed.income_after_pre_chain_exclusions
+    depends_on:
+    - Applicant.pass_exclusion
+    - Applicant.student_earned_excluded
+    - Applicant.gross_earned_income
+    - Applicant.infrequent_irregular_excluded
+    used_by:
+    - income_after_general_exclusion
+    description: Earned income after removing infrequent/irregular, student, and PASS
+      exclusions — feeds into the standard $20/$65/50% chain
+  income_after_general_exclusion:
+    kind: computed
+    type: money
+    location: computed.income_after_general_exclusion
+    depends_on:
+    - income_after_pre_chain_exclusions
+    - general_exclusion_remaining
+    used_by:
+    - income_after_earned_exclusion
+    description: Earned income after applying the remaining $20 general income exclusion
+      (§442-2E)
+  income_after_earned_exclusion:
+    kind: computed
+    type: money
+    location: computed.income_after_earned_exclusion
+    depends_on:
+    - income_after_general_exclusion
+    - EARNED_INCOME_EXCLUSION
+    used_by:
+    - income_after_disability_work_exclusion
+    description: Earned income after the $65 earned income exclusion (§442-2F)
+  disability_work_exclusion:
+    kind: computed
+    type: money
+    location: computed.disability_work_exclusion
+    depends_on:
+    - Applicant.is_blind
+    - Applicant.blind_work_expenses
+    - Applicant.irwe_amount
+    used_by:
+    - income_after_disability_work_exclusion
+    description: 'Work expense exclusion: blind work expenses (§442-2I) if blind,
+      otherwise IRWE (§442-2G) if disabled — zero if neither applies'
+  income_after_disability_work_exclusion:
+    kind: computed
+    type: money
+    location: computed.income_after_disability_work_exclusion
+    depends_on:
+    - income_after_earned_exclusion
+    - disability_work_exclusion
+    used_by:
+    - countable_earned_income
+    description: Earned income after deducting disability or blindness work expenses
+      (§442-2G / §442-2I)
+  countable_earned_income:
+    kind: computed
+    type: money
+    location: computed.countable_earned_income
+    depends_on:
+    - income_after_disability_work_exclusion
+    - EARNED_INCOME_HALF_RATE
+    used_by:
+    - is_dol_reasonably_compatible
+    - AK-APA-DENY-001
+    - AK-APA-DENY-002
+    description: Final countable earned income — all exclusions applied, including
+      the one-half exclusion (§442-2H)
+  dol_countable_income:
+    kind: computed
+    type: money
+    location: computed.dol_countable_income
+    depends_on:
+    - Applicant.dol_monthly_income_avg
+    - EARNED_INCOME_HALF_RATE
+    - EARNED_INCOME_EXCLUSION
+    - GENERAL_INCOME_EXCLUSION
+    used_by:
+    - is_dol_reasonably_compatible
+    - AK-APA-DENY-002
+    description: DOL average monthly income with standard $20/$65/50% exclusion chain
+      applied — used for reasonable compatibility comparison (§523B)
+  is_dol_reasonably_compatible:
+    kind: computed
+    type: bool
+    location: computed.is_dol_reasonably_compatible
+    depends_on:
+    - dol_countable_income
+    - countable_earned_income
+    - REASONABLE_COMPATIBILITY_TOLERANCE
+    used_by:
+    - AK-APA-DENY-002
+    description: True if DOL-reported countable income is within 10% of client-stated
+      countable income (§523B)
+  AK-APA-DENY-001:
+    kind: rule
+    rule_kind: deny
+    location: rules[AK-APA-DENY-001]
+    depends_on:
+    - countable_earned_income
+    - refused_cash_income_limit
+    used_by: []
+  AK-APA-DENY-002:
+    kind: rule
+    rule_kind: deny
+    location: rules[AK-APA-DENY-002]
+    depends_on:
+    - Applicant.dol_monthly_income_avg
+    - countable_earned_income
+    - refused_cash_income_limit
+    - dol_countable_income
+    - is_dol_reasonably_compatible
+    used_by: []
+  AK-APA-ALLOW-001:
+    kind: rule
+    rule_kind: allow
+    location: rules[AK-APA-ALLOW-001]
+    depends_on: []
+    used_by: []

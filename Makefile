@@ -12,7 +12,7 @@
 #   2. Copy this block, replacing SNAP_ prefix and snap- prefixes with your domain name
 #   3. Set DOMAIN_CIVIL, DOMAIN_TESTS, DOMAIN_REGO, DOMAIN_PACKAGE, DOMAIN_OPA_PATH
 
-.PHONY: snap snap-setup snap-validate snap-transpile snap-test snap-demo generate-schema ak_doh ak_doh-validate ak_doh-transpile ak_doh-test ak_doh-demo
+.PHONY: snap snap-setup snap-validate snap-transpile snap-test snap-demo snap-graph generate-schema ak_doh ak_doh-validate ak_doh-transpile ak_doh-test ak_doh-demo ak_doh-graph
 
 baseline-setup:
 	# Install UV (Python tool) if it doesn't exist
@@ -59,6 +59,9 @@ snap-test:
 snap-demo:
 	bash domains/snap/demo/start.sh
 
+snap-graph:
+	python tools/computation_graph.py $(SNAP_CIVIL)
+
 # ---------------------------------------------------------------------------
 # AK_DOH — Alaska APA/ADLTC income eligibility
 # ---------------------------------------------------------------------------
@@ -82,3 +85,6 @@ ak_doh-test:
 
 ak_doh-demo:
 	bash domains/ak_doh/demo/start.sh
+
+ak_doh-graph:
+	python tools/computation_graph.py $(AK_DOH_CIVIL)
