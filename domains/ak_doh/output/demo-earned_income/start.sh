@@ -14,7 +14,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
-REGO_FILE="$REPO_ROOT/domains/ak_doh/output/earned_income.rego"
+REGO_FILE="${REGO_FILE:-$REPO_ROOT/domains/ak_doh/output/earned_income.rego}"
 OPA_PORT=8181
 FASTAPI_PORT=8000
 
