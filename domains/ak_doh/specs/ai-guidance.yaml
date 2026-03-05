@@ -1,0 +1,266 @@
+goal_id: calculate-earned-income-after-exclusions
+source_template: calculate-earned-income-after-exclusions
+generated_at: "2026-03-04"
+display_name: "Calculate Final Earned Income After Exclusions"
+description: "Derive the final earned income amount for a household after applying all relevant exclusions and deductions as specified in the policy."
+
+role: "You are a policy-to-rules analyst for earned income calculations."
+scope: "Convert the provided policy text into explicit, testable earned income calculation rules that produce a dollar amount."
+
+constraints:
+  # From template
+  - "Do not interpret beyond the text; do not add requirements that aren't stated."
+  - "Ensure every monetary formula traces directly to a policy citation."
+  - "Create a list of unknowns/gaps (things needed but not defined in the text)."
+  - "List any assumptions made."
+  - "Do not round unless the policy explicitly specifies rounding."
+  - "Do not apply proration for partial months unless the policy states it."
+  # Domain-specific (ak_doh)
+  - "Do not apply the $20 general income exclusion against needs-based income — policy explicitly prohibits it."
+  - "Do not apply exclusions in arbitrary order — 442-4 specifies a strict 10-step sequential order."
+  - "Do not assume Medicaid/ADLTC and APA rules are identical — sections 523-524 explicitly override APA in specific areas."
+  - "Do not treat couple exclusions as per-person — the $20 and $65 exclusions are each allowed only once to a couple."
+  - "When a policy section enumerates a long list of federal statutes authorizing exclusions (e.g., § 442-3 A), model the total exclusion amount as a single caseworker-provided input variable rather than attempting to codify each statute individually — note the enumerated list in the field description."
+
+standards:
+  # From template
+  - "Use monthly amounts unless policy specifies otherwise."
+  - "Express monetary values in dollars."
+  - "Key allotment tables by household size."
+  - "Express percentages as decimals (0.3, not 30%)."
+  # Domain-specific (ak_doh)
+  - "Classify sick leave as earned income if received within 6 months of work stoppage; as unearned income if received after 6 months."
+  - "For self-employment, compute net income as gross less allowable deductions (50% standard or actual costs), annualized over the taxable year then divided by 12 for a monthly figure."
+  - "Student earned income exclusion amounts are updated annually — reference from the program standards table (Addendum 1), not hardcoded values."
+  - "Express quarterly infrequent/irregular exclusion limits by income type: $30/quarter for earned; $60/quarter for unearned."
+
+guidance:
+  # From template
+  - "Apply rounding rules only if stated in the policy."
+  - "Prorate for partial months only if stated in the policy."
+  # Domain-specific (ak_doh)
+  - "Apply exclusions in the exact 10-step order specified in 442-4: (1) federal law exclusions, (2) EITC/Child Tax Credit, (3) infrequent/irregular earned income, (4) student earned income, (5) $20 general applied to unearned first then remaining to earned, (6) $65 monthly, (7) IRWE for disabled, (8) one-half of remaining, (9) blind work expenses, (10) self-support plan. Compute each exclusion as a named variable (e.g., infrequent_exclusion, general_exclusion_on_earned, dollar_65_exclusion, irwe_exclusion, half_exclusion, blind_work_exclusion, self_support_exclusion). Then derive final_earned_income by subtracting the sum of applicable exclusions from gross earned income — do not chain intermediate income values where each step feeds the next."
+  - "The $20 general exclusion is applied first to unearned income; any unused remainder is then applied to earned income."
+  - "Infrequent/irregular exclusion is applied before the $20 general exclusion."
+  - "For couples, the $20 and $65 exclusions apply only once to combined income, not per-member."
+  - "For self-employment, allowable deductions are either 50% of gross (standard) or actual documented costs — look for both options in the policy."
+  - "When a policy summary table (e.g., § 442-4 ordering table) disagrees with the detailed policy body text on a dollar amount, use the detailed policy body text as authoritative and note the discrepancy in the review notes."
+
+edge_cases:
+  - "Blind individuals: blind work expense exclusion (step 9) covers any work expense, not just impairment-related — broader than the IRWE exclusion available to other disabled individuals."
+  - "Blind or disabled students under age 22: student earned income exclusion applies subject to monthly and annual dollar caps (updated annually in program standards table)."
+  - "Couples with both members having income: each exclusion ($20, $65) is applied only once to combined income."
+  - "Needs-based income recipients: $20 general exclusion does not apply to needs-based income."
+  - "Special Long Term Care (ADLTC): standard income disregards including the $20 general exclusion do not apply — different rules govern under section 523."
+  - "Alaska Native/American Indian individuals: IIM account funds are excluded from income and resources; Alaska Native/American Indian real property excluded from countable resources."
+  - "Medicaid QMB/SLMB/QDWI categories: use Federal Poverty Guidelines for Alaska instead of APA standards."
+  - "Annual dollar caps (e.g., student earned income annual limit) cannot be enforced in a single-pass monthly calculation — include the constant for documentation, note in the description that cross-month tracking is required, and mark the constant unused."
+  - "The 'hours beyond student's control' exception for school attendance (illness, etc.) is a discretionary caseworker determination that cannot be encoded — note it as an unmodeled gap in the computed field description."
+
+input_variables:
+  categories:
+    - category: sick_leave_within_six_months
+      description: "Sick leave is earned income if the individual receives it within six months after work stopped because of sickness or disability."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/441/441-1 EARNED INCOME.md"
+      source_section: "441-1 C. SICK LEAVE"
+
+    - category: garnishments
+      description: "Wages withheld from earned income to satisfy a debt or legal obligation count as earned income."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/441/441-1 EARNED INCOME.md"
+      source_section: "441-1 D. GARNISHMENTS AGAINST EARNED INCOME"
+
+    - category: self_employment_net_earnings
+      description: "Net self-employment income is the gross income from a trade or business less allowable deductions for that trade or business."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/441/441-1 EARNED INCOME.md"
+      source_section: "441-1 E. NET EARNINGS FROM SELF-EMPLOYMENT"
+
+    - category: work_activities_center_earnings
+      description: "Payments for services performed in a sheltered workshop or work activities center. Payments for such services are earned income."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/441/441-1 EARNED INCOME.md"
+      source_section: "441-1 F. EARNINGS FROM SHELTERED WORKSHOP OR WORK ACTIVITIES CENTER"
+
+    - category: salary
+      description: "Wages include salaries, commissions, bonuses, severance pay, and other special payments received because of employment."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/441/441-1 EARNED INCOME.md"
+      source_section: "441-1 A. WAGES"
+
+    - category: commissions
+      description: "Wages include salaries, commissions, bonuses, severance pay, and other special payments received because of employment."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/441/441-1 EARNED INCOME.md"
+      source_section: "441-1 A. WAGES"
+
+    - category: bonuses
+      description: "Wages include salaries, commissions, bonuses, severance pay, and other special payments received because of employment."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/441/441-1 EARNED INCOME.md"
+      source_section: "441-1 A. WAGES"
+
+    - category: severance
+      description: "Wages include salaries, commissions, bonuses, severance pay, and other special payments received because of employment."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/441/441-1 EARNED INCOME.md"
+      source_section: "441-1 A. WAGES"
+
+    - category: special_payments
+      description: "Wages include salaries, commissions, bonuses, severance pay, and other special payments received because of employment."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/441/441-1 EARNED INCOME.md"
+      source_section: "441-1 A. WAGES"
+
+    - category: benefit_contribution_excess
+      description: "Only the amount that goes directly to the employee (benefit contribution excess) is counted when determining a household's gross income."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/441/441-1 EARNED INCOME.md"
+      source_section: "441-1 B. FLEXIBLE HEALTH BENEFITS"
+
+    - category: eitc
+      description: "Earned Income Tax Credits (EITC) payments verified through paycheck stub or copy of income tax return."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 B. EARNED INCOME TAX CREDIT AND CHILD TAX CREDIT PAYMENTS"
+
+    - category: income_is_infrequent
+      description: "An individual receives infrequent income if he or she receives it no more than once in a calendar quarter from a single source."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      source_section: "442-1 A. INFREQUENT/IRREGULAR INCOME"
+
+    - category: income_is_irregular
+      description: "An individual receives irregular income if he or she could not reasonably expect to receive it."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      source_section: "442-1 A. INFREQUENT/IRREGULAR INCOME"
+
+    - category: income_is_earned
+      description: "Income classification used to apply quarterly limits for infrequent/irregular exclusion ($30 earned per calendar quarter)."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      source_section: "442-1 A. INFREQUENT/IRREGULAR INCOME"
+
+    - category: income_is_current_quarter
+      description: "Income must be evaluated within the calendar quarter context for infrequent/irregular income exclusion limits."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      source_section: "442-1 A. INFREQUENT/IRREGULAR INCOME"
+
+    - category: non_needs_unearned_income_applicant1
+      description: "The first $20 per month of any unearned income that an individual receives, other than income based on need, is excluded from income."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      source_section: "442-1 B. $20 PER MONTH GENERAL INCOME EXCLUSION"
+
+    - category: non_needs_unearned_income_applicant2
+      description: "The first $20 per month of any unearned income that an individual receives, other than income based on need, is excluded from income."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      source_section: "442-1 B. $20 PER MONTH GENERAL INCOME EXCLUSION"
+
+    - category: applying_as_a_couple
+      description: "The $20 general income exclusion is applied only once to a couple, even when both members have income, because the couple's income is combined in determining APA eligibility and payment."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      source_section: "442-1 B. $20 PER MONTH GENERAL INCOME EXCLUSION"
+
+    - category: earned_income_after_student_exclusion_applicant1
+      description: "The earned income of a blind or disabled student is excluded subject to monthly and yearly maximums. Earned income that exceeds the maximum limits is not excluded."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
+
+    - category: earned_income_after_student_exclusion_applicant2
+      description: "The earned income of a blind or disabled student is excluded subject to monthly and yearly maximums. Earned income that exceeds the maximum limits is not excluded."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
+
+    - category: earned_income_after_general_exclusion
+      description: "Any portion of the $20 general income exclusion which has not been excluded from unearned income in the same month is excluded from earned income."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 E. $20 PER MONTH GENERAL INCOME EXCLUSION"
+
+    - category: disabled_work_expense_necessary_for_work
+      description: "Impairment-related work expenses are any reasonable expenses for items or services that are necessary for the disabled individual to work."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 G. IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED"
+
+    - category: disabled_work_expenses
+      description: "Any earned income that a disabled individual uses to pay for impairment-related work expenses is excluded from income."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 G. IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED"
+
+    - category: related_to_impairment
+      description: "Impairment-related work expenses must be directly related to the individual's impairment."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 G. IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED"
+
+    - category: blind_work_expenses
+      description: "Any earned income that a blind individual uses to meet work expenses is excluded from income. The blind work expense income exclusion is allowed for any work expense, whether or not the expense is directly related to the individual's blindness."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 I. WORK EXPENSES FOR THE BLIND"
+
+    - category: self_support_plan_spend
+      description: "Any earned or unearned income of a blind or disabled recipient that the recipient needs to fulfill a plan for achieving self-support is excluded from income."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      source_section: "442-1 C. AMOUNT TO FULFILL A PLAN FOR ACHIEVING SELF-SUPPORT"
+
+    - category: plan_verified
+      description: "To allow this exclusion, the Social Security Administration or the Division of Vocational Rehabilitation must approve any plan for achieving self-support and specify what amount of income is to be excluded. Documentation from either agency shall be used to verify the amount."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      source_section: "442-1 C. AMOUNT TO FULFILL A PLAN FOR ACHIEVING SELF-SUPPORT"
+
+    - category: is_blind_or_disabled
+      description: "Individual is blind or disabled as determined for APA eligibility. Required for student earned income exclusion eligibility."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
+      exact_phrase: "The earned income of a blind or disabled student is excluded subject to monthly and yearly maximums."
+
+    - category: age
+      description: "Individual's age used to determine student status. Must be under age 22 to qualify for student earned income exclusion."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
+      exact_phrase: "An individual is a student if he or she is under age 22 and regularly attending school."
+
+    - category: hours_in_college
+      description: "Hours attending college or university per week. Requires at least 8 hours per week to be considered regularly attending school."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
+      exact_phrase: "At least 8 hours a week in a college or university"
+
+    - category: hours_in_grades7to12
+      description: "Hours attending grades 7 through 12 per week. Requires at least 12 hours per week to be considered regularly attending school."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
+      exact_phrase: "At least 12 hours a week in grades 7 - 12"
+
+    - category: hours_in_course_shop
+      description: "Hours in a training course if the course includes shop practice. Requires at least 15 hours per week if shop practice is included."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
+      exact_phrase: "An individual is regularly attending school if he or she is taking a training course to prepare for employment and is attending classes for at least 15 hours per week if shop practice is part of the training, or at least 12 hours per week if no shop practice is involved."
+
+    - category: hours_in_course_noShop
+      description: "Hours in a training course if no shop practice is included. Requires at least 12 hours per week if no shop practice is involved."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
+      exact_phrase: "An individual is regularly attending school if he or she is taking a training course to prepare for employment and is attending classes for at least 15 hours per week if shop practice is part of the training, or at least 12 hours per week if no shop practice is involved."
+
+    - category: student_income
+      description: "Earned income of a blind or disabled student subject to exclusion. Monthly and yearly maximum limits apply."
+      source_file: "domains/ak_doh/input/policy_docs/apa_manual/442/442-2 EARNED INCOME EXCLUSIONS.md"
+      source_section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
+      exact_phrase: "The earned income of a blind or disabled student is excluded subject to monthly and yearly maximums. Earned income that exceeds the maximum limits is not excluded."
+
+output_variables:
+  primary:
+    type: "money"
+    description: "Final earned income after all exclusions."
+  secondary_decisions:
+    - name: eligibility_for_benefits
+      type: "bool"
+      description: "Flag indicating if applicant is eligible using the final earned income compared with Refused Cash Income Limits."
+
+intermediate_variables:
+  categories:
+    - category: exclusion_total
+      description: "Total amount of income exclusions applied."
+      examples: [total_exclusions, sum_of_exclusions]
+    - category: student_income_exclusion
+      description: "Amount of earned income excluded due to student status, subject to hours attended."
+      examples: [student_exclusion_amount, student_earned_income_exclusion]
+
+constants_and_tables:
+  - name: student_earned_income_exclusion
+    description: "Student Earned Income Exclusion"
+  - name: expanded_refused_cash_income_limits
+    description: "Expanded Refused Cash Income Limits"
+
+examples:
+  ruleset_snippet: |
+    earned_income_after_exclusions = earned_income - max(0, total_exclusions)
+  test_case:

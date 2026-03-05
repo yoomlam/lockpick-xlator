@@ -1,0 +1,424 @@
+domain: ak_doh
+program: earned_income
+generated: '2026-03-04'
+nodes:
+  Applicant.gross_wages:
+    kind: input
+    type: money
+    location: facts.Applicant.gross_wages
+    depends_on: []
+    used_by:
+    - total_gross_earned_income
+  Applicant.flex_benefit_excess:
+    kind: input
+    type: money
+    location: facts.Applicant.flex_benefit_excess
+    depends_on: []
+    used_by:
+    - total_gross_earned_income
+  Applicant.sick_leave_within_6mo:
+    kind: input
+    type: money
+    location: facts.Applicant.sick_leave_within_6mo
+    depends_on: []
+    used_by:
+    - total_gross_earned_income
+  Applicant.garnishment_amount:
+    kind: input
+    type: money
+    location: facts.Applicant.garnishment_amount
+    depends_on: []
+    used_by:
+    - total_gross_earned_income
+  Applicant.net_self_employment_income:
+    kind: input
+    type: money
+    location: facts.Applicant.net_self_employment_income
+    depends_on: []
+    used_by:
+    - total_gross_earned_income
+  Applicant.sheltered_workshop_earnings:
+    kind: input
+    type: money
+    location: facts.Applicant.sheltered_workshop_earnings
+    depends_on: []
+    used_by:
+    - total_gross_earned_income
+  Applicant.eitc_ctc_payment:
+    kind: input
+    type: money
+    location: facts.Applicant.eitc_ctc_payment
+    depends_on: []
+    used_by:
+    - eitc_exclusion
+  Applicant.federal_law_exclusion_amount:
+    kind: input
+    type: money
+    location: facts.Applicant.federal_law_exclusion_amount
+    depends_on: []
+    used_by:
+    - federal_exclusion
+  Applicant.infrequent_earned_amount:
+    kind: input
+    type: money
+    location: facts.Applicant.infrequent_earned_amount
+    depends_on: []
+    used_by:
+    - infrequent_earned_exclusion
+  Applicant.non_needs_unearned_income:
+    kind: input
+    type: money
+    location: facts.Applicant.non_needs_unearned_income
+    depends_on: []
+    used_by:
+    - general_exclusion_used_on_unearned
+  Applicant.is_couple:
+    kind: input
+    type: bool
+    location: facts.Applicant.is_couple
+    depends_on: []
+    used_by: []
+  Applicant.is_blind_or_disabled:
+    kind: input
+    type: bool
+    location: facts.Applicant.is_blind_or_disabled
+    depends_on: []
+    used_by:
+    - student_exclusion
+    - irwe_exclusion
+    - self_support_exclusion
+  Applicant.is_blind:
+    kind: input
+    type: bool
+    location: facts.Applicant.is_blind
+    depends_on: []
+    used_by:
+    - irwe_exclusion
+    - blind_work_exclusion
+  Applicant.age:
+    kind: input
+    type: int
+    location: facts.Applicant.age
+    depends_on: []
+    used_by:
+    - student_exclusion
+  Applicant.college_hours_per_week:
+    kind: input
+    type: float
+    location: facts.Applicant.college_hours_per_week
+    depends_on: []
+    used_by:
+    - is_regular_school_attendance
+  Applicant.grades7_12_hours_per_week:
+    kind: input
+    type: float
+    location: facts.Applicant.grades7_12_hours_per_week
+    depends_on: []
+    used_by:
+    - is_regular_school_attendance
+  Applicant.training_shop_hours_per_week:
+    kind: input
+    type: float
+    location: facts.Applicant.training_shop_hours_per_week
+    depends_on: []
+    used_by:
+    - is_regular_school_attendance
+  Applicant.training_no_shop_hours_per_week:
+    kind: input
+    type: float
+    location: facts.Applicant.training_no_shop_hours_per_week
+    depends_on: []
+    used_by:
+    - is_regular_school_attendance
+  Applicant.student_earned_income:
+    kind: input
+    type: money
+    location: facts.Applicant.student_earned_income
+    depends_on: []
+    used_by:
+    - student_exclusion
+  Applicant.irwe_amount:
+    kind: input
+    type: money
+    location: facts.Applicant.irwe_amount
+    depends_on: []
+    used_by:
+    - irwe_exclusion
+  Applicant.blind_work_expense_amount:
+    kind: input
+    type: money
+    location: facts.Applicant.blind_work_expense_amount
+    depends_on: []
+    used_by:
+    - blind_work_exclusion
+  Applicant.self_support_plan_amount:
+    kind: input
+    type: money
+    location: facts.Applicant.self_support_plan_amount
+    depends_on: []
+    used_by:
+    - self_support_exclusion
+  Applicant.household_type:
+    kind: input
+    type: enum
+    location: facts.Applicant.household_type
+    depends_on: []
+    used_by:
+    - AK-APA-DENY-001
+  INFREQUENT_EARNED_QUARTERLY_LIMIT:
+    kind: input
+    type: int
+    location: constants.INFREQUENT_EARNED_QUARTERLY_LIMIT
+    depends_on: []
+    used_by:
+    - infrequent_earned_exclusion
+  GENERAL_INCOME_EXCLUSION:
+    kind: input
+    type: int
+    location: constants.GENERAL_INCOME_EXCLUSION
+    depends_on: []
+    used_by:
+    - general_exclusion_used_on_unearned
+    - general_exclusion_on_earned
+  EARNED_INCOME_EXCLUSION_FLAT:
+    kind: input
+    type: int
+    location: constants.EARNED_INCOME_EXCLUSION_FLAT
+    depends_on: []
+    used_by:
+    - dollar_65_exclusion
+  STUDENT_MONTHLY_EXCLUSION_LIMIT:
+    kind: input
+    type: int
+    location: constants.STUDENT_MONTHLY_EXCLUSION_LIMIT
+    depends_on: []
+    used_by:
+    - student_exclusion
+  STUDENT_ANNUAL_EXCLUSION_LIMIT:
+    kind: input
+    type: int
+    location: constants.STUDENT_ANNUAL_EXCLUSION_LIMIT
+    depends_on: []
+    used_by: []
+  expanded_refused_cash_income_limits:
+    kind: input
+    type: table
+    location: tables.expanded_refused_cash_income_limits
+    depends_on: []
+    used_by:
+    - AK-APA-DENY-001
+  total_gross_earned_income:
+    kind: computed
+    type: money
+    location: computed.total_gross_earned_income
+    depends_on:
+    - Applicant.sheltered_workshop_earnings
+    - Applicant.net_self_employment_income
+    - Applicant.garnishment_amount
+    - Applicant.sick_leave_within_6mo
+    - Applicant.gross_wages
+    - Applicant.flex_benefit_excess
+    used_by:
+    - pre_half_subtotal
+    - final_earned_income
+    description: Sum of all earned income types from all sources before any exclusions.
+  federal_exclusion:
+    kind: computed
+    type: money
+    location: computed.federal_exclusion
+    depends_on:
+    - Applicant.federal_law_exclusion_amount
+    used_by:
+    - pre_half_subtotal
+    - final_earned_income
+    description: 'Step 1 (§ 442-4): Earned income exclusions authorized by federal
+      laws. Caseworker-determined pass-through amount.'
+  eitc_exclusion:
+    kind: computed
+    type: money
+    location: computed.eitc_exclusion
+    depends_on:
+    - Applicant.eitc_ctc_payment
+    used_by:
+    - pre_half_subtotal
+    - final_earned_income
+    description: 'Step 2 (§ 442-4): Full amount of EITC and Child Tax Credit payments
+      excluded from income.'
+  infrequent_earned_exclusion:
+    kind: computed
+    type: money
+    location: computed.infrequent_earned_exclusion
+    depends_on:
+    - Applicant.infrequent_earned_amount
+    - INFREQUENT_EARNED_QUARTERLY_LIMIT
+    used_by:
+    - pre_half_subtotal
+    - final_earned_income
+    description: 'Step 3 (§ 442-4): Infrequent/irregular earned income exclusion —
+      up to $30 per calendar quarter.'
+  is_regular_school_attendance:
+    kind: computed
+    type: bool
+    location: computed.is_regular_school_attendance
+    depends_on:
+    - Applicant.college_hours_per_week
+    - Applicant.grades7_12_hours_per_week
+    - Applicant.training_shop_hours_per_week
+    - Applicant.training_no_shop_hours_per_week
+    used_by:
+    - student_exclusion
+    description: 'Whether the individual is regularly attending school as defined
+      for the student earned income exclusion: college ≥8 hrs/wk, grades 7-12 ≥12
+      hrs/wk, training with shop ≥15 hrs/wk, training without shop ≥12 hrs/wk.'
+  student_exclusion:
+    kind: computed
+    type: money
+    location: computed.student_exclusion
+    depends_on:
+    - Applicant.is_blind_or_disabled
+    - Applicant.age
+    - Applicant.student_earned_income
+    - is_regular_school_attendance
+    - STUDENT_MONTHLY_EXCLUSION_LIMIT
+    used_by:
+    - pre_half_subtotal
+    - final_earned_income
+    description: 'Step 4 (§ 442-4): Student earned income exclusion — earned income
+      of a blind or disabled student under age 22 in regular school attendance, up
+      to the monthly limit.'
+  general_exclusion_used_on_unearned:
+    kind: computed
+    type: money
+    location: computed.general_exclusion_used_on_unearned
+    depends_on:
+    - Applicant.non_needs_unearned_income
+    - GENERAL_INCOME_EXCLUSION
+    used_by:
+    - general_exclusion_on_earned
+    description: Portion of the $20 per month general income exclusion consumed by
+      non-needs-based unearned income. Applied first to unearned income per § 442-1
+      B.
+  general_exclusion_on_earned:
+    kind: computed
+    type: money
+    location: computed.general_exclusion_on_earned
+    depends_on:
+    - general_exclusion_used_on_unearned
+    - GENERAL_INCOME_EXCLUSION
+    used_by:
+    - pre_half_subtotal
+    - final_earned_income
+    description: 'Step 5 (§ 442-4): Unused portion of the $20 general income exclusion
+      applied to earned income. The remainder after unearned consumption.'
+  dollar_65_exclusion:
+    kind: computed
+    type: money
+    location: computed.dollar_65_exclusion
+    depends_on:
+    - EARNED_INCOME_EXCLUSION_FLAT
+    used_by:
+    - pre_half_subtotal
+    - final_earned_income
+    description: 'Step 6 (§ 442-4): Flat $65 per month earned income exclusion. Applied
+      once to a couple.'
+  irwe_exclusion:
+    kind: computed
+    type: money
+    location: computed.irwe_exclusion
+    depends_on:
+    - Applicant.is_blind_or_disabled
+    - Applicant.is_blind
+    - Applicant.irwe_amount
+    used_by:
+    - pre_half_subtotal
+    - final_earned_income
+    description: 'Step 7 (§ 442-4): Impairment-related work expense exclusion for
+      disabled (non-blind) individuals. Expenses must be necessary to work and directly
+      related to the impairment.'
+  pre_half_subtotal:
+    kind: computed
+    type: money
+    location: computed.pre_half_subtotal
+    depends_on:
+    - irwe_exclusion
+    - dollar_65_exclusion
+    - general_exclusion_on_earned
+    - student_exclusion
+    - infrequent_earned_exclusion
+    - eitc_exclusion
+    - total_gross_earned_income
+    - federal_exclusion
+    used_by:
+    - half_exclusion
+    description: Remaining earned income after applying exclusion steps 1–7, used
+      as the base for the one-half exclusion. Floored at zero per policy (exclusions
+      never reduce earned income below zero).
+  half_exclusion:
+    kind: computed
+    type: money
+    location: computed.half_exclusion
+    depends_on:
+    - pre_half_subtotal
+    used_by:
+    - final_earned_income
+    description: 'Step 8 (§ 442-4): One-half of remaining earned income after steps
+      1–7.'
+  blind_work_exclusion:
+    kind: computed
+    type: money
+    location: computed.blind_work_exclusion
+    depends_on:
+    - Applicant.is_blind
+    - Applicant.blind_work_expense_amount
+    used_by:
+    - final_earned_income
+    description: 'Step 9 (§ 442-4): Work expense exclusion for blind individuals —
+      covers any work expense regardless of whether it relates to the individual''s
+      blindness.'
+  self_support_exclusion:
+    kind: computed
+    type: money
+    location: computed.self_support_exclusion
+    depends_on:
+    - Applicant.is_blind_or_disabled
+    - Applicant.self_support_plan_amount
+    used_by:
+    - final_earned_income
+    description: 'Step 10 (§ 442-4): Income set aside to fulfill an SSA- or DVR-approved
+      plan for achieving self-support.'
+  final_earned_income:
+    kind: computed
+    type: money
+    location: computed.final_earned_income
+    depends_on:
+    - self_support_exclusion
+    - blind_work_exclusion
+    - half_exclusion
+    - irwe_exclusion
+    - dollar_65_exclusion
+    - general_exclusion_on_earned
+    - student_exclusion
+    - infrequent_earned_exclusion
+    - eitc_exclusion
+    - total_gross_earned_income
+    - federal_exclusion
+    used_by:
+    - AK-APA-DENY-001
+    description: Final countable earned income after applying all 10 exclusion steps
+      in the order specified by § 442-4. Floored at zero (exclusions never reduce
+      earned income below zero; unused exclusions are not applied to unearned income).
+  AK-APA-DENY-001:
+    kind: rule
+    rule_kind: deny
+    location: rules[AK-APA-DENY-001]
+    depends_on:
+    - Applicant.household_type
+    - final_earned_income
+    - expanded_refused_cash_income_limits
+    used_by: []
+  AK-APA-ALLOW-001:
+    kind: rule
+    rule_kind: allow
+    location: rules[AK-APA-ALLOW-001]
+    depends_on: []
+    used_by: []

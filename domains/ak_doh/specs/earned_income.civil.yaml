@@ -1,0 +1,461 @@
+module: "earned_income"
+description: "Calculate final countable earned income for an APA/ADLTC Medicaid applicant after applying all exclusions in the 10-step order specified by APA Manual section 442-4. Also evaluates whether final earned income is within the Expanded Refused Cash Income Limit."
+version: "2026Q1"
+jurisdiction:
+  level: state
+  country: US
+  state: AK
+effective:
+  start: 2026-01-01
+
+facts:
+  Applicant:
+    description: "Individual (or couple) applying for APA or ADLTC Medicaid benefits. For couples, income inputs should reflect the combined couple totals."
+    fields:
+      gross_wages:
+        type: money
+        currency: USD
+        description: "Wages received before any deductions, including salaries, commissions, bonuses, severance pay, and other special employment payments."
+        source: "APA Manual § 441-1 A — WAGES"
+        optional: true
+
+      flex_benefit_excess:
+        type: money
+        currency: USD
+        description: "Benefit contribution excess from employer-paid flexible health benefits: the amount paid directly to the employee above mandatory health insurance cost."
+        source: "APA Manual § 441-1 B — FLEXIBLE HEALTH BENEFITS"
+        optional: true
+
+      sick_leave_within_6mo:
+        type: money
+        currency: USD
+        description: "Sick leave payments received within six months after work stopped due to sickness or disability (counted as earned income). Sick leave received after six months is unearned income."
+        source: "APA Manual § 441-1 C — SICK LEAVE"
+        optional: true
+
+      garnishment_amount:
+        type: money
+        currency: USD
+        description: "Wages withheld from earned income to satisfy a debt or legal obligation. Counted as earned income even though not received directly."
+        source: "APA Manual § 441-1 D — GARNISHMENTS AGAINST EARNED INCOME"
+        optional: true
+
+      net_self_employment_income:
+        type: money
+        currency: USD
+        description: "Net self-employment income: gross income from trade or business less allowable deductions (50% standard or actual IRS-allowable costs), annualized over the taxable year and divided by 12. Caseworker-computed monthly figure."
+        source: "APA Manual § 441-1 E — NET EARNINGS FROM SELF-EMPLOYMENT"
+        optional: true
+
+      sheltered_workshop_earnings:
+        type: money
+        currency: USD
+        description: "Payments for services performed in a sheltered workshop or work activities center designed to prepare the individual for self-support."
+        source: "APA Manual § 441-1 F — EARNINGS FROM SHELTERED WORKSHOP OR WORK ACTIVITIES CENTER"
+        optional: true
+
+      eitc_ctc_payment:
+        type: money
+        currency: USD
+        description: "Earned Income Tax Credit (EITC) or Child Tax Credit payments received as advance payroll or year-end tax refund. Excluded from income regardless of the tax year involved."
+        source: "APA Manual § 442-2 B — EARNED INCOME TAX CREDIT AND CHILD TAX CREDIT PAYMENTS"
+        optional: true
+
+      federal_law_exclusion_amount:
+        type: money
+        currency: USD
+        description: "Total dollar amount of earned income exclusions authorized by federal laws (see § 442-3 A for the full enumerated list). Caseworker-determined amount after verifying applicable statutory basis."
+        source: "APA Manual § 442-2 A — EARNED INCOME EXCLUSIONS AUTHORIZED BY FEDERAL LAWS"
+        optional: true
+
+      infrequent_earned_amount:
+        type: money
+        currency: USD
+        description: "Infrequent or irregular earned income received in the current calendar quarter — income received no more than once per quarter from a single source, or income that could not reasonably be expected. Quarterly limit is $30."
+        source: "APA Manual § 442-1 A — INFREQUENT/IRREGULAR INCOME; § 442-2 C"
+        optional: true
+
+      non_needs_unearned_income:
+        type: money
+        currency: USD
+        description: "Monthly unearned income that is not needs-based. Used to determine how much of the $20 general income exclusion is consumed by unearned income before applying the remainder to earned income."
+        source: "APA Manual § 442-1 B — $20 PER MONTH GENERAL INCOME EXCLUSION"
+        optional: true
+
+      is_couple:
+        type: bool
+        description: "Whether the applicant is applying as part of a couple. The $20 and $65 exclusions are each applied only once to a couple's combined income, not per-member. When true, income inputs should be combined couple totals."
+        source: "APA Manual § 442-1 B — $20 PER MONTH GENERAL INCOME EXCLUSION; § 442-2 F — $65 EARNED INCOME EXCLUSION"
+
+      is_blind_or_disabled:
+        type: bool
+        description: "Whether the individual is blind or disabled as determined for APA eligibility. Required for student earned income exclusion (step 4), IRWE (step 7), and self-support plan exclusion (step 10)."
+        source: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION; § 442-2 G — IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED"
+
+      is_blind:
+        type: bool
+        description: "Whether the individual is specifically blind. Blind individuals receive the broader blind work expense exclusion (step 9, any work expense) rather than the IRWE exclusion (step 7, impairment-related only)."
+        source: "APA Manual § 442-2 I — WORK EXPENSES FOR THE BLIND"
+
+      age:
+        type: int
+        description: "Age of the individual in years. Must be under 22 to qualify for the student earned income exclusion."
+        source: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+
+      college_hours_per_week:
+        type: float
+        description: "Hours per week attending a college or university. At least 8 hours per week required for regular school attendance."
+        source: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+        optional: true
+
+      grades7_12_hours_per_week:
+        type: float
+        description: "Hours per week enrolled in grades 7 through 12. At least 12 hours per week required for regular school attendance."
+        source: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+        optional: true
+
+      training_shop_hours_per_week:
+        type: float
+        description: "Hours per week in a job training course that includes shop practice. At least 15 hours per week required for regular school attendance."
+        source: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+        optional: true
+
+      training_no_shop_hours_per_week:
+        type: float
+        description: "Hours per week in a job training course that does not include shop practice. At least 12 hours per week required for regular school attendance."
+        source: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+        optional: true
+
+      student_earned_income:
+        type: money
+        currency: USD
+        description: "Earned income received by the blind or disabled student that is subject to the student earned income exclusion. Capped by the monthly limit from Addendum 1."
+        source: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+        optional: true
+
+      irwe_amount:
+        type: money
+        currency: USD
+        description: "Impairment-related work expenses paid by a disabled (non-blind) individual: reasonable expenses for items or services necessary to work and directly related to the impairment. Must be verified before exclusion is allowed."
+        source: "APA Manual § 442-2 G — IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED"
+        optional: true
+
+      blind_work_expense_amount:
+        type: money
+        currency: USD
+        description: "Work expenses paid by a blind individual: any work expense, whether or not directly related to blindness. Broader than IRWE. Must be verified before exclusion is allowed."
+        source: "APA Manual § 442-2 I — WORK EXPENSES FOR THE BLIND"
+        optional: true
+
+      self_support_plan_amount:
+        type: money
+        currency: USD
+        description: "Income set aside to fulfill an SSA- or DVR-approved plan for achieving self-support. SSA or DVR must approve the plan and specify the excluded amount; documentation required."
+        source: "APA Manual § 442-1 C — AMOUNT TO FULFILL A PLAN FOR ACHIEVING SELF-SUPPORT; § 442-2 J"
+        optional: true
+
+      household_type:
+        type: enum
+        values: [A1E, B1E, H1E, A2S, B2S, H2S, A2C, B2C, H2C, NHR]
+        description: "APA household type code used to look up the Expanded Refused Cash Income Limit. A1E=Individual Independent Living, B1E=Individual In Another's Household, H1E=Individual ALH, A2S/B2S/H2S=Couple 1 Eligible, A2C/B2C/H2C=Couple Both Eligible, NHR=Nursing Home Regular."
+        source: "ADLTC Manual Addendum 1 — EXPANDED REFUSED CASH INCOME LIMITS"
+
+decisions:
+  eligible:
+    type: bool
+    default: false
+    description: "Whether the applicant's final earned income is within the Expanded Refused Cash Income Limit for their household type."
+  denial_reasons:
+    type: list
+    item: Reason
+    default: []
+    description: "Reasons for failing the income test."
+
+tables:
+  expanded_refused_cash_income_limits:
+    description: "Monthly Expanded Refused Cash Income Limits by APA household type (effective 01/01/2026). Updated annually."
+    source: "ADLTC Manual Addendum 1 — EXPANDED REFUSED CASH INCOME LIMITS (effective 01/01/2026)"
+    key: [household_type]
+    value: [monthly_limit]
+    rows:
+      - {household_type: "A1E",  monthly_limit: 1845}
+      - {household_type: "B1E",  monthly_limit: 1845}
+      - {household_type: "H1E",  monthly_limit: 1845}
+      - {household_type: "A2S",  monthly_limit: 2732}
+      - {household_type: "B2S",  monthly_limit: 2732}
+      - {household_type: "H2S",  monthly_limit: 2732}
+      - {household_type: "A2C",  monthly_limit: 2732}
+      - {household_type: "B2C",  monthly_limit: 2732}
+      - {household_type: "H2C",  monthly_limit: 2732}
+      - {household_type: "NHR",  monthly_limit: 1845}
+
+constants:
+  INFREQUENT_EARNED_QUARTERLY_LIMIT: 30    # § 442-1 A, § 442-2 C; per calendar quarter
+  GENERAL_INCOME_EXCLUSION: 20             # § 442-1 B; per month
+  EARNED_INCOME_EXCLUSION_FLAT: 65         # § 442-2 F; per month
+  STUDENT_MONTHLY_EXCLUSION_LIMIT: 2410    # APA Addendum 1 (2026); updated annually
+  STUDENT_ANNUAL_EXCLUSION_LIMIT: 9730     # APA Addendum 1 (2026); updated annually — not enforced here (requires cross-month tracking)
+
+computed:
+  # ── Gross earned income ────────────────────────────────────────────────────
+  total_gross_earned_income:
+    type: money
+    currency: USD
+    description: "Sum of all earned income types from all sources before any exclusions."
+    source: "APA Manual §§ 441-1 A–F — EARNED INCOME"
+    expr: "Applicant.gross_wages + Applicant.flex_benefit_excess + Applicant.sick_leave_within_6mo + Applicant.garnishment_amount + Applicant.net_self_employment_income + Applicant.sheltered_workshop_earnings"
+    review:
+      extraction_fidelity: 4
+      source_clarity: 4
+      logic_complexity: 2
+      policy_complexity: 2
+      notes: "Sums six optional earned income subtypes from § 441-1. Optional fields contribute 0 when not provided. Self-employment net income is assumed caseworker-computed per § 441-1 E."
+
+  # ── Step 1: Federal law exclusions ────────────────────────────────────────
+  federal_exclusion:
+    type: money
+    currency: USD
+    description: "Step 1 (§ 442-4): Earned income exclusions authorized by federal laws. Caseworker-determined pass-through amount."
+    source: "APA Manual § 442-2 A — EARNED INCOME EXCLUSIONS AUTHORIZED BY FEDERAL LAWS"
+    expr: "Applicant.federal_law_exclusion_amount"
+    review:
+      extraction_fidelity: 2
+      source_clarity: 3
+      logic_complexity: 1
+      policy_complexity: 3
+      notes: "Low fidelity: § 442-3 A enumerates 20+ federal statutes (ANCSA, WWII restitution, Agent Orange, etc.) each with specific conditions. Fully codifying these as CIVIL rules would require a separate module. Modeled as a caseworker-provided input amount after case-specific verification."
+
+  # ── Step 2: EITC / Child Tax Credit ───────────────────────────────────────
+  eitc_exclusion:
+    type: money
+    currency: USD
+    description: "Step 2 (§ 442-4): Full amount of EITC and Child Tax Credit payments excluded from income."
+    source: "APA Manual § 442-2 B — EARNED INCOME TAX CREDIT AND CHILD TAX CREDIT PAYMENTS"
+    expr: "Applicant.eitc_ctc_payment"
+    review:
+      extraction_fidelity: 5
+      source_clarity: 5
+      logic_complexity: 1
+      policy_complexity: 1
+
+  # ── Step 3: Infrequent/irregular earned income ────────────────────────────
+  infrequent_earned_exclusion:
+    type: money
+    currency: USD
+    description: "Step 3 (§ 442-4): Infrequent/irregular earned income exclusion — up to $30 per calendar quarter."
+    source: "APA Manual § 442-1 A — INFREQUENT/IRREGULAR INCOME; § 442-2 C"
+    expr: "min(Applicant.infrequent_earned_amount, INFREQUENT_EARNED_QUARTERLY_LIMIT)"
+    review:
+      extraction_fidelity: 4
+      source_clarity: 4
+      logic_complexity: 1
+      policy_complexity: 2
+      notes: "§ 442-4 ordering table lists '$10 of infrequent/irregular earned income' — this appears to be the monthly equivalent of the $30/quarter limit stated in § 442-1 A and § 442-2 C. Used $30/quarter as the authoritative limit per the policy body text."
+
+  # ── Step 4: Student earned income exclusion ───────────────────────────────
+  is_regular_school_attendance:
+    type: bool
+    description: "Whether the individual is regularly attending school as defined for the student earned income exclusion: college ≥8 hrs/wk, grades 7-12 ≥12 hrs/wk, training with shop ≥15 hrs/wk, training without shop ≥12 hrs/wk."
+    source: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+    conditional:
+      if: "Applicant.college_hours_per_week >= 8 || Applicant.grades7_12_hours_per_week >= 12 || Applicant.training_shop_hours_per_week >= 15 || Applicant.training_no_shop_hours_per_week >= 12"
+      then: "true"
+      else: "false"
+    review:
+      extraction_fidelity: 4
+      source_clarity: 4
+      logic_complexity: 3
+      policy_complexity: 2
+      notes: "Four school-type branches each with distinct minimum-hour thresholds directly from § 442-2 D bullet list. Policy also permits shorter hours when reason is beyond student's control (illness, etc.) — this discretionary caseworker determination is a gap not modeled here. Optional hour fields default to 0 when not applicable."
+
+  student_exclusion:
+    type: money
+    currency: USD
+    description: "Step 4 (§ 442-4): Student earned income exclusion — earned income of a blind or disabled student under age 22 in regular school attendance, up to the monthly limit."
+    source: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION; APA Addendum 1 (2026 monthly limit: $2,410)"
+    conditional:
+      if: "Applicant.is_blind_or_disabled && Applicant.age < 22 && is_regular_school_attendance"
+      then: "min(Applicant.student_earned_income, STUDENT_MONTHLY_EXCLUSION_LIMIT)"
+      else: "0"
+    review:
+      extraction_fidelity: 4
+      source_clarity: 4
+      logic_complexity: 3
+      policy_complexity: 3
+      notes: "Three conditions: blind-or-disabled, age < 22, regular school attendance. Annual limit ($9,730 for 2026) cannot be enforced in a single-pass monthly calculation — requires cross-month state tracking outside this module's scope. Monthly limit ($2,410 for 2026) is applied."
+
+  # ── Step 5: $20 general exclusion applied to earned income ────────────────
+  general_exclusion_used_on_unearned:
+    type: money
+    currency: USD
+    description: "Portion of the $20 per month general income exclusion consumed by non-needs-based unearned income. Applied first to unearned income per § 442-1 B."
+    source: "APA Manual § 442-1 B — $20 PER MONTH GENERAL INCOME EXCLUSION"
+    expr: "min(Applicant.non_needs_unearned_income, GENERAL_INCOME_EXCLUSION)"
+    review:
+      extraction_fidelity: 5
+      source_clarity: 5
+      logic_complexity: 1
+      policy_complexity: 2
+
+  general_exclusion_on_earned:
+    type: money
+    currency: USD
+    description: "Step 5 (§ 442-4): Unused portion of the $20 general income exclusion applied to earned income. The remainder after unearned consumption."
+    source: "APA Manual § 442-2 E — $20 PER MONTH GENERAL INCOME EXCLUSION; § 442-1 B"
+    expr: "max(0, GENERAL_INCOME_EXCLUSION - general_exclusion_used_on_unearned)"
+    review:
+      extraction_fidelity: 5
+      source_clarity: 5
+      logic_complexity: 2
+      policy_complexity: 2
+
+  # ── Step 6: $65 earned income exclusion ───────────────────────────────────
+  dollar_65_exclusion:
+    type: money
+    currency: USD
+    description: "Step 6 (§ 442-4): Flat $65 per month earned income exclusion. Applied once to a couple."
+    source: "APA Manual § 442-2 F — $65 EARNED INCOME EXCLUSION"
+    expr: "EARNED_INCOME_EXCLUSION_FLAT"
+    review:
+      extraction_fidelity: 5
+      source_clarity: 5
+      logic_complexity: 1
+      policy_complexity: 1
+
+  # ── Step 7: IRWE for disabled ─────────────────────────────────────────────
+  irwe_exclusion:
+    type: money
+    currency: USD
+    description: "Step 7 (§ 442-4): Impairment-related work expense exclusion for disabled (non-blind) individuals. Expenses must be necessary to work and directly related to the impairment."
+    source: "APA Manual § 442-2 G — IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED"
+    conditional:
+      if: "Applicant.is_blind_or_disabled && !Applicant.is_blind"
+      then: "Applicant.irwe_amount"
+      else: "0"
+    review:
+      extraction_fidelity: 4
+      source_clarity: 4
+      logic_complexity: 2
+      policy_complexity: 3
+      notes: "Applies to disabled individuals who are not blind. Blind individuals use the broader blind work expense exclusion at step 9 instead. Policy requires verification of all expenses before this exclusion is allowed — modeled as a caseworker-verified input amount."
+
+  # ── Step 8: One-half exclusion ────────────────────────────────────────────
+  pre_half_subtotal:
+    type: money
+    currency: USD
+    description: "Remaining earned income after applying exclusion steps 1–7, used as the base for the one-half exclusion. Floored at zero per policy (exclusions never reduce earned income below zero)."
+    source: "APA Manual § 442-4 — THE ORDER IN WHICH INCOME EXCLUSIONS ARE APPLIED"
+    expr: "max(0, total_gross_earned_income - federal_exclusion - eitc_exclusion - infrequent_earned_exclusion - student_exclusion - general_exclusion_on_earned - dollar_65_exclusion - irwe_exclusion)"
+    review:
+      extraction_fidelity: 5
+      source_clarity: 5
+      logic_complexity: 3
+      policy_complexity: 2
+      notes: "Intermediate subtotal required because the half exclusion (step 8) is computed as a fraction of the post-steps-1-7 remaining income. All named exclusion variables are subtracted from gross in a single expression per guidance."
+
+  half_exclusion:
+    type: money
+    currency: USD
+    description: "Step 8 (§ 442-4): One-half of remaining earned income after steps 1–7."
+    source: "APA Manual § 442-2 H — ONE-HALF OF REMAINING EARNED INCOME"
+    expr: "pre_half_subtotal * 0.5"
+    review:
+      extraction_fidelity: 5
+      source_clarity: 5
+      logic_complexity: 1
+      policy_complexity: 1
+
+  # ── Step 9: Blind work expenses ───────────────────────────────────────────
+  blind_work_exclusion:
+    type: money
+    currency: USD
+    description: "Step 9 (§ 442-4): Work expense exclusion for blind individuals — covers any work expense regardless of whether it relates to the individual's blindness."
+    source: "APA Manual § 442-2 I — WORK EXPENSES FOR THE BLIND"
+    conditional:
+      if: "Applicant.is_blind"
+      then: "Applicant.blind_work_expense_amount"
+      else: "0"
+    review:
+      extraction_fidelity: 4
+      source_clarity: 4
+      logic_complexity: 1
+      policy_complexity: 2
+      notes: "Applies only to blind individuals. Intentionally broader than IRWE: any work expense qualifies (mileage, licenses, dues, taxes, mandatory pension, meals). Verification required before allowing."
+
+  # ── Step 10: Self-support plan ────────────────────────────────────────────
+  self_support_exclusion:
+    type: money
+    currency: USD
+    description: "Step 10 (§ 442-4): Income set aside to fulfill an SSA- or DVR-approved plan for achieving self-support."
+    source: "APA Manual § 442-1 C — AMOUNT TO FULFILL A PLAN FOR ACHIEVING SELF-SUPPORT; § 442-2 J"
+    conditional:
+      if: "Applicant.is_blind_or_disabled && Applicant.self_support_plan_amount > 0"
+      then: "Applicant.self_support_plan_amount"
+      else: "0"
+    review:
+      extraction_fidelity: 4
+      source_clarity: 4
+      logic_complexity: 2
+      policy_complexity: 3
+      notes: "SSA or DVR must approve the plan and specify the exclusion amount; documentation required. Modeled as a caseworker-verified input. Policy requires individual to be blind or disabled."
+
+  # ── Final result ──────────────────────────────────────────────────────────
+  final_earned_income:
+    type: money
+    currency: USD
+    description: "Final countable earned income after applying all 10 exclusion steps in the order specified by § 442-4. Floored at zero (exclusions never reduce earned income below zero; unused exclusions are not applied to unearned income)."
+    source: "APA Manual § 442-4 — THE ORDER IN WHICH INCOME EXCLUSIONS ARE APPLIED; § 442-2"
+    expr: "max(0, total_gross_earned_income - federal_exclusion - eitc_exclusion - infrequent_earned_exclusion - student_exclusion - general_exclusion_on_earned - dollar_65_exclusion - irwe_exclusion - half_exclusion - blind_work_exclusion - self_support_exclusion)"
+    review:
+      extraction_fidelity: 5
+      source_clarity: 5
+      logic_complexity: 4
+      policy_complexity: 4
+      notes: "Combines all 10 named exclusion variables. High complexity due to the number of interdependent exclusion steps, population-specific conditions (blind vs disabled vs student), and the half_exclusion dependency on pre_half_subtotal. Blind work and self-support exclusions are applied after the half exclusion per § 442-4 ordering."
+
+rule_set:
+  name: "AK_APA_REFUSED_CASH_INCOME_TEST"
+  precedence: deny_overrides_allow
+  description: "Evaluates whether the applicant's final earned income falls within the Expanded Refused Cash Income Limit for their APA household type."
+
+rules:
+  - id: "AK-APA-DENY-001"
+    kind: deny
+    priority: 1
+    description: "Final earned income exceeds the Expanded Refused Cash Income Limit for the applicant's household type."
+    source: "ADLTC Manual Addendum 1 — EXPANDED REFUSED CASH INCOME LIMITS (effective 01/01/2026)"
+    when: "final_earned_income > table('expanded_refused_cash_income_limits', Applicant.household_type).monthly_limit"
+    then:
+      - add_reason:
+          code: "INCOME_EXCEEDS_REFUSED_CASH_LIMIT"
+          message: "Final earned income exceeds the Expanded Refused Cash Income Limit for the household type."
+          citations:
+            - label: "ADLTC Manual Addendum 1 — Expanded Refused Cash Income Limits"
+              url: "http://dpaweb.hss.state.ak.us/manuals/adltc/adltc.htm"
+              excerpt: "Provides the annual income limit table for the Expanded Refuse Cash program by household type for the ADLTC Medicaid program."
+    review:
+      extraction_fidelity: 4
+      source_clarity: 4
+      logic_complexity: 2
+      policy_complexity: 2
+      notes: "Table lookup deny rule using household_type key. 2026 income limit values used. Strong match to the Addendum 1 table structure."
+
+  - id: "AK-APA-ALLOW-001"
+    kind: allow
+    priority: 100
+    description: "Final earned income is within the Expanded Refused Cash Income Limit — applicant passes the income test."
+    source: "ADLTC Manual Addendum 1 — EXPANDED REFUSED CASH INCOME LIMITS"
+    when: "true"
+    then:
+      - add_reason:
+          code: "INCOME_WITHIN_REFUSED_CASH_LIMIT"
+          message: "Final earned income is within the Expanded Refused Cash Income Limit for the household type."
+          citations:
+            - label: "ADLTC Manual Addendum 1 — Expanded Refused Cash Income Limits"
+              url: "http://dpaweb.hss.state.ak.us/manuals/adltc/adltc.htm"
+              excerpt: "Provides the annual income limit table for the Expanded Refuse Cash program by household type for the ADLTC Medicaid program."
+    review:
+      extraction_fidelity: 3
+      source_clarity: 3
+      logic_complexity: 1
+      policy_complexity: 1

@@ -1,0 +1,101 @@
+graph TD
+  Applicant_gross_wages(["Applicant.gross_wages<br/>money"])
+  Applicant_flex_benefit_excess(["Applicant.flex_benefit_excess<br/>money"])
+  Applicant_sick_leave_within_6mo(["Applicant.sick_leave_within_6mo<br/>money"])
+  Applicant_garnishment_amount(["Applicant.garnishment_amount<br/>money"])
+  Applicant_net_self_employment_income(["Applicant.net_self_employment_income<br/>money"])
+  Applicant_sheltered_workshop_earnings(["Applicant.sheltered_workshop_earnings<br/>money"])
+  Applicant_eitc_ctc_payment(["Applicant.eitc_ctc_payment<br/>money"])
+  Applicant_federal_law_exclusion_amount(["Applicant.federal_law_exclusion_amount<br/>money"])
+  Applicant_infrequent_earned_amount(["Applicant.infrequent_earned_amount<br/>money"])
+  Applicant_non_needs_unearned_income(["Applicant.non_needs_unearned_income<br/>money"])
+  Applicant_is_couple(["Applicant.is_couple<br/>bool"])
+  Applicant_is_blind_or_disabled(["Applicant.is_blind_or_disabled<br/>bool"])
+  Applicant_is_blind(["Applicant.is_blind<br/>bool"])
+  Applicant_age(["Applicant.age<br/>int"])
+  Applicant_college_hours_per_week(["Applicant.college_hours_per_week<br/>float"])
+  Applicant_grades7_12_hours_per_week(["Applicant.grades7_12_hours_per_week<br/>float"])
+  Applicant_training_shop_hours_per_week(["Applicant.training_shop_hours_per_week<br/>float"])
+  Applicant_training_no_shop_hours_per_week(["Applicant.training_no_shop_hours_per_week<br/>float"])
+  Applicant_student_earned_income(["Applicant.student_earned_income<br/>money"])
+  Applicant_irwe_amount(["Applicant.irwe_amount<br/>money"])
+  Applicant_blind_work_expense_amount(["Applicant.blind_work_expense_amount<br/>money"])
+  Applicant_self_support_plan_amount(["Applicant.self_support_plan_amount<br/>money"])
+  Applicant_household_type(["Applicant.household_type<br/>enum"])
+  INFREQUENT_EARNED_QUARTERLY_LIMIT(["INFREQUENT_EARNED_QUARTERLY_LIMIT<br/>int"])
+  GENERAL_INCOME_EXCLUSION(["GENERAL_INCOME_EXCLUSION<br/>int"])
+  EARNED_INCOME_EXCLUSION_FLAT(["EARNED_INCOME_EXCLUSION_FLAT<br/>int"])
+  STUDENT_MONTHLY_EXCLUSION_LIMIT(["STUDENT_MONTHLY_EXCLUSION_LIMIT<br/>int"])
+  STUDENT_ANNUAL_EXCLUSION_LIMIT(["STUDENT_ANNUAL_EXCLUSION_LIMIT<br/>int"])
+  expanded_refused_cash_income_limits(["expanded_refused_cash_income_limits<br/>table"])
+  total_gross_earned_income["total_gross_earned_income<br/>money"]
+  federal_exclusion["federal_exclusion<br/>money"]
+  eitc_exclusion["eitc_exclusion<br/>money"]
+  infrequent_earned_exclusion["infrequent_earned_exclusion<br/>money"]
+  is_regular_school_attendance["is_regular_school_attendance<br/>bool"]
+  student_exclusion["student_exclusion<br/>money"]
+  general_exclusion_used_on_unearned["general_exclusion_used_on_unearned<br/>money"]
+  general_exclusion_on_earned["general_exclusion_on_earned<br/>money"]
+  dollar_65_exclusion["dollar_65_exclusion<br/>money"]
+  irwe_exclusion["irwe_exclusion<br/>money"]
+  pre_half_subtotal["pre_half_subtotal<br/>money"]
+  half_exclusion["half_exclusion<br/>money"]
+  blind_work_exclusion["blind_work_exclusion<br/>money"]
+  self_support_exclusion["self_support_exclusion<br/>money"]
+  final_earned_income["final_earned_income<br/>money"]
+  AK_APA_DENY_001{{"AK-APA-DENY-001<br/>deny"}}
+  AK_APA_ALLOW_001{{"AK-APA-ALLOW-001<br/>allow"}}
+  Applicant_sheltered_workshop_earnings --> total_gross_earned_income
+  Applicant_net_self_employment_income --> total_gross_earned_income
+  Applicant_garnishment_amount --> total_gross_earned_income
+  Applicant_sick_leave_within_6mo --> total_gross_earned_income
+  Applicant_gross_wages --> total_gross_earned_income
+  Applicant_flex_benefit_excess --> total_gross_earned_income
+  Applicant_federal_law_exclusion_amount --> federal_exclusion
+  Applicant_eitc_ctc_payment --> eitc_exclusion
+  Applicant_infrequent_earned_amount --> infrequent_earned_exclusion
+  INFREQUENT_EARNED_QUARTERLY_LIMIT --> infrequent_earned_exclusion
+  Applicant_college_hours_per_week --> is_regular_school_attendance
+  Applicant_grades7_12_hours_per_week --> is_regular_school_attendance
+  Applicant_training_shop_hours_per_week --> is_regular_school_attendance
+  Applicant_training_no_shop_hours_per_week --> is_regular_school_attendance
+  Applicant_is_blind_or_disabled --> student_exclusion
+  Applicant_age --> student_exclusion
+  Applicant_student_earned_income --> student_exclusion
+  is_regular_school_attendance --> student_exclusion
+  STUDENT_MONTHLY_EXCLUSION_LIMIT --> student_exclusion
+  Applicant_non_needs_unearned_income --> general_exclusion_used_on_unearned
+  GENERAL_INCOME_EXCLUSION --> general_exclusion_used_on_unearned
+  general_exclusion_used_on_unearned --> general_exclusion_on_earned
+  GENERAL_INCOME_EXCLUSION --> general_exclusion_on_earned
+  EARNED_INCOME_EXCLUSION_FLAT --> dollar_65_exclusion
+  Applicant_is_blind_or_disabled --> irwe_exclusion
+  Applicant_is_blind --> irwe_exclusion
+  Applicant_irwe_amount --> irwe_exclusion
+  irwe_exclusion --> pre_half_subtotal
+  dollar_65_exclusion --> pre_half_subtotal
+  general_exclusion_on_earned --> pre_half_subtotal
+  student_exclusion --> pre_half_subtotal
+  infrequent_earned_exclusion --> pre_half_subtotal
+  eitc_exclusion --> pre_half_subtotal
+  total_gross_earned_income --> pre_half_subtotal
+  federal_exclusion --> pre_half_subtotal
+  pre_half_subtotal --> half_exclusion
+  Applicant_is_blind --> blind_work_exclusion
+  Applicant_blind_work_expense_amount --> blind_work_exclusion
+  Applicant_is_blind_or_disabled --> self_support_exclusion
+  Applicant_self_support_plan_amount --> self_support_exclusion
+  self_support_exclusion --> final_earned_income
+  blind_work_exclusion --> final_earned_income
+  half_exclusion --> final_earned_income
+  irwe_exclusion --> final_earned_income
+  dollar_65_exclusion --> final_earned_income
+  general_exclusion_on_earned --> final_earned_income
+  student_exclusion --> final_earned_income
+  infrequent_earned_exclusion --> final_earned_income
+  eitc_exclusion --> final_earned_income
+  total_gross_earned_income --> final_earned_income
+  federal_exclusion --> final_earned_income
+  Applicant_household_type --> AK_APA_DENY_001
+  final_earned_income --> AK_APA_DENY_001
+  expanded_refused_cash_income_limits --> AK_APA_DENY_001

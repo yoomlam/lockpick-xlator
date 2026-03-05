@@ -26,6 +26,7 @@ import re
 import sys
 import os
 import argparse
+import subprocess
 import yaml
 
 
@@ -47,10 +48,10 @@ def load_civil(path):
 def validate_before_transpile(path):
     """Run the CIVIL validator first. Exits 1 if invalid."""
     validator = os.path.join(os.path.dirname(__file__), "validate_civil.py")
-    ret = os.system(f"python {validator} {path} > /dev/null 2>&1")
+    ret = subprocess.run([sys.executable, validator, path], capture_output=True).returncode
     if ret != 0:
         # Re-run with output visible
-        os.system(f"python {validator} {path}")
+        subprocess.run([sys.executable, validator, path])
         fail(f"CIVIL validation failed for {path}. Fix errors above before transpiling.")
 
 
@@ -168,12 +169,13 @@ def translate_expr(expr, constants=None, optional_fields=None):
     return result
 
 
-def _split_on_and(expr):
-    """Split expr on && at the top level (not inside parentheses)."""
+def _split_top_level(expr, op):
+    """Split expr on op ('&&' or '||') at the top level (not inside parentheses)."""
     parts = []
     depth = 0
     current = []
     i = 0
+    op_len = len(op)
     while i < len(expr):
         if expr[i] == "(":
             depth += 1
@@ -181,10 +183,10 @@ def _split_on_and(expr):
         elif expr[i] == ")":
             depth -= 1
             current.append(expr[i])
-        elif expr[i:i + 2] == "&&" and depth == 0:
+        elif expr[i:i + op_len] == op and depth == 0:
             parts.append("".join(current).strip())
             current = []
-            i += 2
+            i += op_len
             continue
         else:
             current.append(expr[i])
@@ -192,6 +194,14 @@ def _split_on_and(expr):
     if current:
         parts.append("".join(current).strip())
     return [p for p in parts if p]
+
+
+def _split_on_and(expr):
+    return _split_top_level(expr, "&&")
+
+
+def _split_on_or(expr):
+    return _split_top_level(expr, "||")
 
 
 def translate_when_to_rego_body(when_expr, constants=None, optional_fields=None):
@@ -253,16 +263,67 @@ def emit_computed_section(computed_fields, constants=None, skip=None, optional_f
 
         if has_cond:
             cond = field_def["conditional"]
-            if_expr = translate_expr(cond["if"], constants, optional_fields)
+            raw_if = cond["if"]
             then_expr = translate_expr(cond["then"], constants, optional_fields)
             else_expr = translate_expr(cond["else"], constants, optional_fields)
-            lines.append(f"{field_name} := {then_expr} if {{ {if_expr} }} else := {else_expr}")
+
+            # Split on top-level || (OR → multiple rule heads).
+            # For each OR branch, split on && (AND → separate body conditions).
+            # Rego rule bodies support neither || nor &&.
+            or_branches = []
+            for raw_clause in _split_on_or(raw_if):
+                and_parts = _split_on_and(raw_clause)
+                translated = []
+                for part in and_parts:
+                    part = part.strip()
+                    if part.startswith("!"):
+                        inner = translate_expr(part[1:].strip(), constants, optional_fields)
+                        translated.append(f"not {inner}")
+                    else:
+                        translated.append(translate_expr(part, constants, optional_fields))
+                or_branches.append(translated)
+
+            if len(or_branches) > 1:
+                # Multiple OR branches: emit a separate rule head for each
+                if then_expr == "true" and else_expr == "false":
+                    lines.append(f"default {field_name} := false")
+                    for branch in or_branches:
+                        if len(branch) == 1:
+                            lines.append(f"{field_name} := true if {{ {branch[0]} }}")
+                        else:
+                            lines.append(f"{field_name} := true if {{")
+                            for cond_str in branch:
+                                lines.append(f"    {cond_str}")
+                            lines.append("}")
+                else:
+                    helper = f"_{field_name}_cond"
+                    lines.append(f"default {helper} := false")
+                    for branch in or_branches:
+                        if len(branch) == 1:
+                            lines.append(f"{helper} if {{ {branch[0]} }}")
+                        else:
+                            lines.append(f"{helper} if {{")
+                            for cond_str in branch:
+                                lines.append(f"    {cond_str}")
+                            lines.append("}")
+                    lines.append(f"{field_name} := {then_expr} if {{ {helper} }}")
+                    lines.append(f"default {field_name} := {else_expr}")
+            else:
+                # Single OR branch (may still have multiple AND conditions)
+                branch = or_branches[0]
+                if len(branch) == 1:
+                    lines.append(f"{field_name} := {then_expr} if {{ {branch[0]} }} else := {else_expr}")
+                else:
+                    lines.append(f"{field_name} := {then_expr} if {{")
+                    for cond_str in branch:
+                        lines.append(f"    {cond_str}")
+                    lines.append(f"}} else := {else_expr}")
         else:
             expr = field_def["expr"]
             rego_expr = translate_expr(expr, constants, optional_fields)
             if ftype == "bool":
                 # Rego rule bodies don't support || — split OR clauses into multiple rules
-                or_clauses = [c.strip() for c in rego_expr.split("||")]
+                or_clauses = _split_on_or(rego_expr)
                 lines.append(f"default {field_name} := false")
                 for clause in or_clauses:
                     lines.append(f"{field_name} if {{ {clause} }}")

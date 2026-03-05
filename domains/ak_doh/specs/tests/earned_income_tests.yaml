@@ -1,0 +1,281 @@
+test_suite:
+  spec: "earned_income.civil.yaml"
+  description: "Test cases for AK APA/ADLTC Medicaid earned income eligibility (APA Manual § 442-4, 2026Q1)"
+  version: "1.0"
+
+# =============================================================================
+# Reference Values (used to construct test inputs)
+#
+# Income limits (Expanded Refused Cash, effective 2026-01-01):
+#   Individual (A1E / B1E / H1E / NHR): $1,845/month
+#   Couple    (A2S / B2S / H2S / A2C / B2C / H2C): $2,732/month
+#
+# Constants:
+#   INFREQUENT_EARNED_QUARTERLY_LIMIT: $30
+#   GENERAL_INCOME_EXCLUSION: $20
+#   EARNED_INCOME_EXCLUSION_FLAT: $65
+#   STUDENT_MONTHLY_EXCLUSION_LIMIT: $2,410
+#
+# Standard exclusion chain (non-special applicant, no unearned):
+#   final = 0.5 × (gross − 20 − 65)  [all other exclusions zero]
+#
+# Boundary back-calculation for A1E limit ($1,845):
+#   $1,845 = 0.5 × (gross − 85)  →  gross = $3,775
+# =============================================================================
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_001 — Happy path: individual, moderate wages, income well within limit
+  #
+  # Individual, A1E, gross_wages $1,500, no special circumstances
+  #   general_on_earned = $20, dollar_65 = $65
+  #   pre_half = 1500 − 20 − 65 = $1,415
+  #   half = $707.50
+  #   final = 1500 − 20 − 65 − 707.50 = $707.50
+  #   $707.50 < $1,845 → eligible ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_001"
+    description: "Individual with moderate wages comfortably below the A1E income limit"
+    inputs:
+      household_type: "A1E"
+      gross_wages: 1500
+      is_couple: false
+      is_blind_or_disabled: false
+      is_blind: false
+      age: 50
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["happy_path", "allow", "individual"]
+
+  # ---------------------------------------------------------------------------
+  # Case: deny_001 — High wages exceed A1E limit after standard exclusions
+  #
+  # Individual, A1E, gross_wages $4,500
+  #   general_on_earned = $20, dollar_65 = $65
+  #   pre_half = 4500 − 20 − 65 = $4,415
+  #   half = $2,207.50
+  #   final = 4500 − 20 − 65 − 2207.50 = $2,207.50
+  #   $2,207.50 > $1,845 → deny ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "deny_001"
+    description: "Individual with high wages exceeds the A1E income limit after all standard exclusions"
+    inputs:
+      household_type: "A1E"
+      gross_wages: 4500
+      is_couple: false
+      is_blind_or_disabled: false
+      is_blind: false
+      age: 40
+    expected:
+      eligible: false
+      denial_reasons:
+        - code: "INCOME_EXCEEDS_REFUSED_CASH_LIMIT"
+    tags: ["deny", "individual", "high_income"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_couple_001 — Couple with combined income within the couple limit
+  #
+  # Couple, A2C, combined gross_wages $2,400
+  #   $20 and $65 applied once to couple's combined income
+  #   pre_half = 2400 − 20 − 65 = $2,315
+  #   half = $1,157.50
+  #   final = 2400 − 20 − 65 − 1157.50 = $1,157.50
+  #   $1,157.50 < $2,732 → eligible ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_couple_001"
+    description: "Couple with combined wages well within the A2C income limit"
+    inputs:
+      household_type: "A2C"
+      gross_wages: 2400
+      is_couple: true
+      is_blind_or_disabled: false
+      is_blind: false
+      age: 60
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "couple"]
+
+  # ---------------------------------------------------------------------------
+  # Case: deny_couple_001 — Couple exceeds the higher couple income limit
+  #
+  # Couple, H2C, combined gross_wages $6,000
+  #   pre_half = 6000 − 20 − 65 = $5,915
+  #   half = $2,957.50
+  #   final = 6000 − 20 − 65 − 2957.50 = $2,957.50
+  #   $2,957.50 > $2,732 → deny ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "deny_couple_001"
+    description: "Couple with high combined wages exceeds the H2C income limit"
+    inputs:
+      household_type: "H2C"
+      gross_wages: 6000
+      is_couple: true
+      is_blind_or_disabled: false
+      is_blind: false
+      age: 55
+    expected:
+      eligible: false
+      denial_reasons:
+        - code: "INCOME_EXCEEDS_REFUSED_CASH_LIMIT"
+    tags: ["deny", "couple", "high_income"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_student_001 — Blind/disabled student exclusion reduces income below limit
+  #
+  # Individual, A1E, blind/disabled, age 19, college 12 hrs/wk (≥8 → regular attendance)
+  # gross_wages $3,000, student_earned_income $3,000 (capped at $2,410)
+  #   student_exclusion = min(3000, 2410) = $2,410
+  #   general_on_earned = $20, dollar_65 = $65
+  #   irwe = 0 (no irwe_amount provided)
+  #   pre_half = max(0, 3000 − 2410 − 20 − 65) = max(0, 505) = $505
+  #   half = $252.50
+  #   final = max(0, 3000 − 2410 − 20 − 65 − 252.50) = $252.50
+  #   $252.50 < $1,845 → eligible ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_student_001"
+    description: "Blind/disabled student under 22 in college: student exclusion reduces income well below limit"
+    inputs:
+      household_type: "A1E"
+      gross_wages: 3000
+      student_earned_income: 3000
+      college_hours_per_week: 12
+      is_couple: false
+      is_blind_or_disabled: true
+      is_blind: false
+      age: 19
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "student_exclusion", "blind_or_disabled"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_blind_001 — Blind work expense exclusion (step 9) reduces income below limit
+  #
+  # Individual, B1E, blind, gross_wages $3,500, blind_work_expense_amount $800
+  #   general_on_earned = $20, dollar_65 = $65
+  #   irwe = 0 (is_blind = true → IRWE condition false)
+  #   pre_half = max(0, 3500 − 20 − 65) = $3,415
+  #   half = $1,707.50
+  #   blind_work_exclusion = $800 (step 9, applied after half)
+  #   final = max(0, 3500 − 20 − 65 − 1707.50 − 800) = max(0, 907.50) = $907.50
+  #   $907.50 < $1,845 → eligible ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_blind_001"
+    description: "Blind individual with work expenses (step 9) reduces final income below B1E limit"
+    inputs:
+      household_type: "B1E"
+      gross_wages: 3500
+      blind_work_expense_amount: 800
+      is_couple: false
+      is_blind_or_disabled: true
+      is_blind: true
+      age: 45
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "blind_work_expense", "blind"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_boundary_001 — Final income exactly at the A1E limit (≤ limit passes)
+  #
+  # Individual, A1E, gross_wages $3,775
+  #   Back-calculated: final = 0.5 × (3775 − 85) = 0.5 × 3690 = $1,845 exactly
+  #   $1,845 ≤ $1,845 → eligible ✓ (deny rule is strictly-greater-than)
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_boundary_001"
+    description: "Final earned income exactly at the A1E limit passes (deny rule is strictly greater-than)"
+    inputs:
+      household_type: "A1E"
+      gross_wages: 3775
+      is_couple: false
+      is_blind_or_disabled: false
+      is_blind: false
+      age: 40
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "boundary", "individual"]
+
+  # ---------------------------------------------------------------------------
+  # Case: deny_edge_001 — NHR household, self-employment income exceeds limit
+  #
+  # Individual, NHR (nursing home regular, limit $1,845), net_self_employment_income $5,000
+  #   total_gross = $5,000 (self-employment only, all other sources zero)
+  #   general_on_earned = $20, dollar_65 = $65
+  #   pre_half = 5000 − 20 − 65 = $4,915
+  #   half = $2,457.50
+  #   final = 5000 − 20 − 65 − 2457.50 = $2,457.50
+  #   $2,457.50 > $1,845 → deny ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "deny_edge_001"
+    description: "NHR household with high self-employment income exceeds the nursing home regular limit"
+    inputs:
+      household_type: "NHR"
+      net_self_employment_income: 5000
+      is_couple: false
+      is_blind_or_disabled: false
+      is_blind: false
+      age: 70
+    expected:
+      eligible: false
+      denial_reasons:
+        - code: "INCOME_EXCEEDS_REFUSED_CASH_LIMIT"
+    tags: ["deny", "nhr", "self_employment", "edge"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_eitc_infrequent_001 — EITC and infrequent income exclusions applied
+  #
+  # Individual, A1E, gross_wages $2,500, eitc_ctc_payment $500, infrequent_earned_amount $30
+  #   eitc_exclusion = $500
+  #   infrequent_earned_exclusion = min(30, 30) = $30
+  #   general_on_earned = $20, dollar_65 = $65
+  #   pre_half = max(0, 2500 − 500 − 30 − 20 − 65) = max(0, 1885) = $1,885
+  #   half = $942.50
+  #   final = max(0, 2500 − 500 − 30 − 20 − 65 − 942.50) = max(0, 942.50) = $942.50
+  #   $942.50 < $1,845 → eligible ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_eitc_infrequent_001"
+    description: "EITC refund and infrequent income (at $30 quarterly cap) both excluded; income passes"
+    inputs:
+      household_type: "A1E"
+      gross_wages: 2500
+      eitc_ctc_payment: 500
+      infrequent_earned_amount: 30
+      is_couple: false
+      is_blind_or_disabled: false
+      is_blind: false
+      age: 35
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "eitc_exclusion", "infrequent_exclusion"]
+
+  # ---------------------------------------------------------------------------
+  # Case: allow_partial_general_excl_001 — $20 exclusion partially consumed by unearned income
+  #
+  # Individual, H1E, gross_wages $1,000, non_needs_unearned_income $15
+  #   general_exclusion_used_on_unearned = min(15, 20) = $15
+  #   general_exclusion_on_earned = max(0, 20 − 15) = $5 (only $5 left for earned)
+  #   dollar_65 = $65
+  #   pre_half = max(0, 1000 − 5 − 65) = $930
+  #   half = $465
+  #   final = max(0, 1000 − 5 − 65 − 465) = $465
+  #   $465 < $1,845 → eligible ✓
+  # ---------------------------------------------------------------------------
+  - case_id: "allow_partial_general_excl_001"
+    description: "Unearned income ($15) partially consumes $20 general exclusion; remaining $5 applied to earned"
+    inputs:
+      household_type: "H1E"
+      gross_wages: 1000
+      non_needs_unearned_income: 15
+      is_couple: false
+      is_blind_or_disabled: false
+      is_blind: false
+      age: 55
+    expected:
+      eligible: true
+      denial_reasons: []
+    tags: ["allow", "general_exclusion", "partial_unearned"]

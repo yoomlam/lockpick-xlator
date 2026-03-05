@@ -1,92 +1,157 @@
 version: "1.0"
 entities:
   Applicant:
-    household_type:
-      policy_phrase: "household type (program/unit code: A1E, B1E, H1E, A2S, B2S, H2S, A2C, B2C, H2C, NHR)"
-      source_doc: "ADLTC.md"
-      section: "EXPANDED REFUSED CASH INCOME LIMITS"
+    gross_wages:
+      policy_phrase: "wages"
+      source_doc: "441-1 EARNED INCOME.md"
+      section: "APA Manual § 441-1 A — WAGES"
+    flex_benefit_excess:
+      policy_phrase: "flexible health benefits"
+      source_doc: "441-1 EARNED INCOME.md"
+      section: "APA Manual § 441-1 B — FLEXIBLE HEALTH BENEFITS"
+    sick_leave_within_6mo:
+      policy_phrase: "sick leave (within six months after work stopped)"
+      source_doc: "441-1 EARNED INCOME.md"
+      section: "APA Manual § 441-1 C — SICK LEAVE"
+    garnishment_amount:
+      policy_phrase: "garnishments against earned income"
+      source_doc: "441-1 EARNED INCOME.md"
+      section: "APA Manual § 441-1 D — GARNISHMENTS AGAINST EARNED INCOME"
+    net_self_employment_income:
+      policy_phrase: "net earnings from self-employment"
+      source_doc: "441-1 EARNED INCOME.md"
+      section: "APA Manual § 441-1 E — NET EARNINGS FROM SELF-EMPLOYMENT"
+    sheltered_workshop_earnings:
+      policy_phrase: "earnings from sheltered workshop or work activities center"
+      source_doc: "441-1 EARNED INCOME.md"
+      section: "APA Manual § 441-1 F — EARNINGS FROM SHELTERED WORKSHOP OR WORK ACTIVITIES CENTER"
+    eitc_ctc_payment:
+      policy_phrase: "earned income tax credit and child tax credit payments"
+      source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+      section: "APA Manual § 442-2 B — EARNED INCOME TAX CREDIT AND CHILD TAX CREDIT PAYMENTS"
+    federal_law_exclusion_amount:
+      policy_phrase: "earned income exclusions authorized by federal laws"
+      source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+      section: "APA Manual § 442-2 A — EARNED INCOME EXCLUSIONS AUTHORIZED BY FEDERAL LAWS"
+    infrequent_earned_amount:
+      policy_phrase: "infrequent or irregular income (earned)"
+      source_doc: "442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      section: "APA Manual § 442-1 A — INFREQUENT/IRREGULAR INCOME"
+    non_needs_unearned_income:
+      policy_phrase: "non-needs-based unearned income (for $20 general exclusion)"
+      source_doc: "442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      section: "APA Manual § 442-1 B — $20 PER MONTH GENERAL INCOME EXCLUSION"
+    is_couple:
+      policy_phrase: "couple"
+      source_doc: "442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      section: "APA Manual § 442-1 B — $20 PER MONTH GENERAL INCOME EXCLUSION; § 442-2 F — $65 EARNED INCOME EXCLUSION"
+    is_blind_or_disabled:
+      policy_phrase: "blind or disabled"
+      source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+      section: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
     is_blind:
       policy_phrase: "blind"
-      source_doc: "AK_DOH_APA_ADLTC.md"
-      section: "442-2 G. IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED / 442-2 I. WORK EXPENSES FOR THE BLIND"
-    is_disabled:
-      policy_phrase: "disabled individual"
-      source_doc: "AK_DOH_APA_ADLTC.md"
-      section: "442-2 G. IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED"
-    is_student:
-      policy_phrase: "blind or disabled student under age 22 regularly attending school"
-      source_doc: "AK_DOH_APA_ADLTC.md"
-      section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
-    gross_earned_income:
-      policy_phrase: "gross earned income before exclusions"
-      source_doc: "AK_DOH_APA_ADLTC.md"
-      section: "441-1 EARNED INCOME / 523 B. REASONABLE COMPATIBILITY"
-    general_exclusion_used_on_unearned:
-      policy_phrase: "portion of the $20 general income exclusion excluded from unearned income in the same month"
-      source_doc: "AK_DOH_APA_ADLTC.md"
-      section: "442-2 E. $20 PER MONTH GENERAL INCOME EXCLUSION"
-    infrequent_irregular_excluded:
-      policy_phrase: "infrequent or irregular earned income excluded (up to $30 in a calendar quarter)"
-      source_doc: "AK_DOH_APA_ADLTC.md"
-      section: "442-2 C. INFREQUENT/IRREGULAR EARNED INCOME"
-    student_earned_excluded:
-      policy_phrase: "earned income of a blind or disabled student excluded subject to monthly and yearly maximums"
-      source_doc: "AK_DOH_APA_ADLTC.md"
-      section: "442-2 D. STUDENT EARNED INCOME EXCLUSION"
+      source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+      section: "APA Manual § 442-2 I — WORK EXPENSES FOR THE BLIND"
+    age:
+      policy_phrase: "under age 22"
+      source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+      section: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+    college_hours_per_week:
+      policy_phrase: "college or university (hours per week)"
+      source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+      section: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+    grades7_12_hours_per_week:
+      policy_phrase: "grades 7 through 12 (hours per week)"
+      source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+      section: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+    training_shop_hours_per_week:
+      policy_phrase: "training course that includes shop practice (hours per week)"
+      source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+      section: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+    training_no_shop_hours_per_week:
+      policy_phrase: "training course without shop practice (hours per week)"
+      source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+      section: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+    student_earned_income:
+      policy_phrase: "student earned income"
+      source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+      section: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
     irwe_amount:
-      policy_phrase: "impairment-related work expenses"
-      source_doc: "AK_DOH_APA_ADLTC.md"
-      section: "442-2 G. IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED"
-    blind_work_expenses:
+      policy_phrase: "impairment related work expenses"
+      source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+      section: "APA Manual § 442-2 G — IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED"
+    blind_work_expense_amount:
       policy_phrase: "work expenses for the blind"
-      source_doc: "AK_DOH_APA_ADLTC.md"
-      section: "442-2 I. WORK EXPENSES FOR THE BLIND"
-    pass_exclusion:
-      policy_phrase: "earned income used to fulfill an approved plan to achieve self-support"
-      source_doc: "AK_DOH_APA_ADLTC.md"
-      section: "442-2 J. AMOUNT TO FULFILL A PLAN FOR ACHIEVING SELF-SUPPORT"
-    dol_monthly_income_avg:
-      policy_phrase: "most recent quarter reported by DOL divided by three to get the average monthly income amount"
-      source_doc: "ADLTC.md"
-      section: "523 B. REASONABLE COMPATIBILITY"
+      source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+      section: "APA Manual § 442-2 I — WORK EXPENSES FOR THE BLIND"
+    self_support_plan_amount:
+      policy_phrase: "amount to fulfill a plan for achieving self-support"
+      source_doc: "442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+      section: "APA Manual § 442-1 C — AMOUNT TO FULFILL A PLAN FOR ACHIEVING SELF-SUPPORT"
+    household_type:
+      policy_phrase: "household type code"
+      source_doc: "Addendum 1 - Expanded Refuse Cash Income Limits.md"
+      section: "ADLTC Manual Addendum 1 — EXPANDED REFUSED CASH INCOME LIMITS"
+
 computed:
-  refused_cash_income_limit:
-    policy_phrase: "refused cash income limit by household type"
-    source_doc: "ADLTC.md"
-    section: "EXPANDED REFUSED CASH INCOME LIMITS"
-  general_exclusion_remaining:
-    policy_phrase: "portion of the $20 general income exclusion not excluded from unearned income"
-    source_doc: "AK_DOH_APA_ADLTC.md"
-    section: "442-2 E. $20 PER MONTH GENERAL INCOME EXCLUSION"
-  income_after_pre_chain_exclusions:
-    policy_phrase: "earned income after infrequent/irregular, student, and PASS exclusions"
-    source_doc: "AK_DOH_APA_ADLTC.md"
-    section: "442-2 C / 442-2 D / 442-2 J"
-  income_after_general_exclusion:
-    policy_phrase: "earned income after $20 general income exclusion"
-    source_doc: "AK_DOH_APA_ADLTC.md"
-    section: "442-2 E. $20 PER MONTH GENERAL INCOME EXCLUSION"
-  income_after_earned_exclusion:
-    policy_phrase: "earned income after $65 earned income exclusion"
-    source_doc: "AK_DOH_APA_ADLTC.md"
-    section: "442-2 F. $65 EARNED INCOME EXCLUSION"
-  disability_work_exclusion:
-    policy_phrase: "work expense exclusion for blind or disabled applicants"
-    source_doc: "AK_DOH_APA_ADLTC.md"
-    section: "442-2 G / 442-2 I"
-  income_after_disability_work_exclusion:
-    policy_phrase: "earned income after impairment-related or blind work expense exclusion"
-    source_doc: "AK_DOH_APA_ADLTC.md"
-    section: "442-2 G / 442-2 I"
-  countable_earned_income:
-    policy_phrase: "one-half of remaining earned income"
-    source_doc: "AK_DOH_APA_ADLTC.md"
-    section: "442-2 H. ONE-HALF OF REMAINING EARNED INCOME"
-  dol_countable_income:
-    policy_phrase: "DOL monthly average after income exclusions applied"
-    source_doc: "ADLTC.md"
-    section: "523 B. REASONABLE COMPATIBILITY"
-  is_dol_reasonably_compatible:
-    policy_phrase: "reasonably compatible — DOL income within 10% of client stated income"
-    source_doc: "ADLTC.md"
-    section: "523 B. REASONABLE COMPATIBILITY"
+  total_gross_earned_income:
+    policy_phrase: "total gross earned income from all sources"
+    source_doc: "441-1 EARNED INCOME.md"
+    section: "APA Manual §§ 441-1 A–F — EARNED INCOME"
+  federal_exclusion:
+    policy_phrase: "earned income exclusions authorized by federal laws (step 1)"
+    source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+    section: "APA Manual § 442-2 A — EARNED INCOME EXCLUSIONS AUTHORIZED BY FEDERAL LAWS"
+  eitc_exclusion:
+    policy_phrase: "earned income tax credit and child tax credit exclusion (step 2)"
+    source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+    section: "APA Manual § 442-2 B — EARNED INCOME TAX CREDIT AND CHILD TAX CREDIT PAYMENTS"
+  infrequent_earned_exclusion:
+    policy_phrase: "infrequent/irregular earned income exclusion (step 3)"
+    source_doc: "442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+    section: "APA Manual § 442-1 A — INFREQUENT/IRREGULAR INCOME; § 442-2 C"
+  is_regular_school_attendance:
+    policy_phrase: "regularly attending school"
+    source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+    section: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+  student_exclusion:
+    policy_phrase: "student earned income exclusion (step 4)"
+    source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+    section: "APA Manual § 442-2 D — STUDENT EARNED INCOME EXCLUSION"
+  general_exclusion_used_on_unearned:
+    policy_phrase: "$20 per month general income exclusion consumed by unearned income"
+    source_doc: "442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+    section: "APA Manual § 442-1 B — $20 PER MONTH GENERAL INCOME EXCLUSION"
+  general_exclusion_on_earned:
+    policy_phrase: "$20 per month general income exclusion applied to earned income (step 5)"
+    source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+    section: "APA Manual § 442-2 E — $20 PER MONTH GENERAL INCOME EXCLUSION"
+  dollar_65_exclusion:
+    policy_phrase: "$65 earned income exclusion (step 6)"
+    source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+    section: "APA Manual § 442-2 F — $65 EARNED INCOME EXCLUSION"
+  irwe_exclusion:
+    policy_phrase: "impairment related work expense exclusion for disabled (step 7)"
+    source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+    section: "APA Manual § 442-2 G — IMPAIRMENT RELATED WORK EXPENSES FOR DISABLED"
+  pre_half_subtotal:
+    policy_phrase: "remaining earned income after steps 1–7 (base for one-half exclusion)"
+    source_doc: "442-4 THE ORDER IN WHICH INCOME EXCLUSIONS ARE APPLIED.md"
+    section: "APA Manual § 442-4 — THE ORDER IN WHICH INCOME EXCLUSIONS ARE APPLIED"
+  half_exclusion:
+    policy_phrase: "one-half of remaining earned income (step 8)"
+    source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+    section: "APA Manual § 442-2 H — ONE-HALF OF REMAINING EARNED INCOME"
+  blind_work_exclusion:
+    policy_phrase: "work expense exclusion for the blind (step 9)"
+    source_doc: "442-2 EARNED INCOME EXCLUSIONS.md"
+    section: "APA Manual § 442-2 I — WORK EXPENSES FOR THE BLIND"
+  self_support_exclusion:
+    policy_phrase: "self-support plan exclusion (step 10)"
+    source_doc: "442-1 INCOME EXCLUSIONS WHICH APPLY TO BOTH.md"
+    section: "APA Manual § 442-1 C — AMOUNT TO FULFILL A PLAN FOR ACHIEVING SELF-SUPPORT; § 442-2 J"
+  final_earned_income:
+    policy_phrase: "final countable earned income after all 10 exclusion steps"
+    source_doc: "442-4 THE ORDER IN WHICH INCOME EXCLUSIONS ARE APPLIED.md"
+    section: "APA Manual § 442-4 — THE ORDER IN WHICH INCOME EXCLUSIONS ARE APPLIED"
